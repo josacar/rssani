@@ -1,0 +1,26 @@
+#include <QtCore/QTextCodec>
+#include <QtCore/QCoreApplication>
+#include "rssani_lite.h"
+#include "xmlrpc.h"
+
+#ifdef __unix__
+#include <sys/signal.h>
+#endif
+
+#include "mailsender.h"
+
+int main ( int argc, char **argv ) {
+#ifdef __unix__
+	signal(SIGPIPE, SIG_IGN);
+#endif
+	QCoreApplication app(argc, argv);
+	app.setOrganizationName(QLatin1String("Selu"));
+	app.setApplicationName(QLatin1String("rss-animersion"));
+	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
+	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+	QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
+   rssani_lite *rss = new rssani_lite();
+	rssxmlrpc * rpc = new rssxmlrpc(rss);
+	rpc->start();
+	return app.exec();
+}
