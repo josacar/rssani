@@ -1,9 +1,13 @@
+#ifndef MYIRCSESSION_H
+#define MYIRCSESSION_H
+
 #include <QtCore/QThread>
 #include <QtCore/QDebug>
 #include <QtCore/QTimer>
 #include <QtCore/QTextCodec>
 #include <QtCore/QStringList>
-#include <IrcSession>
+#include <IrcConnection>
+#include <IrcCommand>
 
 struct datosIrc {
   bool	activo;
@@ -13,7 +17,7 @@ struct datosIrc {
   bool debug;
 };
 
-class MyIrcSession : public Irc::Session {
+class MyIrcSession : public IrcConnection {
   Q_OBJECT
 
   public:
@@ -47,3 +51,5 @@ signals:
     datosIrc *misdatos;
     QTimer *timer;
 };
+
+#endif

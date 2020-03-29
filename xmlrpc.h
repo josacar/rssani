@@ -1,6 +1,10 @@
 #ifndef XMLRPC_H
 #define XMLRPC_H
 
+#ifndef INADDR_ANY
+  #define INADDR_ANY ((unsigned long int) 0x00000000)
+#endif
+
 #include <ulxmlrpcpp/ulxmlrpcpp.h>
 
 #include <cassert>
