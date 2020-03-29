@@ -8,9 +8,14 @@
 #include <QtCore/QUrl>
 #include <QtCore/QFileInfo>
 #include <QtCore/QTextCodec>
-#include <QtNetwork/QHttp>
+#include <QtCore/QUrlQuery>
+#include <QtNetwork/QNetworkRequest>
+#include <QtNetwork/QNetworkReply>
+#include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QHostInfo>
-#include <QtXml/QXmlStreamReader>
+#include <QtCore/QXmlStreamReader>
+#include <QtCore/QDateTime>
+
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
@@ -105,13 +110,13 @@ class Rss_lite : public QObject {
      * Parsea el XML conforme le va llegando
      * @param resp Encabezado de respuesta HTTP
      */
-    void readDataRSS ( const QHttpResponseHeader &resp );
+    void readDataRSS (QNetworkReply *reply);
 
     /**
      * Mira el nombre del fichero y graba el torrent
      * @param resp Encabezado HTTP del torrent
      */
-    void readDataTorrent ( const QHttpResponseHeader &resp );
+    void readDataTorrent (QNetworkReply *reply );
 
     /**
      * Prepara el GET del .torrent en cuestión
@@ -179,7 +184,7 @@ class Rss_lite : public QObject {
     QDateTime ultimoRss;
     QStringList recientes;
 
-    QHttp httpRss,httpTorrent;
+    QNetworkAccessManager httpRss,httpTorrent;
     int connectionIdRSS;
     QFile *log,*matches;
     QHash<QString,tracker*> trackers; /**< hash con tracker y su configuracion */

@@ -14,12 +14,9 @@ int main ( int argc, char **argv ) {
 	signal(SIGPIPE, SIG_IGN);
 #endif
 	QCoreApplication app(argc, argv);
-	app.setOrganizationName(QLatin1String("Selu"));
-	app.setApplicationName(QLatin1String("rss-animersion"));
-	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-   rssani_lite *rss = new rssani_lite();
+    app.setOrganizationName(QString("Selu"));
+    app.setApplicationName(QString("rssani"));
+    rssani_lite *rss = new rssani_lite();
 	rssxmlrpc * rpc = new rssxmlrpc(rss);
 	rpc->start();
 	return app.exec();
