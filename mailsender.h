@@ -55,7 +55,7 @@ class MailSender : public QObject
 
     QString getMimeType(QString ext) const;
     QString priorityString() const;
-    void addMimeAttachment(QString *pdata, const QString &filename) const;
+    int addMimeAttachment(QString *pdata, const QString &filename) const;
     void addMimeBody(QString *pdata) const;
     QString mailData() const;
     QString contentType() const;

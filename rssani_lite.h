@@ -36,7 +36,7 @@ class rssani_lite : public QObject {
        * @param tracker Tracker
        * @param dias Dias entre descargas
        */
-      void anadirRegexp(std::wstring nombre, std::wstring fecha,bool mail,std::wstring tracker, int dias);
+      void anadirRegexp(std::string nombre, std::string fecha,bool mail,std::string tracker, int dias);
 
     /**
      * Edita una regexp
@@ -44,14 +44,14 @@ class rssani_lite : public QObject {
      * @param regexpDest Regexp destino
      * @return Devuelve 0 si tiene exito
      */
-    bool editarRegexp ( std::wstring regexpOrig, std::wstring regexpDest );
+    bool editarRegexp ( std::string regexpOrig, std::string regexpDest );
     /**
      * Edita una regexp
      * @param regexpOrig Regexp a cambiar
      * @param regexpDest Regexp destino
      * @return Devuelve 0 si tiene exito
      */
-    bool editarRegexp ( int regexpOrig, std::wstring regexpDest );
+    bool editarRegexp ( int regexpOrig, std::string regexpDest );
     /**
      * Edita una regexp
      * @param regexpOrig Regexp a cambiar
@@ -89,7 +89,7 @@ class rssani_lite : public QObject {
      * Borra la regexp
      * @param cad  La regexp a borrar
      */
-    void borrarRegexp(std::wstring cad);
+    void borrarRegexp(std::string cad);
 
     /**
      * Cambia el timer del get del rss
@@ -107,7 +107,7 @@ class rssani_lite : public QObject {
      * Muestra la fecha del ultimo get
      * @return El string con la fecha
      */
-    std::wstring verUltimo();
+    std::string verUltimo();
 
     /**
      * Guarda la configuración
@@ -123,7 +123,7 @@ class rssani_lite : public QObject {
      * Cambia el usuario del xml-rpc
      * @param theValue El nuevo nombre del usuario
      */
-    void setRpcUser ( std::wstring theValue );
+    void setRpcUser ( std::string theValue );
 
     /**
      * Devuelve el usuario del xml-rpc
@@ -135,7 +135,7 @@ class rssani_lite : public QObject {
      * Cambia la contraseña del xml-rpc
      * @param theValue La nueva contraseña del usuario
      */
-    void setRpcPass ( std::wstring theValue );
+    void setRpcPass ( std::string theValue );
 
     /**
      * Devuelve la contraseña del xml-rpc
@@ -150,13 +150,13 @@ class rssani_lite : public QObject {
      * @param pass 
      * @param passkey 
      */
-    void anadirAuth ( std::wstring tracker, std::wstring uid, std::wstring pass, std::wstring passkey);
+    void anadirAuth ( std::string tracker, std::string uid, std::string pass, std::string passkey);
 
     /**
      * Borra las credenciales del tracker
      * @param tracker 
      */
-    void borrarAuth ( std::wstring tracker );
+    void borrarAuth ( std::string tracker );
     /**
      * Devuelve los auth de los trackers
      * @return Lista de auths de los trackers

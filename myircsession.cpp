@@ -65,7 +65,7 @@ void MyIrcSession::connectSlotsByName(QObject *source) {
   connect(source, SIGNAL(unknownMessageReceived(QString, QStringList)), SLOT(on_unknownMessageReceived(QString, QStringList)));
 }
 
-MyIrcSession::MyIrcSession( QObject* parent, datosIrc *datos, bool depurar ) : Session( parent ) {
+MyIrcSession::MyIrcSession( QObject* parent, datosIrc *datos, bool depurar ) : IrcConnection( parent ) {
   misdatos = datos;
   connectSlotsByName( this );
   debug = depurar;
@@ -76,12 +76,14 @@ MyIrcSession::MyIrcSession( QObject* parent, datosIrc *datos, bool depurar ) : S
   qDebug() << "Debug is : " << debug;
 
   setEncoding( "iso-8859-1" );
-  setAutoReconnectDelay(15);
-  setNick(misdatos->nick);
+  setReconnectDelay(15);
+  setNickName(misdatos->nick);
   setRealName( misdatos->name );
-  setIdent( misdatos->user );
-  setAutoJoinChannels( QStringList( QLatin1String("#PuntoTorrent") ) );
-  connectToServer( QLatin1String("irc.irc-hispano.org"), 6667 );
+  setUserName( misdatos->user );
+  //setAutoJoinChannels( QStringList( QLatin1String("#PuntoTorrent") ) );
+  setHost("irc.irc-hispano.org");
+  setPort(6667);
+  open();
 }
 
 void MyIrcSession::on_timeout() {
@@ -91,9 +93,9 @@ void MyIrcSession::on_timeout() {
 
 void MyIrcSession::on_connected() {
   qDebug() << "Conected !!!";
-  QStringList canales = autoJoinChannels();
+  QStringList canales = QStringList( QString ("#PuntoTorrent") );
   for ( int i=0; i < canales.size(); i++) {
-    cmdJoin(canales.at(i));
+    sendCommand(IrcCommand::createJoin(canales.at(i)));
   }
 }
 
@@ -134,7 +136,7 @@ void MyIrcSession::on_msgKicked( const QString& origin, const QString& channel, 
   Q_UNUSED( message );
   qDebug() << "Kicked from channel:" << channel;
   sleep( 5 );
-  cmdJoin( channel );
+  sendCommand(IrcCommand::createJoin(( channel )));
 }
 
 void MyIrcSession::on_channelMessageReceived( const QString& origin, const QString& channel, const QString& message ) {
@@ -193,7 +195,7 @@ void MyIrcSession::on_msgUnknownMessageReceived( const QString& origin, const QS
 
 void MyIrcSession::on_msgNumericMessageReceived( const QString& origin, uint code, const QStringList& params ) {
   if ( code == 376 )
-    cmdJoin( QLatin1String("#PuntoTorrent") );
+    sendCommand(IrcCommand::createJoin(( QString("#PuntoTorrent") )));
 
   if ( !debug ) return;
   QString stream;

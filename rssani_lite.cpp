@@ -1,11 +1,11 @@
 #include "rssani_lite.h"
 #include "rss_lite.h"
 
-rssani_lite *gRss = NULL;
+rssani_lite *gRss = nullptr;
 
 #ifdef __unix__
 void sigHandler( int signo ) {
-  if ( gRss != NULL )
+  if ( gRss != nullptr )
     switch ( signo ) {
       case SIGUSR1:
         if ( gRss ) gRss->debugea();
@@ -103,8 +103,8 @@ rssani_lite::~rssani_lite() {
 
 // INICIO METODOS RPC
 
-std::wstring rssani_lite::verUltimo() {
-  return rss->verUltimo().toString( QLatin1String( "dd/MM/yyyy hh:mm:ss" ) ).toStdWString();
+std::string rssani_lite::verUltimo() {
+  return rss->verUltimo().toString( QLatin1String( "dd/MM/yyyy hh:mm:ss" ) ).toStdString();
 }
 
 int rssani_lite::verTimer() {
@@ -115,30 +115,30 @@ QList<regexp*>* rssani_lite::listaRegexp() {
   return lista;
 }
 
-bool rssani_lite::editarRegexp( std::wstring regexpOrig, std::wstring regexpDest ) {
+bool rssani_lite::editarRegexp( std::string regexpOrig, std::string regexpDest ) {
   int pos = -1; // FIXME: Asegurarse que cambia la del tracker y no otra
   for ( int i = 0; i < lista->size(); ++i ) {
-    if ( QString::compare( lista->at( i )->nombre , QString::fromStdWString( regexpOrig ) ) == 0 ) {
+    if ( QString::compare( lista->at( i )->nombre , QString::fromStdString( regexpOrig ) ) == 0 ) {
       pos = i;
       break;
     }
   }
   if ( pos != -1 ) {
     regexp *re = lista->at( pos );
-    re->nombre = QString::fromStdWString( regexpDest );
+    re->nombre = QString::fromStdString( regexpDest );
     // 		lista->replace( pos, re );
-    qDebug()  << "Cambiado" << QString::fromStdWString( regexpOrig ) << "--> " << re->nombre;
+    qDebug()  << "Cambiado" << QString::fromStdString( regexpOrig ) << "--> " << re->nombre;
     return 0;
   } else {
     return 1;
   }
 }
 
-bool rssani_lite::editarRegexp( int pos, std::wstring regexpDest ) {
+bool rssani_lite::editarRegexp( int pos, std::string regexpDest ) {
   if ( pos != -1 ) {
     regexp *re = lista->at( pos );
     QString regexpOrig = re->nombre;
-    re->nombre = QString::fromStdWString( regexpDest );
+    re->nombre = QString::fromStdString( regexpDest );
     qDebug()  << "Cambiado" << regexpOrig << "--> " << re->nombre;
     return 0;
   } else {
@@ -164,11 +164,11 @@ void rssani_lite::moverRegexp( int from, int to ) {
   }
 }
 
-void rssani_lite::anadirRegexp( std::wstring nombre, std::wstring fecha, bool mail, std::wstring tracker, int dias ) {
+void rssani_lite::anadirRegexp( std::string nombre, std::string fecha, bool mail, std::string tracker, int dias ) {
   regexp *re = new regexp();
-  re->nombre = QString::fromStdWString( nombre );
-  re->vencimiento = QString::fromStdWString( fecha );
-  re->tracker = QString::fromStdWString( tracker );
+  re->nombre = QString::fromStdString( nombre );
+  re->vencimiento = QString::fromStdString( fecha );
+  re->tracker = QString::fromStdString( tracker );
   re->mail = mail;
   re->diasDescarga = dias;
   re->fechaDescarga = NULL;
@@ -181,35 +181,35 @@ void rssani_lite::borrarRegexp( int pos ) {
   lista->removeAt( pos );
 }
 
-void rssani_lite::borrarRegexp( std::wstring cad ) {
+void rssani_lite::borrarRegexp( std::string cad ) {
   for ( int i = 0; i < lista->size(); ++i ) {
-    if ( QString::compare( lista->at( i )->nombre , QString::fromStdWString( cad ) ) == 0 ) {
+    if ( QString::compare( lista->at( i )->nombre , QString::fromStdString( cad ) ) == 0 ) {
       lista->removeAt( i );
-      qDebug()  << "Borrado regexp" << QString::fromStdWString( cad );
+      qDebug()  << "Borrado regexp" << QString::fromStdString( cad );
     }
   }
 }
 
-void rssani_lite::anadirAuth( std::wstring tracker, std::wstring uid, std::wstring pass, std::wstring passkey ) {
+void rssani_lite::anadirAuth( std::string tracker, std::string uid, std::string pass, std::string passkey ) {
   auth au;
-  au.tracker = QString::fromStdWString( tracker );
-  au.uid = QString::fromStdWString( uid );
-  au.pass = QString::fromStdWString( pass );
-  au.passkey = QString::fromStdWString( passkey );
+  au.tracker = QString::fromStdString( tracker );
+  au.uid = QString::fromStdString( uid );
+  au.pass = QString::fromStdString( pass );
+  au.passkey = QString::fromStdString( passkey );
   listAuths->append( au ) ;
   hashAuths->insert( au.tracker, au );
   qDebug()  << "Añadido auth" << au.tracker << au.uid << au.pass << au.passkey;
 }
 
-void rssani_lite::borrarAuth( std::wstring tracker ) {
+void rssani_lite::borrarAuth( std::string tracker ) {
   for ( int i = 0; i < listAuths->size(); ++i ) {
-    if ( QString::compare( listAuths->at( i ).tracker , QString::fromStdWString( tracker ) ) == 0 ) {
+    if ( QString::compare( listAuths->at( i ).tracker , QString::fromStdString( tracker ) ) == 0 ) {
       listAuths->removeAt( i );
-      qDebug()  << "Borrado auth" << QString::fromStdWString( tracker );
+      qDebug()  << "Borrado auth" << QString::fromStdString( tracker );
     }
   }
   // 	delete hashAuths->value( tracker );
-  hashAuths->remove( QString::fromStdWString( tracker ) );
+  hashAuths->remove( QString::fromStdString( tracker ) );
 }
 
 QList<auth>* rssani_lite::listaAuths() {
@@ -253,16 +253,16 @@ void rssani_lite::salYa() {
   exit( 0 );
 }
 
-void rssani_lite::setRpcUser( std::wstring theValue ) {
-  rpcUser = QString::fromStdWString( theValue );
+void rssani_lite::setRpcUser( std::string theValue ) {
+  rpcUser = QString::fromStdString( theValue );
 }
 
 QString rssani_lite::getRpcUser() {
   return rpcUser;
 }
 
-void rssani_lite::setRpcPass( std::wstring theValue ) {
-  rpcPass = QString::fromStdWString( theValue );
+void rssani_lite::setRpcPass( std::string theValue ) {
+  rpcPass = QString::fromStdString( theValue );
 }
 
 QString rssani_lite::getRpcPass() {

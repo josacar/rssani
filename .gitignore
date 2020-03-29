@@ -13,3 +13,13 @@
 
 rssani_console.kde*
 Doxyfile
+
+.cmake/
+CMakeCache.txt
+CMakeFiles/
+CMakeLists.txt.*
+Makefile
+rssani
+cmake_install.cmake
+rssani.cbp
+rssani_autogen/

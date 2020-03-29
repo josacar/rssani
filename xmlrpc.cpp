@@ -185,10 +185,10 @@ ulxr::MethodResponse Metodos::listaAuths ( const ulxr::MethodCall &/*calldata*/ 
   QList<auth> * auths = rss->listaAuths();
 
   for ( int i = 0;i < auths->count(); i++ ) {
-    valor.addMember( ULXR_PCHAR("tracker"), ulxr::RpcString( auths->at ( i ).tracker.toStdWString() ) );
-    valor.addMember( ULXR_PCHAR("uid"), ulxr::RpcString( auths->at ( i ).uid.toStdWString() ) );
-    valor.addMember( ULXR_PCHAR("pass"), ulxr::RpcString( auths->at ( i ).pass.toStdWString() ) );
-    valor.addMember( ULXR_PCHAR("passkey"), ulxr::RpcString( auths->at ( i ).passkey.toStdWString() ) );
+    valor.addMember( ULXR_PCHAR("tracker"), ulxr::RpcString( auths->at ( i ).tracker.toStdString() ) );
+    valor.addMember( ULXR_PCHAR("uid"), ulxr::RpcString( auths->at ( i ).uid.toStdString() ) );
+    valor.addMember( ULXR_PCHAR("pass"), ulxr::RpcString( auths->at ( i ).pass.toStdString() ) );
+    valor.addMember( ULXR_PCHAR("passkey"), ulxr::RpcString( auths->at ( i ).passkey.toStdString() ) );
 
     valores << ulxr::Struct ( valor ); 
     valor.clear();
@@ -219,9 +219,9 @@ ulxr::MethodResponse Metodos::verOpciones ( const ulxr::MethodCall &/*calldata*/
   ulxr::Struct valor;
   Values * opciones = rss->getValues();
 
-  valor.addMember( ULXR_PCHAR("fromMail"), ulxr::RpcString( opciones->FromMail().toStdWString() ) );
-  valor.addMember( ULXR_PCHAR("toMail"), ulxr::RpcString( opciones->ToMail().toStdWString() ) );
-  valor.addMember( ULXR_PCHAR("path"), ulxr::RpcString( opciones->Ruta().toStdWString() ) );
+  valor.addMember( ULXR_PCHAR("fromMail"), ulxr::RpcString( opciones->FromMail().toStdString() ) );
+  valor.addMember( ULXR_PCHAR("toMail"), ulxr::RpcString( opciones->ToMail().toStdString() ) );
+  valor.addMember( ULXR_PCHAR("path"), ulxr::RpcString( opciones->Ruta().toStdString() ) );
 
   resp.setResult ( valor );
 
@@ -235,9 +235,9 @@ ulxr::MethodResponse Metodos::ponerOpciones ( const ulxr::MethodCall &calldata )
   ulxr::RpcString P = calldata.getParam ( 2 ); // Path
 
   Values * opciones = rss->getValues();
-  opciones->setFromMail( QString::fromStdWString( F.getString() ) );
-  opciones->setToMail( QString::fromStdWString( T.getString() ) );
-  opciones->setRuta( QString::fromStdWString( P.getString() ) );
+  opciones->setFromMail( QString::fromStdString( F.getString() ) );
+  opciones->setToMail( QString::fromStdString( T.getString() ) );
+  opciones->setRuta( QString::fromStdString( P.getString() ) );
 
   resp.setResult ( ulxr::Boolean ( true ) );
 
