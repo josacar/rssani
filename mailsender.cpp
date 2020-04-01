@@ -177,6 +177,8 @@ int MailSender::addMimeAttachment(QString *pdata, const QString &filename) const
   encodedFile = encodeBase64(b);
   pdata->append(encodedFile);
   pdata->append(QString("\r\n\n"));
+
+  return 0;
 }
 
 void MailSender::addMimeBody(QString *pdata) const

@@ -52,11 +52,12 @@ void Rss_lite::prepareSignals() {
   connect( this, SIGNAL( linkCorrecto( QString , QString ) ),
       this, SLOT( parseLink( QString , QString ) ) );
 
-  connect( &httpRss, SIGNAL( requestFinished( int, bool ) ),
-      this, SLOT( finishedRSS( int, bool ) ) );
+//FIXME
+//  connect( &httpRss, SIGNAL( requestFinished( int, bool ) ),
+//      this, SLOT( finishedRSS( int, bool ) ) );
 
-  connect( &httpTorrent, SIGNAL( requestFinished( int, bool ) ),
-      this, SLOT( finishedTorrent( int, bool ) ) );
+//  connect( &httpTorrent, SIGNAL( requestFinished( int, bool ) ),
+//      this, SLOT( finishedTorrent( int, bool ) ) );
 
 }
 
@@ -337,29 +338,32 @@ int Rss_lite::parseTitle( QString seccion, QString titulo,  QString enlace, bool
 
 void Rss_lite::parseLink( QString linkString, QString title = "" ) {
   QUrl url( linkString );
+  QUrlQuery query(url);
   QString urlTracker( QString( "http://" ) + url.host() );
   QString path;
 
   tracker *trk = trackers.value( urlTracker );
 
-//  if ( trk == NULL ) return;
+  if ( trk == NULL )
+      return;
 
-//  if ( linkString.contains( QLatin1String( "download" ) ) ) { // Si el link tiene download lo bajo tal cual
-//    path = linkString.mid( urlTracker.size() ); // Cojo el path de la url con los args
-//    // 		qDebug() << "Bajando:" << linkString.mid( urlTracker.size() );;
-//  } else { // Cojo la URL a partir de la cfg y del id
-//    path = trk->urlDownload + url.queryItemValue( trk->id ) ;
-//  }
+  if ( linkString.contains( QLatin1String( "download" ) ) ) { // Si el link tiene download lo bajo tal cual
+    path = linkString.mid( urlTracker.size() ); // Cojo el path de la url con los args
+    qDebug() << "Bajando:" << linkString.mid( urlTracker.size() );;
+  } else { // Cojo la URL a partir de la cfg y del id
+    path = trk->urlDownload + query.queryItemValue( trk->id ) ;
+  }
 
-//  header.setRequest( QLatin1String( "GET" ), path );
-//  posts.insert( urlTracker + path, title );
-//  qDebug() << "Bajando:" << path;
+    QNetworkRequest request;
+    request.setUrl(path);
+    request.setRawHeader("Host", url.host().toUtf8() );
+    request.setRawHeader("Cookie", trk->cookie.toUtf8() );
+    request.setRawHeader("Referer", (trk->urlTracker + trk->referer).toUtf8() );
 
-//  header.setValue( QLatin1String( "Host" ), url.host() );
-//  header.setValue( QLatin1String( "Cookie" ), trk->cookie );
-//  header.setValue( QLatin1String( "Referer" ), trk->urlTracker + trk->referer );
+    httpTorrent.get(request);
+    posts.insert( urlTracker + path, title );
+    qDebug() << "Bajando:" << path;
 
-//  httpTorrent.setHost( url.host() );
 //  connectionIdTorrent = httpTorrent.request( header );
 }
 
@@ -370,51 +374,55 @@ void Rss_lite::parseLink( QString linkString, QString title = "" ) {
 
 void Rss_lite::readDataTorrent(QNetworkReply *reply) {
 
-//  if ( resp.statusCode() != 200 )
-//    httpTorrent.abort();
-//  else {
-//    if ( ! ficheros.contains( httpTorrent.currentId() ) ) {
-//      /*
-//       * Miramos a ver si existe el fichero y si existe abortamos
-//       * y si no asociamos el nombre y creamos un array para los datos
-//       * y lo rellenamos
-//       */
-//      QString content = resp.value( QLatin1String( "content-disposition" ) );
-//      QString fichero = content.section( QLatin1Char( '\"' ), 1, 1 );
+// FIXME if ( ! ficheros.contains( httpTorrent.currentId() ) ) {
+  int downloadId = 1;
 
-//      QUrl url( QLatin1String( "http://" ) + httpTorrent.currentRequest().value( QLatin1String( "Host" ) ) + httpTorrent.currentRequest().path() );
+  if (reply->error() != QNetworkReply::NoError) {
+    reply->abort();
+  } else {
+    if ( ! ficheros.contains(downloadId) ) {
+      /*
+       * Miramos a ver si existe el fichero y si existe abortamos
+       * y si no asociamos el nombre y creamos un array para los datos
+       * y lo rellenamos
+       */
+      QString content = reply->rawHeader( QString( "content-disposition").toUtf8() );
+      QString fichero = content.section( QChar( '\"' ), 1, 1 );
 
-//      if ( !fichero.endsWith( QLatin1String( ".torrent" ) ) ) { // Si el header no me dice el nombre del fichero
-//        // METODO NUEVO (poner el titulo)
-//        qDebug() << "URL dwnld:" << url.toString();
-//        fichero = posts.take( url.toString() );
-//        // METODO VIEJO (poner el id)
-//        if ( fichero.isEmpty() ) {
-//          tracker *trk = trackers.value( QLatin1String( "http://" ) + url.host() );
-//          if ( trk == NULL ) return;
-//          fichero = url.queryItemValue( trk->id );
-//        }
-//        fichero += QLatin1String( ".torrent" );
-//        qDebug() << "Fichero: " << fichero;
-//      }
+      QUrl replyUrl = reply->url();
+      QUrl url( QString( "http://" ) + reply->rawHeader( QString("Host").toUtf8() ) + replyUrl.path() );
 
-//      fichero.replace( QLatin1Char( '/' ), QLatin1Char( '-' ) );
-//      fichero.replace( QLatin1Char( '\\' ), QLatin1Char( '-' ) );
-//      QFile file( values->Ruta() + QLatin1Char( '/' ) + fichero );
+      if ( !fichero.endsWith( QString( ".torrent" ) ) ) { // Si el header no me dice el nombre del fichero
+        // METODO NUEVO (poner el titulo)
+        qDebug() << "URL dwnld:" << url.toString();
+        fichero = posts.take( url.toString() );
+        // METODO VIEJO (poner el id)
+        if ( fichero.isEmpty() ) {
+          tracker *trk = trackers.value( QString( "http://" ) + url.host() );
+          if ( trk == NULL ) return;
+//FIXME          fichero = url.queryItemValue( trk->id );
+        }
+        fichero += QLatin1String( ".torrent" );
+        qDebug() << "Fichero: " << fichero;
+      }
 
-//      if ( file.exists() ) {
-//        // 				httpTorrent.abort();
-//        // 				httpTorrent.close();
-//        return;
-//      }
+      fichero.replace( QLatin1Char( '/' ), QLatin1Char( '-' ) );
+      fichero.replace( QLatin1Char( '\\' ), QLatin1Char( '-' ) );
+      QFile file( values->Ruta() + QLatin1Char( '/' ) + fichero );
 
-//      sites.insert( httpTorrent.currentId(), url.host() );
-//      ficheros.insert( httpTorrent.currentId(), fichero );
-//      datos.insert( httpTorrent.currentId(), new QByteArray() );
-//    }
+      if ( file.exists() ) {
+        reply->abort();
+        reply->close();
+        return;
+      }
 
-//    datos.value( httpTorrent.currentId() )->append( httpTorrent.readAll() );
-//  }
+      sites.insert( downloadId, url.host() );
+      ficheros.insert( downloadId, fichero );
+      datos.insert( downloadId, new QByteArray() );
+    }
+
+    datos.value(downloadId)->append( reply->readAll() );
+  }
 }
 
 /**
@@ -424,35 +432,35 @@ void Rss_lite::readDataTorrent(QNetworkReply *reply) {
  */
 
 void Rss_lite::finishedTorrent( int id, bool error ) {
-  // 	qWarning() << "ID:" << id << "ficheros" << ficheros.size() << "datos" << datos.size();
-//  int exito = -1;
-//  if ( error ) {
-//    qWarning( "Received error during HTTP fetch torrent." );
-//  } else {
-//    if ( ficheros.contains( id ) ) {
-//      QFile file( values->Ruta() + QLatin1Char( '/' ) + ficheros.value( id ) );
-//      qWarning() << "Escribiendo :" << file.fileName();
+    qWarning() << "ID:" << id << "ficheros" << ficheros.size() << "datos" << datos.size();
+  int exito = -1;
+  if ( error ) {
+    qWarning( "Received error during HTTP fetch torrent." );
+  } else {
+    if ( ficheros.contains( id ) ) {
+      QFile file( values->Ruta() + QLatin1Char( '/' ) + ficheros.value( id ) );
+      qWarning() << "Escribiendo :" << file.fileName();
 
-//      if ( !file.exists() ) {
-//        if ( !file.open( QIODevice::WriteOnly ) ) {
-//          qWarning() << "No se pudo abrir para escritura !!!";
-//          delete datos.value( id );
-//          ficheros.remove( id );
-//          datos.remove( id );
-//          sites.remove( id );
-//          // 					qWarning() << "DES. ficheros" << ficheros.size() << "datos" << datos.size();
-//          return;
-//        }
+      if ( !file.exists() ) {
+        if ( !file.open( QIODevice::WriteOnly ) ) {
+          qWarning() << "No se pudo abrir para escritura !!!";
+          delete datos.value( id );
+          ficheros.remove( id );
+          datos.remove( id );
+          sites.remove( id );
+          // 					qWarning() << "DES. ficheros" << ficheros.size() << "datos" << datos.size();
+          return;
+        }
 
-//        file.write( *datos.value( id ) );
+        file.write( *datos.value( id ) );
 
-//        file.close();
+        file.close();
 
 
-//        saveLog( ficheros.value( id ).left( ficheros.value( id ).size() - 8 ) );
-//        descargas.append( QLatin1String( "- " ) + ficheros.value( id ).left( ficheros.value( id ).size() - 8 ) + QLatin1String( " de " ) + sites.value( id ) + QLatin1Char( '\n' ) );
-//      }
-
+        saveLog( ficheros.value( id ).left( ficheros.value( id ).size() - 8 ) );
+        descargas.append( QLatin1String( "- " ) + ficheros.value( id ).left( ficheros.value( id ).size() - 8 ) + QLatin1String( " de " ) + sites.value( id ) + QLatin1Char( '\n' ) );
+      }
+// FIXME
 //      if ( !httpTorrent.hasPendingRequests() ) {
 //        if ( !descargas.isEmpty() ) { //FIXME
 //          exito = sendMail(
@@ -462,15 +470,15 @@ void Rss_lite::finishedTorrent( int id, bool error ) {
 //        }
 //      }
 
-//      delete datos.value( id );
+      delete datos.value( id );
 
-//      ficheros.remove( id );
-//      datos.remove( id );
-//      sites.remove( id );
-//    }
-//  }
+      ficheros.remove( id );
+      datos.remove( id );
+      sites.remove( id );
+    }
+  }
 
-  // 	qWarning() << "DES. ficheros" << ficheros.size() << "datos" << datos.size();
+  qWarning() << "DES. ficheros" << ficheros.size() << "datos" << datos.size();
 }
 
 // FIN MANEJO DEL TORRENT

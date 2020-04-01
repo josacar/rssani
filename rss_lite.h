@@ -8,6 +8,7 @@
 #include <QtCore/QUrl>
 #include <QtCore/QFileInfo>
 #include <QtCore/QTextCodec>
+#include <QtCore/QUrlQuery>
 #include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkReply>
 #include <QtNetwork/QNetworkAccessManager>
