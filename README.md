@@ -11,8 +11,8 @@ It currently works for XBT and XBTT trackers and it's tested on Linux platforms.
 
 ### Requirements
 
-- Qt4
+- Qt5
 - Ulxmlrpcpp
-- libircclient-qt
+- libcommuni
 - A C++ compiler
 - Doxygen ( if you want to generate docs )
