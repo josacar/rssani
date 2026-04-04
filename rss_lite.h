@@ -7,7 +7,7 @@
 #include <QtCore/QTimer>
 #include <QtCore/QUrl>
 #include <QtCore/QFileInfo>
-#include <QtCore/QTextCodec>
+#include <QtCore/QRegularExpression>
 #include <QtCore/QUrlQuery>
 #include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkReply>
@@ -86,25 +86,11 @@ class Rss_lite : public QObject {
      */
     void prepareSignals();
 
-    protected slots:
+    public slots:
       /**
        * Hace un get al RSS, y envia la señal de lectura a readDataRSS
        */
       void fetch();
-
-    /**
-     * Cuando finaliza habilitamos el botón
-     * @param id Id de la conexion RSS
-     * @param error Bool que indica error de la conexion
-     */
-    void finishedRSS ( int id , bool error);
-
-    /**
-     * Guarda el torrent al disco si es necesario ,graba el log y manda un mail.
-     * @param id Id de la conexion
-     * @param error Indica si ha habido error
-     */
-    void finishedTorrent ( int id, bool error);
 
     /**
      * Parsea el XML conforme le va llegando
@@ -163,10 +149,9 @@ class Rss_lite : public QObject {
     QHash<QString,QXmlStreamReader*> xmls;
     //	Smtp *newMail; /**< Puntero a la clase para enviar el mail */
 
-    int connectionIdTorrent; /**< Id de la conexión del torrent */
-    QHash<int,QString> ficheros; /**< Hash con el id y el nombre del torrent */
-    QHash<int,QByteArray*> datos; /**< hash con el id y los datos del torrent */
-    QHash<int,QString> sites; /**< hash con el id y los site del torrent */
+    QHash<QString,QString> ficheros; /**< Hash con el id y el nombre del torrent */
+    QHash<QString,QByteArray*> datos; /**< hash con el id y los datos del torrent */
+    QHash<QString,QString> sites; /**< hash con el id y los site del torrent */
     QHash<QString,QString> posts;
     QList<regexp*> *lista;
     QString fecha;
@@ -185,7 +170,6 @@ class Rss_lite : public QObject {
     QStringList recientes;
 
     QNetworkAccessManager httpRss,httpTorrent;
-    int connectionIdRSS;
     QFile *log,*matches;
     QHash<QString,tracker*> trackers; /**< hash con tracker y su configuracion */
     QHash<QString,auth> *hashAuths;

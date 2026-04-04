@@ -5,7 +5,7 @@
 #include <QTextStream>
 #include <QByteArray>
 #include <QDateTime>
-#include <QTextCodec>
+#include <QRandomGenerator>
 #include <QFile>
 #include <QFileInfo>
 #include <QHostInfo>
@@ -39,7 +39,7 @@ static QString timeStamp()
 
 static QString createBoundary()
 {
-  QByteArray hash = QCryptographicHash::hash(QString(QString::number(qrand())).toUtf8(),QCryptographicHash::Md5);
+  QByteArray hash = QCryptographicHash::hash(QString(QString::number(QRandomGenerator::global()->generate())).toUtf8(),QCryptographicHash::Md5);
   QString boundary = QString::fromUtf8(hash.toHex());
   boundary.truncate(26);
   boundary.prepend(QString::fromUtf8("----=_NextPart_"));
@@ -198,9 +198,7 @@ void MailSender::addMimeBody(QString *pdata) const
     pdata->append(QString::fromUtf8("<body bgColor=#ffffff>\r\n"));
   }
 
-  QByteArray encodedBody(m_body.toLatin1()); // = array;
-  QTextCodec *codec = QTextCodec::codecForName(m_bodyCodec.toLatin1()); 
-  pdata->append(codec->toUnicode(encodedBody) + QString::fromUtf8("\r\n"));
+  pdata->append(m_body + QString::fromUtf8("\r\n"));
 
   if ( m_contentType == HtmlContent ) {
     pdata->append(QString::fromUtf8("<DIV>&nbsp;</DIV></body></html>\r\n\n"));
@@ -211,7 +209,7 @@ QString MailSender::mailData() const
 {
   QString data;
 
-  QByteArray hash = QCryptographicHash::hash(QString(QString::number(qrand())).toUtf8(),QCryptographicHash::Md5);
+  QByteArray hash = QCryptographicHash::hash(QString(QString::number(QRandomGenerator::global()->generate())).toUtf8(),QCryptographicHash::Md5);
   QString id = QString::fromUtf8(hash.toHex());
   data.append(QString::fromUtf8("Message-ID: ") + id + QString::fromUtf8("@") + QHostInfo::localHostName() + QString::fromUtf8("\n"));
   data.append(QString::fromUtf8("From: \"") + m_from + QString::fromUtf8("\" <") + m_fromName + QString::fromUtf8(">\n"));
@@ -373,8 +371,8 @@ QString MailSender::mailData() const
 
     m_socket = m_ssl ? new QSslSocket(this) : new QTcpSocket(this); 
 
-    connect( m_socket, SIGNAL( error( QAbstractSocket::SocketError) ), this, SLOT( errorReceived( QAbstractSocket::SocketError ) ) );
-    connect( m_socket, SIGNAL( proxyAuthenticationRequired(const QNetworkProxy & , QAuthenticator *) ), this, SLOT(proxyAuthentication(const QNetworkProxy &, QAuthenticator * ) ) );
+    connect( m_socket, QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error), this, &MailSender::errorReceived );
+    connect( m_socket, &QAbstractSocket::proxyAuthenticationRequired, this, &MailSender::proxyAuthentication );
 
     bool auth = ! m_login.isEmpty();
 
@@ -400,7 +398,7 @@ QString MailSender::mailData() const
         return false;
       }
       QSslSocket *pssl = qobject_cast<QSslSocket *>(m_socket);
-      if(pssl == 0) {
+      if(pssl == nullptr) {
         error(QString::fromUtf8("internal error casting to QSslSocket"));
         return false;
       }

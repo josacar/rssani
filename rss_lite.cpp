@@ -1,4 +1,5 @@
 #include "rss_lite.h"
+#include <QRegularExpression>
 /**
  * Constructor de la clase RSS
  * @param values Lista de opciones guardadas
@@ -43,22 +44,14 @@ QDateTime Rss_lite::verUltimo() {
  */
 
 void Rss_lite::prepareSignals() {
-  connect( &httpRss, SIGNAL( finished( QNetworkReply* ) ),
-      this, SLOT( readDataRSS( QNetworkReply* ) ) );
+  connect( &httpRss, &QNetworkAccessManager::finished,
+      this, &Rss_lite::readDataRSS );
 
-  connect( &httpTorrent, SIGNAL( finished( QNetworkReply* ) ),
-      this, SLOT( readDataTorrent( QNetworkReply* ) ) );
+  connect( &httpTorrent, &QNetworkAccessManager::finished,
+      this, &Rss_lite::readDataTorrent );
 
-  connect( this, SIGNAL( linkCorrecto( QString , QString ) ),
-      this, SLOT( parseLink( QString , QString ) ) );
-
-//FIXME
-//  connect( &httpRss, SIGNAL( requestFinished( int, bool ) ),
-//      this, SLOT( finishedRSS( int, bool ) ) );
-
-//  connect( &httpTorrent, SIGNAL( requestFinished( int, bool ) ),
-//      this, SLOT( finishedTorrent( int, bool ) ) );
-
+  connect( this, &Rss_lite::linkCorrecto,
+      this, &Rss_lite::parseLink );
 }
 
 // INICIO MANEJO DEL RSS
@@ -94,13 +87,9 @@ void Rss_lite::fetch() {
     request.setRawHeader("Cookie", trk->cookie.toUtf8() );
     request.setRawHeader("Referer", (trk->urlTracker + trk->referer).toUtf8() );
 
-    //httpRss.setHost( url->host() );
-
     qDebug() << "+ Me bajo" << url->host() << trk->urlRss;
 
-    // connectionIdRSS = httpRss.request( header );
-
-    trk = NULL;
+    trk = nullptr;
     delete url;
 
     httpRss.get(request);
@@ -135,24 +124,6 @@ void Rss_lite::readDataRSS(QNetworkReply *reply) {
 }
 
 /**
- * Cuando finaliza habilitamos el botón
- * @param id Id de la conexion RSS
- * @param error Bool que indica error de la conexion
- */
-
-void Rss_lite::finishedRSS( int id, bool error ) {
-  QTextStream out( stdout );
-  pila.clear();
-  if ( error ) {
-    qWarning( "Received error during HTTP fetch rss." );
-  } else {
-    if ( connectionIdRSS == id ) {
-      out << QDateTime::currentDateTime().toString( QLatin1String( " dd/MM/yyyy hh:mm:ss " ) ) << "RSS bajado !!!\n";
-    }
-  }
-}
-
-/**
  * Slot que mira la regexp
  * @param seccion La seccion de la descarga
  * @param titulo El titulo de la descarga
@@ -175,14 +146,12 @@ void Rss_lite::miraTitulo( QString seccion, QString titulo, QString link, bool f
 
 void Rss_lite::parseXml( QXmlStreamReader *xml ) {
   QString dateS;
-  QRegExp rxlen( QLatin1String( "Category: (\\S+)" ) );
-  QRegExp syl( QLatin1String( "\\s\\[S\\(\\d+\\)/L\\(\\d+\\)\\]" ) );
-  QRegExp titulo( QLatin1String( "^\\[([^]]+)\\]\\s" ) );
+  QRegularExpression rxlen( QLatin1String( "Category: (\\S+)" ) );
+  QRegularExpression syl( QLatin1String( "\\s\\[S\\(\\d+\\)/L\\(\\d+\\)\\]" ) );
+  QRegularExpression titulo( QLatin1String( "^\\[([^]]+)\\]\\s" ) );
   QTextStream out( stdout );
 
-  int pos = -1;
   QString value;
-  QTextCodec *codec;
 
   while ( !xml->atEnd() ) {
     xml->readNext();
@@ -202,12 +171,11 @@ void Rss_lite::parseXml( QXmlStreamReader *xml ) {
         QDateTime date = QDateTime::fromString( pubDate.section( QLatin1Char( ' ' ), 1, 4 ), QLatin1String( "dd MMM yyyy hh:mm:ss" ) );
         dateS = date.toString( QLatin1String( "yyyyMMddhhmmss" ) );
 
-        pos = rxlen.indexIn( description );
-        if ( pos > -1 ) value = rxlen.cap( 1 );
+        QRegularExpressionMatch m = rxlen.match( description );
+        if ( m.hasMatch() ) value = m.captured( 1 );
 
-        pos = -1;
-        int pos = titulo.indexIn( titleString );
-        if ( pos > -1 ) value = titulo.cap( 1 );
+        QRegularExpressionMatch mt = titulo.match( titleString );
+        if ( mt.hasMatch() ) value = mt.captured( 1 );
 
         titleString.remove( syl ); // Quitamos los putos peers y leechers
         titleString.remove( titulo );
@@ -219,14 +187,14 @@ void Rss_lite::parseXml( QXmlStreamReader *xml ) {
         pubDate.clear();
         description.clear();
         pila.pop();
-      } else if ( xml->isCharacters() && !xml->isWhitespace() && !pila.isEmpty() ) {
-          if ( currentTag == QLatin1String( "title" ) ) titleString += xml->text().toString();
-          else if ( currentTag == QLatin1String( "link" ) ) linkString += xml->text().toString();
-          else if ( currentTag == QLatin1String( "pubDate" ) ) pubDate += xml->text().toString();
-          else if ( currentTag == QLatin1String( "description" ) ) description += xml->text().toString();
-      } else if ( xml->isStartDocument() ) {
-          out << "\nXML Enc:" << xml->documentEncoding().toString() << " ";
       }
+    } else if ( xml->isCharacters() && !xml->isWhitespace() && !pila.isEmpty() ) {
+        if ( currentTag == QLatin1String( "title" ) ) titleString += xml->text().toString();
+        else if ( currentTag == QLatin1String( "link" ) ) linkString += xml->text().toString();
+        else if ( currentTag == QLatin1String( "pubDate" ) ) pubDate += xml->text().toString();
+        else if ( currentTag == QLatin1String( "description" ) ) description += xml->text().toString();
+    } else if ( xml->isStartDocument() ) {
+        out << "\nXML Enc:" << xml->documentEncoding().toString() << " ";
     }
 
     if ( xml->error() && xml->error() != QXmlStreamReader::PrematureEndOfDocumentError ) {
@@ -278,7 +246,7 @@ int Rss_lite::parseTitle( QString seccion, QString titulo,  QString enlace, bool
         continue;
       }
 
-    if ( lista->at( i )->activa && subida.contains( QRegExp( lista->at( i )->nombre, Qt::CaseInsensitive ) ) ) {
+    if ( lista->at( i )->activa && subida.contains( QRegularExpression( lista->at( i )->nombre, QRegularExpression::CaseInsensitiveOption ) ) ) {
       if ( lista->at( i )->tracker != QLatin1String( "" ) ) { // Si tiene tracker especifico miro a ver y si no drop
         urlRegexp = QUrl( lista->at( i )->tracker );
         if ( values->Debug() )
@@ -288,7 +256,7 @@ int Rss_lite::parseTitle( QString seccion, QString titulo,  QString enlace, bool
 
       if ( matches->open( QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append ) ) {  // Lo escribimos en el log
         QTextStream outFile( matches );
-        outFile << subida << " --> " << lista->at( i )->nombre << endl;
+        outFile << subida << " --> " << lista->at( i )->nombre << Qt::endl;
         matches->close();
       }
 
@@ -308,7 +276,7 @@ int Rss_lite::parseTitle( QString seccion, QString titulo,  QString enlace, bool
       // Vemos si han pasado los dias minimos entre descargas
 
 
-      if ( lista->at( i )->fechaDescarga != NULL ) {
+      if ( lista->at( i )->fechaDescarga != nullptr ) {
         if ( values->Debug() )
           qDebug() << "diasDescarga:" << lista->at( i )->fechaDescarga->daysTo( QDateTime::currentDateTime() ) << "Dias:" << lista->at( i )->diasDescarga;
         if ( lista->at( i )->fechaDescarga->daysTo( QDateTime::currentDateTime() ) < lista->at( i )->diasDescarga ) {
@@ -344,7 +312,7 @@ void Rss_lite::parseLink( QString linkString, QString title = "" ) {
 
   tracker *trk = trackers.value( urlTracker );
 
-  if ( trk == NULL )
+  if ( trk == nullptr )
       return;
 
   if ( linkString.contains( QLatin1String( "download" ) ) ) { // Si el link tiene download lo bajo tal cual
@@ -363,8 +331,6 @@ void Rss_lite::parseLink( QString linkString, QString title = "" ) {
     httpTorrent.get(request);
     posts.insert( urlTracker + path, title );
     qDebug() << "Bajando:" << path;
-
-//  connectionIdTorrent = httpTorrent.request( header );
 }
 
 /**
@@ -374,13 +340,12 @@ void Rss_lite::parseLink( QString linkString, QString title = "" ) {
 
 void Rss_lite::readDataTorrent(QNetworkReply *reply) {
 
-// FIXME if ( ! ficheros.contains( httpTorrent.currentId() ) ) {
-  int downloadId = 1;
+  QString downloadKey = reply->url().toString();
 
   if (reply->error() != QNetworkReply::NoError) {
     reply->abort();
   } else {
-    if ( ! ficheros.contains(downloadId) ) {
+    if ( ! ficheros.contains(downloadKey) ) {
       /*
        * Miramos a ver si existe el fichero y si existe abortamos
        * y si no asociamos el nombre y creamos un array para los datos
@@ -399,8 +364,8 @@ void Rss_lite::readDataTorrent(QNetworkReply *reply) {
         // METODO VIEJO (poner el id)
         if ( fichero.isEmpty() ) {
           tracker *trk = trackers.value( QString( "http://" ) + url.host() );
-          if ( trk == NULL ) return;
-//FIXME          fichero = url.queryItemValue( trk->id );
+          if ( trk == nullptr ) return;
+          fichero = QUrlQuery(url).queryItemValue( trk->id );
         }
         fichero += QLatin1String( ".torrent" );
         qDebug() << "Fichero: " << fichero;
@@ -416,69 +381,13 @@ void Rss_lite::readDataTorrent(QNetworkReply *reply) {
         return;
       }
 
-      sites.insert( downloadId, url.host() );
-      ficheros.insert( downloadId, fichero );
-      datos.insert( downloadId, new QByteArray() );
+      sites.insert( downloadKey, url.host() );
+      ficheros.insert( downloadKey, fichero );
+      datos.insert( downloadKey, new QByteArray() );
     }
 
-    datos.value(downloadId)->append( reply->readAll() );
+    datos.value(downloadKey)->append( reply->readAll() );
   }
-}
-
-/**
- * Guarda el torrent al disco si es necesario ,graba el log y manda un mail.
- * @param id Id de la conexion
- * @param error Indica si ha habido error
- */
-
-void Rss_lite::finishedTorrent( int id, bool error ) {
-    qWarning() << "ID:" << id << "ficheros" << ficheros.size() << "datos" << datos.size();
-  int exito = -1;
-  if ( error ) {
-    qWarning( "Received error during HTTP fetch torrent." );
-  } else {
-    if ( ficheros.contains( id ) ) {
-      QFile file( values->Ruta() + QLatin1Char( '/' ) + ficheros.value( id ) );
-      qWarning() << "Escribiendo :" << file.fileName();
-
-      if ( !file.exists() ) {
-        if ( !file.open( QIODevice::WriteOnly ) ) {
-          qWarning() << "No se pudo abrir para escritura !!!";
-          delete datos.value( id );
-          ficheros.remove( id );
-          datos.remove( id );
-          sites.remove( id );
-          // 					qWarning() << "DES. ficheros" << ficheros.size() << "datos" << datos.size();
-          return;
-        }
-
-        file.write( *datos.value( id ) );
-
-        file.close();
-
-
-        saveLog( ficheros.value( id ).left( ficheros.value( id ).size() - 8 ) );
-        descargas.append( QLatin1String( "- " ) + ficheros.value( id ).left( ficheros.value( id ).size() - 8 ) + QLatin1String( " de " ) + sites.value( id ) + QLatin1Char( '\n' ) );
-      }
-// FIXME
-//      if ( !httpTorrent.hasPendingRequests() ) {
-//        if ( !descargas.isEmpty() ) { //FIXME
-//          exito = sendMail(
-//              QLatin1String( "RSSANI " ) + QHostInfo::localHostName() + QDateTime::currentDateTime().toString( QLatin1String( " dd/MM/yyyy hh:mm:ss" ) ),
-//              descargas );
-//          if ( exito == 0) descargas.clear();
-//        }
-//      }
-
-      delete datos.value( id );
-
-      ficheros.remove( id );
-      datos.remove( id );
-      sites.remove( id );
-    }
-  }
-
-  qWarning() << "DES. ficheros" << ficheros.size() << "datos" << datos.size();
 }
 
 // FIN MANEJO DEL TORRENT
@@ -495,7 +404,7 @@ int Rss_lite::saveLog( QString fichero ) {
 
   QTextStream out( log );
 
-  out << "- " << QDateTime::currentDateTime().toString( QLatin1String( "dd/MM/yyyy hh:mm:ss" ) ) << " | " << fichero << endl;
+  out << "- " << QDateTime::currentDateTime().toString( QLatin1String( "dd/MM/yyyy hh:mm:ss" ) ) << " | " << fichero << Qt::endl;
 
   log->close();
 

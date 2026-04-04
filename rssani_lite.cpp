@@ -1,5 +1,6 @@
 #include "rssani_lite.h"
 #include "rss_lite.h"
+#include <QtCore/QRegularExpression>
 
 rssani_lite *gRss = nullptr;
 
@@ -34,11 +35,10 @@ rssani_lite::rssani_lite( QObject* parent ) : QObject( parent ) {
   memset( &sigTermAction, 0, sizeof( sigTermAction ) );
 
   sigTermAction.sa_handler = sigHandler;
-  sigTermAction.sa_restorer = NULL;
 
-  sigaction( SIGTERM, &sigTermAction, NULL );
-  sigaction( SIGINT, &sigTermAction, NULL );
-  sigaction( SIGUSR1, &sigTermAction, NULL );
+  sigaction( SIGTERM, &sigTermAction, nullptr );
+  sigaction( SIGINT, &sigTermAction, nullptr );
+  sigaction( SIGUSR1, &sigTermAction, nullptr );
 #endif
   tiempo = 10;
   rpcUser = QLatin1String("rssani-rpc");
@@ -63,7 +63,7 @@ rssani_lite::rssani_lite( QObject* parent ) : QObject( parent ) {
 
   if ( misdatos.activo ) {
     session = new MyIrcSession( this,&misdatos,misdatos.debug);
-    connect( session, SIGNAL( nuevaSubida( QString ) ), this, SLOT( miraSubida( QString ) ) );
+    connect( session, &MyIrcSession::nuevaSubida, this, &rssani_lite::miraSubida );
   } else {
     qDebug() << "***** IRC deshabilitado *****";
   }
@@ -75,11 +75,11 @@ void rssani_lite::miraSubida( QString subida ) {
   QString url, seccion, titulo;
   int primero = subida.indexOf( QLatin1Char('-') );
   int ultimo = subida.lastIndexOf( QLatin1Char('-') );
-  QRegExp rehttp = QRegExp( QLatin1String("\\s(http://[\\S]*)") );
+  QRegularExpression rehttp( QLatin1String("\\s(http://[\\S]*)") );
   if ( values->Debug() ) qDebug() << "SUBIDA:" << subida;
-  int pos = rehttp.indexIn( subida );
-  if ( pos > -1 ) {
-    url = rehttp.cap( 1 );
+  QRegularExpressionMatch match = rehttp.match( subida );
+  if ( match.hasMatch() ) {
+    url = match.captured( 1 );
 
 
     seccion = subida.mid( 0, primero - 1 );
@@ -171,7 +171,7 @@ void rssani_lite::anadirRegexp( std::string nombre, std::string fecha, bool mail
   re->tracker = QString::fromStdString( tracker );
   re->mail = mail;
   re->diasDescarga = dias;
-  re->fechaDescarga = NULL;
+  re->fechaDescarga = nullptr;
   lista->append( re ) ;
   qDebug()  << "Añadida regexp" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga;
 }
@@ -272,9 +272,9 @@ QString rssani_lite::getRpcPass() {
 // FIN METODOS RPC
 
 void rssani_lite::prepareSignals() {
-  connect( &timer, SIGNAL( timeout() ), rss, SLOT( fetch() ) );
-  connect( this, SIGNAL( timeout() ), rss, SLOT( fetch() ) );
-  connect( this, SIGNAL(nuevaSubida ( QString, QString, QString) ), rss, SLOT( miraTitulo(QString, QString, QString)) );
+  connect( &timer, &QTimer::timeout, rss, &Rss_lite::fetch );
+  connect( this, &rssani_lite::timeout, rss, &Rss_lite::fetch );
+  connect( this, &rssani_lite::nuevaSubida, rss, [this](const QString &s, const QString &t, const QString &u){ rss->miraTitulo(s, t, u); });
 }
 
 void rssani_lite::writeSettings() {
@@ -373,7 +373,7 @@ void rssani_lite::readSettings() {
     re->tracker = settings->value( QLatin1String("tracker") ).toString();
     re->diasDescarga = settings->value( QLatin1String("dias"), 0 ).toInt();
     if ( settings->value( QLatin1String("fecha") ).toDateTime().isNull() ) {
-      re->fechaDescarga = NULL; // TODO: Ver estooooo
+      re->fechaDescarga = nullptr; // TODO: Ver estooooo
     } else {
       re->fechaDescarga = new QDateTime(settings->value( QLatin1String("fecha")).toDateTime() );
     }

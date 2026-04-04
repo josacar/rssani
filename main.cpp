@@ -1,4 +1,3 @@
-#include <QtCore/QTextCodec>
 #include <QtCore/QCoreApplication>
 #include "rssani_lite.h"
 #include "xmlrpc.h"

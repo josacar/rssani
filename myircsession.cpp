@@ -70,7 +70,7 @@ MyIrcSession::MyIrcSession( QObject* parent, datosIrc *datos, bool depurar ) : I
   connectSlotsByName( this );
   debug = depurar;
   timer = new QTimer();
-  connect( timer, SIGNAL( timeout() ), this, SLOT( on_timeout() ) );
+  connect( timer, &QTimer::timeout, this, &MyIrcSession::on_timeout );
   timer->start(120000);
 
   qDebug() << "Debug is : " << debug;
@@ -87,8 +87,7 @@ MyIrcSession::MyIrcSession( QObject* parent, datosIrc *datos, bool depurar ) : I
 }
 
 void MyIrcSession::on_timeout() {
-  qsrand((unsigned) time(NULL));
-  sendRaw(QLatin1String("PING ") +  qrand()%1000000);
+  sendRaw(QLatin1String("PING ") + QString::number(QRandomGenerator::global()->bounded(1000000)));
 }
 
 void MyIrcSession::on_connected() {

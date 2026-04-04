@@ -6,7 +6,7 @@ const unsigned num_threads = 2;
 const unsigned num_threads = 2;
 #endif
 
-ulxr::HttpServer *httpServer = 0;
+ulxr::HttpServer *httpServer = nullptr;
 
 Metodos::Metodos ( rssani_lite *rss ) {
   this->rss = rss;

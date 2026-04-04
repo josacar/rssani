@@ -21,7 +21,7 @@ class rssani_lite : public QObject {
      * Construye la clase principal de la aplicación
      * @param parent Clase padre
      */
-    rssani_lite ( QObject* parent = 0);
+    rssani_lite ( QObject* parent = nullptr);
     /**
      * Destructor por defecto
      */

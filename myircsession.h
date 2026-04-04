@@ -4,7 +4,7 @@
 #include <QtCore/QThread>
 #include <QtCore/QDebug>
 #include <QtCore/QTimer>
-#include <QtCore/QTextCodec>
+#include <QtCore/QRandomGenerator>
 #include <QtCore/QStringList>
 #include <IrcConnection>
 #include <IrcCommand>
@@ -21,7 +21,7 @@ class MyIrcSession : public IrcConnection {
   Q_OBJECT
 
   public:
-    MyIrcSession( QObject* parent = 0, datosIrc *datos = 0, bool depurar = 0);
+    MyIrcSession( QObject* parent = nullptr, datosIrc *datos = nullptr, bool depurar = false);
 
     protected slots:
       void on_connected();
