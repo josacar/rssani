@@ -14,6 +14,10 @@ struct datosIrc {
   QString nick;
   QString user;
   QString name;
+  QString server;
+  int port;
+  QStringList channels;
+  QString botNick;
   bool debug;
 };
 

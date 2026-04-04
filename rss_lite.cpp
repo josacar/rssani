@@ -412,52 +412,22 @@ int Rss_lite::saveLog( QString fichero ) {
 }
 
 void Rss_lite::iniciaTrackers() {
-  // TODO: Poner esta configuracion en el CFG
   auth au;
-  tracker *trk = new tracker;
-  trk->urlTracker = QLatin1String( "http://www.hermeticos.org" );
-  if ( hashAuths->contains( trk->urlTracker ) ) {
-    au = hashAuths->value( trk->urlTracker );
-    trk->cookie =  QLatin1String( "pass=" ) + au.pass + QLatin1String( "; uid=" ) + au.uid ;
-    trk->referer = QLatin1String( "/browse.php" );
-    trk->id = QLatin1String( "id" );
-    trk->urlDownload = QLatin1String( "/download.php?" ) + trk->id + QLatin1Char( '=' ); // TODO: Poner id despues
-    trk->urlRss = QLatin1String( "/rss.php" );
+  for ( auto it = hashAuths->constBegin(); it != hashAuths->constEnd(); ++it ) {
+    au = it.value();
+    tracker *trk = new tracker();
+    trk->urlTracker = au.tracker;
+    trk->cookie = QLatin1String( "pass=" ) + au.pass + QLatin1String( "; uid=" ) + au.uid;
+    trk->referer = au.referer;
+    trk->id = au.idField;
+    trk->urlDownload = au.urlDownload;
+    trk->urlRss = au.urlRss;
+    if ( !au.passkey.isEmpty() && trk->urlRss.contains( QLatin1String("pid=") ) )
+      trk->urlRss += au.passkey;
     trk->esRss = true;
     trackers.insert( trk->urlTracker, trk );
     listaTrackers.append( trk->urlTracker );
-  }
-
-  trk = new tracker();
-  trk->urlTracker = QLatin1String( "http://btit.puntotorrent.com" );
-  if ( hashAuths->contains( trk->urlTracker ) ) {
-    au = hashAuths->value( trk->urlTracker );
-    trk->cookie =  QLatin1String( "pass=" ) + au.pass + QLatin1String( "; uid=" ) + au.uid ;
-    trk->referer = QLatin1String( "/torrents.php" );
-    trk->id = QLatin1String( "id" );
-    trk->urlDownload = QLatin1String( "/download.php?" ) + trk->id + QLatin1Char( '=' ); // TODO: Poner id despues
-    trk->urlRss = QLatin1String( "/rss.php?pid=" ) + au.passkey;
-    trk->esRss = true;
-    trackers.insert( trk->urlTracker, trk );
-    listaTrackers.append( trk->urlTracker );
-  }
-
-  trk = new tracker();
-  trk->urlTracker = QLatin1String( "http://xbt.puntotorrent.com" );
-  if ( hashAuths->contains( trk->urlTracker ) ) {
-    au = hashAuths->value( trk->urlTracker );
-    trk->cookie =  QLatin1String( "pass=" ) + au.pass + QLatin1String( "; uid=" ) + au.uid ;
-    trk->referer = QLatin1String( "/torrents.php" );
-    trk->id = QLatin1String( "id" );
-    trk->urlDownload = QLatin1String( "/download.php?" ) + trk->id + QLatin1Char( '=' ); // TODO: Poner id despues
-    trk->urlRss = QLatin1String( "/rss.php?pid=" ) + au.passkey;
-    trk->esRss = true;
-    trackers.insert( trk->urlTracker, trk );
-    listaTrackers.append( trk->urlTracker );
-  }
-
-  for ( int i = 0; i < listaTrackers.size(); ++i ) {
-    qDebug() << "+" << "Añadido tracker" << listaTrackers.value( i );
+    qDebug() << "+" << "Añadido tracker" << trk->urlTracker;
   }
 }
 

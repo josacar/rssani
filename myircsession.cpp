@@ -59,9 +59,8 @@ MyIrcSession::MyIrcSession( QObject* parent, datosIrc *datos, bool depurar ) : I
   setNickName(misdatos->nick);
   setRealName( misdatos->name );
   setUserName( misdatos->user );
-  //setAutoJoinChannels( QStringList( QLatin1String("#PuntoTorrent") ) );
-  setHost("irc.irc-hispano.org");
-  setPort(6667);
+  setHost(misdatos->server);
+  setPort(misdatos->port);
   open();
 }
 
@@ -71,9 +70,8 @@ void MyIrcSession::on_timeout() {
 
 void MyIrcSession::on_connected() {
   qDebug() << "Conected !!!";
-  QStringList canales = QStringList( QString ("#PuntoTorrent") );
-  for ( int i=0; i < canales.size(); i++) {
-    sendCommand(IrcCommand::createJoin(canales.at(i)));
+  for ( int i = 0; i < misdatos->channels.size(); i++) {
+    sendCommand(IrcCommand::createJoin(misdatos->channels.at(i)));
   }
 }
 
@@ -127,7 +125,7 @@ void MyIrcSession::on_channelMessageReceived( const QString& origin, const QStri
 
   if ( debug ) qDebug() << "message:" << origin << channel << mensaje;
 
-  if ( nick == QLatin1String("PuntoTorrent") ) {
+  if ( nick == misdatos->botNick ) {
     if ( mensaje.startsWith( ssubida ) ) {
       emit nuevaSubida( mensaje.mid( ssubida.length() ) );
     }
@@ -173,7 +171,8 @@ void MyIrcSession::on_msgUnknownMessageReceived( const QString& origin, const QS
 
 void MyIrcSession::on_msgNumericMessageReceived( const QString& origin, uint code, const QStringList& params ) {
   if ( code == 376 )
-    sendCommand(IrcCommand::createJoin(( QString("#PuntoTorrent") )));
+    for ( int i = 0; i < misdatos->channels.size(); i++ )
+      sendCommand(IrcCommand::createJoin(misdatos->channels.at(i)));
 
   if ( !debug ) return;
   QString stream;

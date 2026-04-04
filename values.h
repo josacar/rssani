@@ -8,6 +8,10 @@ struct auth {
   QString uid;
   QString pass;
   QString passkey;
+  QString referer;
+  QString idField;
+  QString urlDownload;
+  QString urlRss;
 };
 
 class Values {

@@ -35,7 +35,7 @@
   - `iniciaTrackers()` allocates `tracker*` with `new` but they're never freed
   - `url` in `fetch()` is `new QUrl` allocated per-tracker per-fetch, fragile lifetime
   - `regexp::fechaDescarga` is `new QDateTime` — use value type or smart pointer
-- [ ] Move IRC channel/server (`#PuntoTorrent`, `irc.irc-hispano.org`) to settings
-- [ ] Move tracker configuration from `iniciaTrackers()` hardcoded block to settings
+- [x] Move IRC channel/server (`#PuntoTorrent`, `irc.irc-hispano.org`) to settings
+- [x] Move tracker configuration from `iniciaTrackers()` hardcoded block to settings
 - [ ] Use HTTPS for tracker URLs (currently all `http://`)
 - [ ] Thread safety: `xmlrpc.cpp` runs in a `QThread` and calls `rssani_lite` methods directly without mutex protection

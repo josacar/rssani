@@ -334,6 +334,10 @@ void rssani_lite::writeSettings() {
     settings->setValue( QLatin1String("uid"), au.uid );
     settings->setValue( QLatin1String("pass"), au.pass );
     settings->setValue( QLatin1String("passkey"), au.passkey );
+    settings->setValue( QLatin1String("referer"), au.referer );
+    settings->setValue( QLatin1String("idField"), au.idField );
+    settings->setValue( QLatin1String("urlDownload"), au.urlDownload );
+    settings->setValue( QLatin1String("urlRss"), au.urlRss );
     qDebug() << "-" << au.tracker << au.uid << au.pass << au.passkey;
   }
 
@@ -344,6 +348,10 @@ void rssani_lite::writeSettings() {
   settings->setValue( QLatin1String("nickIrc"), misdatos.nick );
   settings->setValue( QLatin1String("userIrc"), misdatos.user );
   settings->setValue( QLatin1String("nameIrc"), misdatos.name );
+  settings->setValue( QLatin1String("serverIrc"), misdatos.server );
+  settings->setValue( QLatin1String("portIrc"), misdatos.port );
+  settings->setValue( QLatin1String("channelsIrc"), misdatos.channels );
+  settings->setValue( QLatin1String("botNickIrc"), misdatos.botNick );
   settings->setValue( QLatin1String("debugIrc"), misdatos.debug );
   settings->endGroup();
 
@@ -408,6 +416,10 @@ void rssani_lite::readSettings() {
     au.uid = settings->value( QLatin1String("uid") ).toString();
     au.pass = settings->value( QLatin1String("pass") ).toString();
     au.passkey = settings->value( QLatin1String("passkey") ).toString();
+    au.referer = settings->value( QLatin1String("referer"), QLatin1String("/browse.php") ).toString();
+    au.idField = settings->value( QLatin1String("idField"), QLatin1String("id") ).toString();
+    au.urlDownload = settings->value( QLatin1String("urlDownload"), QLatin1String("/download.php?id=") ).toString();
+    au.urlRss = settings->value( QLatin1String("urlRss"), QLatin1String("/rss.php") ).toString();
     listAuths->append( au );
     hashAuths->insert( au.tracker, au );
     qDebug() << "-" << au.tracker << au.uid << au.pass << au.passkey;
@@ -421,6 +433,11 @@ void rssani_lite::readSettings() {
   misdatos.nick = settings->value( QLatin1String("nickIrc") ).toString();
   misdatos.user = settings->value( QLatin1String("userIrc") ).toString();
   misdatos.name = settings->value( QLatin1String("nameIrc") ).toString();
+  misdatos.server = settings->value( QLatin1String("serverIrc"), QLatin1String("irc.irc-hispano.org") ).toString();
+  misdatos.port = settings->value( QLatin1String("portIrc"), 6667 ).toInt();
+  misdatos.channels = settings->value( QLatin1String("channelsIrc") ).toStringList();
+  if ( misdatos.channels.isEmpty() ) misdatos.channels << QLatin1String("#PuntoTorrent");
+  misdatos.botNick = settings->value( QLatin1String("botNickIrc"), QLatin1String("PuntoTorrent") ).toString();
   misdatos.debug = settings->value( QLatin1String("debugIrc"), false ).toBool();
   if ( !misdatos.nick.isEmpty() && !misdatos.nick.startsWith( QLatin1String("OFF:") ) ) misdatos.activo = true;
 
