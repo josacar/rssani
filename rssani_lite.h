@@ -8,6 +8,7 @@
 #include <QtCore/QMutexLocker>
 #include "rss_lite.h"
 #include "myircsession.h"
+#include <memory>
 #ifdef __unix__
 #include <sys/signal.h>
 #endif
@@ -167,11 +168,6 @@ class rssani_lite : public QObject {
 
     /**
      * 
-     * @param theValue Valores de configuracion
-     */
-    void setValues( Values* theValue );
-    /**
-     * 
      * @return Valores de configuracion
      */
     Values* getValues() const;
@@ -200,16 +196,16 @@ class rssani_lite : public QObject {
     void readSettings();
     Rss_lite *rss;
     mutable QMutex mutex;
-    QSettings *settings;
-    Values *values;
+    std::unique_ptr<QSettings> settings;
+    std::unique_ptr<Values> values;
 
     int tiempo;
-    QList<regexp*> *lista;
-    QList<auth> *listAuths;
-    QHash<QString,auth> *hashAuths;
+    std::unique_ptr<QList<regexp*>> lista;
+    std::unique_ptr<QList<auth>> listAuths;
+    std::unique_ptr<QHash<QString,auth>> hashAuths;
     QTimer timer;
     QTimer shutdown;
-    QFile *flog;
+    std::unique_ptr<QFile> flog;
     QString rpcUser,rpcPass;
     MyIrcSession *session;
     datosIrc misdatos;

@@ -17,8 +17,9 @@
 #include <QtCore/QDateTime>
 
 #include <iostream>
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
+#include <memory>
 #include "mailsender.h"
 #include "values.h"
 
@@ -145,12 +146,10 @@ class Rss_lite : public QObject {
      */
     int sendMail( QString asunto, QString mensaje );
 
-    //	QXmlStreamReader xml; /**< Clase de manejo del XML */
-    QHash<QString,QXmlStreamReader*> xmls;
-    //	Smtp *newMail; /**< Puntero a la clase para enviar el mail */
+    QHash<QString, std::shared_ptr<QXmlStreamReader>> xmls;
 
     QHash<QString,QString> ficheros; /**< Hash con el id y el nombre del torrent */
-    QHash<QString,QByteArray*> datos; /**< hash con el id y los datos del torrent */
+    QHash<QString, std::shared_ptr<QByteArray>> datos; /**< hash con el id y los datos del torrent */
     QHash<QString,QString> sites; /**< hash con el id y los site del torrent */
     QHash<QString,QString> posts;
     QList<regexp*> *lista;
@@ -169,8 +168,8 @@ class Rss_lite : public QObject {
     QStringList recientes;
 
     QNetworkAccessManager httpRss,httpTorrent;
-    QFile *log,*matches;
-    QHash<QString,tracker*> trackers; /**< hash con tracker y su configuracion */
+    QFile *log; std::unique_ptr<QFile> matches;
+    QHash<QString, std::shared_ptr<tracker>> trackers; /**< hash con tracker y su configuracion */
     QHash<QString,auth> *hashAuths;
     QStringList listaTrackers;
 signals:

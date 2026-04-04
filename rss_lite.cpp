@@ -15,7 +15,7 @@ Rss_lite::Rss_lite( Values* values, QList<regexp*>* lista, QFile* log, QHash<QSt
   prepareSignals();
 
   QFileInfo fi( *log );
-  matches = new QFile( fi.canonicalPath() + QLatin1String( "/matches.log" ) );
+  matches = std::make_unique<QFile>( fi.canonicalPath() + QLatin1String( "/matches.log" ) );
 
   ultimoRss = QDateTime::currentDateTime();
   iniciaTrackers();
@@ -25,9 +25,6 @@ Rss_lite::Rss_lite( Values* values, QList<regexp*>* lista, QFile* log, QHash<QSt
  * Destructor por defecto
  */
 Rss_lite::~Rss_lite() {
-  delete matches;
-  qDeleteAll( trackers );
-  qDeleteAll( xmls );
 }
 
 /**
@@ -70,17 +67,16 @@ void Rss_lite::fetch() {
     exit( 1 );
   }
 
-  tracker *trk = nullptr;
 
-  for ( int i = 0; i < listaTrackers.size(); ++i ) {
-    trk = trackers.value( listaTrackers.at( i ) );
+  for ( const auto &trkUrl : listaTrackers ) {
+    auto *trk = trackers[trkUrl].get();
 
     if ( trk == nullptr ) continue;
 
     QUrl urlTracker( trk->urlTracker );
 
     if ( xmls.contains( urlTracker.host() ) )
-        xmls.value( urlTracker.host() )->clear(); //TODO: mirar
+        xmls[urlTracker.host()]->clear(); //TODO: mirar
 
     QNetworkRequest request;
     request.setUrl(trk->urlRss);
@@ -89,8 +85,6 @@ void Rss_lite::fetch() {
     request.setRawHeader("Referer", (trk->urlTracker + trk->referer).toUtf8() );
 
     qDebug() << "+ Me bajo" << urlTracker.host() << trk->urlRss;
-
-    trk = nullptr;
 
     httpRss.get(request);
   }
@@ -115,11 +109,11 @@ void Rss_lite::readDataRSS(QNetworkReply *reply) {
   QString host = reply->rawHeader("Host");
 
   if ( ! xmls.count( host ) ) {
-      xmls.insert( host, new QXmlStreamReader() );
+      xmls.insert( host, std::make_shared<QXmlStreamReader>() );
   }
 
-  xmls.value( host )->addData( xml );
-  parseXml( xmls.value( host ) );
+  xmls[host]->addData( xml );
+  parseXml( xmls[host].get() );
 
 }
 
@@ -255,7 +249,7 @@ int Rss_lite::parseTitle( QString seccion, QString titulo,  QString enlace, bool
       }
 
       if ( matches->open( QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append ) ) {  // Lo escribimos en el log
-        QTextStream outFile( matches );
+        QTextStream outFile( matches.get() );
         outFile << subida << " --> " << lista->at( i )->nombre << Qt::endl;
         matches->close();
       }
@@ -309,7 +303,7 @@ void Rss_lite::parseLink( QString linkString, QString title = "" ) {
   QString urlTracker( url.scheme() + QLatin1String("://") + url.host() );
   QString path;
 
-  tracker *trk = trackers.value( urlTracker );
+  auto *trk = trackers[urlTracker].get();
 
   if ( trk == nullptr )
       return;
@@ -362,7 +356,7 @@ void Rss_lite::readDataTorrent(QNetworkReply *reply) {
         fichero = posts.take( url.toString() );
         // METODO VIEJO (poner el id)
         if ( fichero.isEmpty() ) {
-          tracker *trk = trackers.value( reply->url().scheme() + QLatin1String("://") + url.host() );
+          auto *trk = trackers[reply->url().scheme() + QLatin1String("://") + url.host()].get();
           if ( trk == nullptr ) return;
           fichero = QUrlQuery(url).queryItemValue( trk->id );
         }
@@ -382,10 +376,10 @@ void Rss_lite::readDataTorrent(QNetworkReply *reply) {
 
       sites.insert( downloadKey, url.host() );
       ficheros.insert( downloadKey, fichero );
-      datos.insert( downloadKey, new QByteArray() );
+      datos.insert( downloadKey, std::make_shared<QByteArray>() );
     }
 
-    datos.value(downloadKey)->append( reply->readAll() );
+    datos[downloadKey]->append( reply->readAll() );
   }
 }
 
@@ -414,7 +408,7 @@ void Rss_lite::iniciaTrackers() {
   auth au;
   for ( auto it = hashAuths->constBegin(); it != hashAuths->constEnd(); ++it ) {
     au = it.value();
-    tracker *trk = new tracker();
+    auto trk = std::make_shared<tracker>();
     trk->urlTracker = au.tracker;
     trk->cookie = QLatin1String( "pass=" ) + au.pass + QLatin1String( "; uid=" ) + au.uid;
     trk->referer = au.referer;
@@ -424,9 +418,10 @@ void Rss_lite::iniciaTrackers() {
     if ( !au.passkey.isEmpty() && trk->urlRss.contains( QLatin1String("pid=") ) )
       trk->urlRss += au.passkey;
     trk->esRss = true;
-    trackers.insert( trk->urlTracker, trk );
-    listaTrackers.append( trk->urlTracker );
-    qDebug() << "+" << "Añadido tracker" << trk->urlTracker;
+    QString url = trk->urlTracker;
+    listaTrackers.append( url );
+    qDebug() << "+" << "Añadido tracker" << url;
+    trackers.insert( url, std::move(trk) );
   }
 }
 

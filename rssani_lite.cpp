@@ -43,23 +43,23 @@ rssani_lite::rssani_lite( QObject* parent ) : QObject( parent ) {
   tiempo = 10;
   rpcUser = QLatin1String("rssani-rpc");
   rpcPass = QLatin1String("rssanipass-rpc");
-  values = new Values();
+  values = std::make_unique<Values>();
 
-  lista = new QList<regexp*>();
+  lista = std::make_unique<QList<regexp*>>();
 
-  listAuths = new QList<auth>;
-  hashAuths = new QHash<QString, auth>;
+  listAuths = std::make_unique<QList<auth>>();
+  hashAuths = std::make_unique<QHash<QString, auth>>();
 
-  settings = new QSettings();
+  settings = std::make_unique<QSettings>();
   misdatos.activo = false;
 
   readSettings();
   QFileInfo fi( settings->fileName() );
-  flog = new QFile( fi.canonicalPath() + QLatin1String( "/rssani.log" ) );
+  flog = std::make_unique<QFile>( fi.canonicalPath() + QLatin1String( "/rssani.log" ) );
 
   timer.start( tiempo * 60 * 1000 );
 
-  rss  = new Rss_lite( values, lista, flog, hashAuths, this );
+  rss  = new Rss_lite( values.get(), lista.get(), flog.get(), hashAuths.get(), this );
 
   if ( misdatos.activo ) {
     session = new MyIrcSession( this,&misdatos,misdatos.debug);
@@ -93,13 +93,7 @@ void rssani_lite::miraSubida( QString subida ) {
   }
 }
 
-rssani_lite::~rssani_lite() {
-  delete rss;
-  delete settings;
-  delete values;
-  delete lista;
-  delete flog;
-}
+rssani_lite::~rssani_lite() = default;
 
 // INICIO METODOS RPC
 
@@ -115,7 +109,7 @@ int rssani_lite::verTimer() {
 
 QList<regexp*>* rssani_lite::listaRegexp() {
   QMutexLocker locker(&mutex);
-  return lista;
+  return lista.get();
 }
 
 bool rssani_lite::editarRegexp( std::string regexpOrig, std::string regexpDest ) {
@@ -226,14 +220,14 @@ void rssani_lite::borrarAuth( std::string tracker ) {
 
 QList<auth>* rssani_lite::listaAuths() {
   QMutexLocker locker(&mutex);
-  return listAuths;
+  return listAuths.get();
 }
 
 QStringList rssani_lite::verLog() {
   QMutexLocker locker(&mutex);
   QStringList result;
   if ( flog->open( QIODevice::ReadOnly | QIODevice::Text ) ) {
-    QTextStream in( flog );
+    QTextStream in( flog.get() );
     while ( !in.atEnd() )
       result.append( in.readLine() );
     flog->close();
@@ -462,11 +456,6 @@ void rssani_lite::readSettings() {
 
 Values* rssani_lite::getValues() const {
   QMutexLocker locker(&mutex);
-  return values;
+  return values.get();
 }
 
-
-void rssani_lite::setValues( Values* theValue ) {
-  QMutexLocker locker(&mutex);
-  values = theValue;
-}
