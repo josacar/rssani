@@ -327,7 +327,7 @@ void rssani_lite::writeSettings() {
     settings->setValue( QLatin1String("dias"), re->diasDescarga );
     if ( re->fechaDescarga.isValid() ) {
       settings->setValue( QLatin1String("fecha"), re->fechaDescarga );
-      qDebug() << "-" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga << re->fechaDescarga.toString( Qt::DefaultLocaleShortDate );
+      qDebug() << "-" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga << re->fechaDescarga.toString( Qt::ISODate );
     } else {
       qDebug() << "-" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga;
     }
