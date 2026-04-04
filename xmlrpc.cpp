@@ -38,17 +38,17 @@ ulxr::MethodResponse Metodos::verLog ( const ulxr::MethodCall &calldata ) {
   ulxr::Integer iniaux = calldata.getParam ( 0 );
   ulxr::Integer finaux = calldata.getParam ( 1 );
 
-  QStringList * log = rss->verLog();
+  QStringList log = rss->verLog();
 
   if ( finaux.getInteger() == 0 )
-    fin = log->count();
+    fin = log.count();
   else
     fin = finaux.getInteger();
 
   ini = iniaux.getInteger();
 
-  for ( int i = log->count()- ini -1 ;i >= std::max( log->count() - fin,0) ; i-- ) {
-    valores << ulxr::RpcString(  (const char*)log->at ( i ).toUtf8() ); // Asi por los acentos
+  for ( int i = log.count()- ini -1 ;i >= std::max( log.count() - fin,0) ; i-- ) {
+    valores << ulxr::RpcString(  (const char*)log.at ( i ).toUtf8() ); // Asi por los acentos
   }
 
   resp.setResult ( valores );

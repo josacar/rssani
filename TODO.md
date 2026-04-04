@@ -30,11 +30,11 @@
 
 - [x] Normalize null pointers — `nullptr` everywhere
 - [x] Replace raw C `malloc` in `irc_color_strip_from_mirc()` with `QString` operations
-- [ ] Fix memory leaks:
-  - `verLog()` returns `new QStringList` that callers (xmlrpc.cpp) never delete
-  - `iniciaTrackers()` allocates `tracker*` with `new` but they're never freed
-  - `url` in `fetch()` is `new QUrl` allocated per-tracker per-fetch, fragile lifetime
-  - `regexp::fechaDescarga` is `new QDateTime` — use value type or smart pointer
+- [x] Fix memory leaks:
+  - `verLog()` returns `QStringList` by value now
+  - `iniciaTrackers()` tracker objects freed in `~Rss_lite()` via `qDeleteAll`
+  - `url` in `fetch()` is now a stack `QUrl`, no more `new`/`delete`
+  - `regexp::fechaDescarga` is now `QDateTime` value type, no more `new`/`delete`
 - [x] Move IRC channel/server (`#PuntoTorrent`, `irc.irc-hispano.org`) to settings
 - [x] Move tracker configuration from `iniciaTrackers()` hardcoded block to settings
 - [ ] Use HTTPS for tracker URLs (currently all `http://`)

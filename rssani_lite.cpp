@@ -171,7 +171,7 @@ void rssani_lite::anadirRegexp( std::string nombre, std::string fecha, bool mail
   re->tracker = QString::fromStdString( tracker );
   re->mail = mail;
   re->diasDescarga = dias;
-  re->fechaDescarga = nullptr;
+  re->fechaDescarga = QDateTime();
   lista->append( re ) ;
   qDebug()  << "Añadida regexp" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga;
 }
@@ -216,20 +216,15 @@ QList<auth>* rssani_lite::listaAuths() {
   return listAuths;
 }
 
-QStringList* rssani_lite::verLog() {
+QStringList rssani_lite::verLog() {
+  QStringList result;
   if ( flog->open( QIODevice::ReadOnly | QIODevice::Text ) ) {
     QTextStream in( flog );
-    QStringList *lista = new QStringList();
-
     while ( !in.atEnd() )
-      lista->append( in.readLine() );
-
+      result.append( in.readLine() );
     flog->close();
-
-    return lista;
-  } else {
-    return new QStringList();
   }
+  return result;
 }
 
 void rssani_lite::cambiaTimer( int tiempo ) {
@@ -310,9 +305,9 @@ void rssani_lite::writeSettings() {
     settings->setValue( QLatin1String("mail"), re->mail );
     settings->setValue( QLatin1String("tracker"), re->tracker );
     settings->setValue( QLatin1String("dias"), re->diasDescarga );
-    if ( re->fechaDescarga ) {
-      settings->setValue( QLatin1String("fecha"), *re->fechaDescarga );
-      qDebug() << "-" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga << re->fechaDescarga->toString( Qt::DefaultLocaleShortDate );
+    if ( re->fechaDescarga.isValid() ) {
+      settings->setValue( QLatin1String("fecha"), re->fechaDescarga );
+      qDebug() << "-" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga << re->fechaDescarga.toString( Qt::DefaultLocaleShortDate );
     } else {
       qDebug() << "-" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga;
     }
@@ -389,15 +384,15 @@ void rssani_lite::readSettings() {
     re->tracker = settings->value( QLatin1String("tracker") ).toString();
     re->diasDescarga = settings->value( QLatin1String("dias"), 0 ).toInt();
     if ( settings->value( QLatin1String("fecha") ).toDateTime().isNull() ) {
-      re->fechaDescarga = nullptr;
+      re->fechaDescarga = QDateTime();
     } else {
-      re->fechaDescarga = new QDateTime(settings->value( QLatin1String("fecha")).toDateTime() );
+      re->fechaDescarga = settings->value( QLatin1String("fecha")).toDateTime();
     }
     re->activa = settings->value( QLatin1String("activa"), true ).toBool();
     lista->append( re );
 
-    if ( re->fechaDescarga )
-      qDebug() << "-" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga << re->fechaDescarga->toString( QLatin1String("dd-MM-yyyy") );
+    if ( re->fechaDescarga.isValid() )
+      qDebug() << "-" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga << re->fechaDescarga.toString( QLatin1String("dd-MM-yyyy") );
     else 
       qDebug() << "-" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga;
   }

@@ -28,7 +28,7 @@ struct regexp {
   bool mail;
   QString tracker;
   int diasDescarga;
-  QDateTime *fechaDescarga;
+  QDateTime fechaDescarga;
   bool activa;
 };
 
@@ -165,7 +165,6 @@ class Rss_lite : public QObject {
     QString description;
     QString locale;
     QTimer timer; /**< Timer que actua para la descarga */
-    QUrl *url;
     QDateTime ultimoRss;
     QStringList recientes;
 

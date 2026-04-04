@@ -25,8 +25,9 @@ Rss_lite::Rss_lite( Values* values, QList<regexp*>* lista, QFile* log, QHash<QSt
  * Destructor por defecto
  */
 Rss_lite::~Rss_lite() {
-  delete url;
   delete matches;
+  qDeleteAll( trackers );
+  qDeleteAll( xmls );
 }
 
 /**
@@ -76,21 +77,20 @@ void Rss_lite::fetch() {
 
     if ( trk == nullptr ) continue;
 
-    url = new QUrl( trk->urlTracker );
+    QUrl urlTracker( trk->urlTracker );
 
-    if ( xmls.contains( url->host() ) )
-        xmls.value( url->host() )->clear(); //TODO: mirar
+    if ( xmls.contains( urlTracker.host() ) )
+        xmls.value( urlTracker.host() )->clear(); //TODO: mirar
 
     QNetworkRequest request;
     request.setUrl(trk->urlRss);
-    request.setRawHeader("Host", url->host().toUtf8() );
+    request.setRawHeader("Host", urlTracker.host().toUtf8() );
     request.setRawHeader("Cookie", trk->cookie.toUtf8() );
     request.setRawHeader("Referer", (trk->urlTracker + trk->referer).toUtf8() );
 
-    qDebug() << "+ Me bajo" << url->host() << trk->urlRss;
+    qDebug() << "+ Me bajo" << urlTracker.host() << trk->urlRss;
 
     trk = nullptr;
-    delete url;
 
     httpRss.get(request);
   }
@@ -276,16 +276,15 @@ int Rss_lite::parseTitle( QString seccion, QString titulo,  QString enlace, bool
       // Vemos si han pasado los dias minimos entre descargas
 
 
-      if ( lista->at( i )->fechaDescarga != nullptr ) {
+      if ( !lista->at( i )->fechaDescarga.isNull() ) {
         if ( values->Debug() )
-          qDebug() << "diasDescarga:" << lista->at( i )->fechaDescarga->daysTo( QDateTime::currentDateTime() ) << "Dias:" << lista->at( i )->diasDescarga;
-        if ( lista->at( i )->fechaDescarga->daysTo( QDateTime::currentDateTime() ) < lista->at( i )->diasDescarga ) {
+          qDebug() << "diasDescarga:" << lista->at( i )->fechaDescarga.daysTo( QDateTime::currentDateTime() ) << "Dias:" << lista->at( i )->diasDescarga;
+        if ( lista->at( i )->fechaDescarga.daysTo( QDateTime::currentDateTime() ) < lista->at( i )->diasDescarga ) {
           continue;
         }
       }
 
-      delete( lista->at( i )->fechaDescarga );
-      lista->at( i )->fechaDescarga = new QDateTime( QDateTime::currentDateTime() );
+      lista->at( i )->fechaDescarga = QDateTime::currentDateTime();
 
       out << "\nBAJANDO: " << titulo << "\n";
       return 1;

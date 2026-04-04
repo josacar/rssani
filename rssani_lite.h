@@ -71,7 +71,7 @@ class rssani_lite : public QObject {
      * Devuelve el log en una lista
      * @return La lista con el log
      */
-    QStringList* verLog();
+    QStringList verLog();
 
     /**
      * Devuelve la lista de regexp con sus atributos
