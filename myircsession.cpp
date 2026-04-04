@@ -2,48 +2,27 @@
 #include "myircsession.h"
 #include <Irc>
 
-static char * irc_color_strip_from_mirc( const char * source ) {
-  unsigned int destlen = 0;
-  char * destline = 0, *d = 0;
-  const char *p;
-
-  while ( destline == 0 ) {
-    if ( destlen > 0 ) {
-      if (( destline = ( char * )malloc( destlen ) ) == 0 ) return 0;
-
-      d = destline;
-    }
-
-    for ( p = source; *p; p++ ) {
-      switch ( *p ) {
-        case 0x02:      // bold
-        case 0x1F:      // underline
-        case 0x16:      // reverse
-        case 0x0F:      // reset colors
-          continue;
-        case 0x03:      // set color
-          if ( isdigit( p[1] ) ) {
-            p++;
-            if ( isdigit( p[1] ) ) p++;
-            if ( p[1] == ',' && isdigit( p[2] ) ) {
-              p += 2;
-              if ( isdigit( p[1] ) ) p++;
-            }
-          }
-          continue;
-        default:
-          if ( destline )
-            *d++ = *p;
-          else
-            destlen++;
-          break;
+static QString irc_color_strip_from_mirc( const QString &source ) {
+  QString result;
+  result.reserve( source.size() );
+  for ( int i = 0; i < source.size(); ++i ) {
+    QChar c = source.at( i );
+    ushort u = c.unicode();
+    if ( u == 0x02 || u == 0x1F || u == 0x16 || u == 0x0F ) continue;
+    if ( u == 0x03 ) {
+      if ( i + 1 < source.size() && source.at( i + 1 ).isDigit() ) {
+        i++;
+        if ( i + 1 < source.size() && source.at( i + 1 ).isDigit() ) i++;
+        if ( i + 1 < source.size() && source.at( i + 1 ) == QLatin1Char(',') && i + 2 < source.size() && source.at( i + 2 ).isDigit() ) {
+          i += 2;
+          if ( i + 1 < source.size() && source.at( i + 1 ).isDigit() ) i++;
+        }
       }
+      continue;
     }
-
-    destlen++; // for 0-terminator
+    result.append( c );
   }
-  *d = '\0';
-  return destline;
+  return result;
 }
 
 void MyIrcSession::connectSlotsByName(QObject *source) {
@@ -144,7 +123,7 @@ void MyIrcSession::on_channelMessageReceived( const QString& origin, const QStri
   setEncoding( "iso-8859-1" );
   QString nick = origin.left( origin.indexOf( QLatin1Char( '!' ) ) );
   QString ssubida = QLatin1String("[Nueva Subida] ");
-  QString mensaje = QString::fromUtf8( irc_color_strip_from_mirc( message.toUtf8() ) );
+  QString mensaje = irc_color_strip_from_mirc( message );
 
   if ( debug ) qDebug() << "message:" << origin << channel << mensaje;
 

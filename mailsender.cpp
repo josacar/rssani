@@ -20,7 +20,7 @@ enum QDataStreamError {
 static QString encodeBase64( QString s )
 {
   QByteArray text;
-  text.append(s);
+  text.append(s.toUtf8());
   return QString::fromUtf8(text.toBase64());
 }
 
@@ -147,34 +147,8 @@ int MailSender::addMimeAttachment(QString *pdata, const QString &filename) const
   pdata->append(QString::fromUtf8("Content-Transfer-Encoding: base64\n"));
   pdata->append(QString::fromUtf8("Content-Disposition: attachment\n"));
   pdata->append(QString::fromUtf8("  filename=") + fileinfo.fileName() + QString::fromUtf8("\n\n"));
-  QString encodedFile;
-  QDataStream in(&file);
-
-  // Read and check the header
-  quint32 magic;
-  in >> magic;
-  if (magic != 0xA0B0C0D0)
-      return QDataStreamError::BAD_FILE_FORMAT;
-
-  // Read the version
-  qint32 version;
-  in >> version;
-  if (version < 100)
-      return QDataStreamError::BAD_FILE_TOO_OLD;
-  if (version > 123)
-      return QDataStreamError::BAD_FILE_TOO_NEW;
-
-  in.setVersion(QDataStream::Qt_4_0);
-
-  quint8 a;
-  char c;
-  QString b;
-  while ( ! in.atEnd() ) {
-    in >> a;
-    c = a;    
-    b.append(QChar(c));
-  }
-  encodedFile = encodeBase64(b);
+  QByteArray fileData = file.readAll();
+  QString encodedFile = QString::fromUtf8(fileData.toBase64());
   pdata->append(encodedFile);
   pdata->append(QString("\r\n\n"));
 
@@ -371,7 +345,7 @@ QString MailSender::mailData() const
 
     m_socket = m_ssl ? new QSslSocket(this) : new QTcpSocket(this); 
 
-    connect( m_socket, QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error), this, &MailSender::errorReceived );
+    connect( m_socket, &QAbstractSocket::errorOccurred, this, &MailSender::errorReceived );
     connect( m_socket, &QAbstractSocket::proxyAuthenticationRequired, this, &MailSender::proxyAuthentication );
 
     bool auth = ! m_login.isEmpty();

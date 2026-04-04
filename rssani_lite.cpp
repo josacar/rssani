@@ -116,9 +116,9 @@ QList<regexp*>* rssani_lite::listaRegexp() {
 }
 
 bool rssani_lite::editarRegexp( std::string regexpOrig, std::string regexpDest ) {
-  int pos = -1; // FIXME: Asegurarse que cambia la del tracker y no otra
+  int pos = -1;
   for ( int i = 0; i < lista->size(); ++i ) {
-    if ( QString::compare( lista->at( i )->nombre , QString::fromStdString( regexpOrig ) ) == 0 ) {
+    if ( lista->at( i )->nombre == QString::fromStdString( regexpOrig ) ) {
       pos = i;
       break;
     }
@@ -291,6 +291,10 @@ void rssani_lite::writeSettings() {
   settings->setValue( QLatin1String("fecha"), values->Fecha() );
   settings->setValue( QLatin1String("rpcUser"), rpcUser );
   settings->setValue( QLatin1String("rpcPass"), rpcPass );
+  settings->setValue( QLatin1String("smtpServer"), values->SmtpServer() );
+  settings->setValue( QLatin1String("smtpLogin"), values->SmtpLogin() );
+  settings->setValue( QLatin1String("smtpPass"), values->SmtpPass() );
+  settings->setValue( QLatin1String("smtpPort"), values->SmtpPort() );
   settings->endGroup();
 
   settings->beginGroup( QLatin1String("regexps") );
@@ -358,6 +362,10 @@ void rssani_lite::readSettings() {
 
   rpcUser = settings->value( QLatin1String("rpcUser"), QLatin1String("rssani-rpc") ).toString();
   rpcPass = settings->value( QLatin1String("rpcPass"), QLatin1String("rssanipass-rpc") ).toString();
+  values->setSmtpServer( settings->value( QLatin1String("smtpServer") ).toString() );
+  values->setSmtpLogin( settings->value( QLatin1String("smtpLogin") ).toString() );
+  values->setSmtpPass( settings->value( QLatin1String("smtpPass") ).toString() );
+  values->setSmtpPort( settings->value( QLatin1String("smtpPort"), 587 ).toInt() );
   settings->endGroup();
 
   settings->beginGroup( QLatin1String("regexps") );
@@ -373,7 +381,7 @@ void rssani_lite::readSettings() {
     re->tracker = settings->value( QLatin1String("tracker") ).toString();
     re->diasDescarga = settings->value( QLatin1String("dias"), 0 ).toInt();
     if ( settings->value( QLatin1String("fecha") ).toDateTime().isNull() ) {
-      re->fechaDescarga = nullptr; // TODO: Ver estooooo
+      re->fechaDescarga = nullptr;
     } else {
       re->fechaDescarga = new QDateTime(settings->value( QLatin1String("fecha")).toDateTime() );
     }

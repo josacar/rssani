@@ -20,9 +20,13 @@ class Values {
     QString rpcPass;
     QString fecha;
     bool debug;
+    QString smtpServer;
+    QString smtpLogin;
+    QString smtpPass;
+    int smtpPort;
 
   public:
-    Values() {};
+    Values() : smtpPort(587) {};
 
     ~Values() {};
 
@@ -70,6 +74,38 @@ class Values {
 
     bool Debug() const {
       return debug;
+    }
+
+    void setSmtpServer( QString theValue ) {
+      smtpServer = theValue;
+    }
+
+    QString SmtpServer() {
+      return smtpServer;
+    }
+
+    void setSmtpLogin( QString theValue ) {
+      smtpLogin = theValue;
+    }
+
+    QString SmtpLogin() {
+      return smtpLogin;
+    }
+
+    void setSmtpPass( QString theValue ) {
+      smtpPass = theValue;
+    }
+
+    QString SmtpPass() {
+      return smtpPass;
+    }
+
+    void setSmtpPort( int theValue ) {
+      smtpPort = theValue;
+    }
+
+    int SmtpPort() {
+      return smtpPort;
     }
 };
 

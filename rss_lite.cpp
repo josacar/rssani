@@ -462,13 +462,13 @@ void Rss_lite::iniciaTrackers() {
 }
 
 int Rss_lite::sendMail( QString asunto, QString mensaje ) {
-  MailSender mail( QLatin1String(""), values->FromMail(), QStringList( values->ToMail() ) ); //FIXME: Save this
+  MailSender mail( values->SmtpServer(), values->FromMail(), QStringList( values->ToMail() ) );
   mail.setSubject( asunto ),
     mail.setBody( mensaje );
   mail.setContentType( MailSender::TextContent );
-  mail.setLogin( QLatin1String(""), QLatin1String("")); //FIXME: Save this to settings
+  mail.setLogin( values->SmtpLogin(), values->SmtpPass() );
   mail.setSsl(true);
-  mail.setPort( 587 );
+  mail.setPort( values->SmtpPort() );
   if ( mail.send() ) {
     return 0;
   } else {
