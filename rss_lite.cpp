@@ -306,7 +306,7 @@ int Rss_lite::parseTitle( QString seccion, QString titulo,  QString enlace, bool
 void Rss_lite::parseLink( QString linkString, QString title = "" ) {
   QUrl url( linkString );
   QUrlQuery query(url);
-  QString urlTracker( QString( "http://" ) + url.host() );
+  QString urlTracker( url.scheme() + QLatin1String("://") + url.host() );
   QString path;
 
   tracker *trk = trackers.value( urlTracker );
@@ -354,7 +354,7 @@ void Rss_lite::readDataTorrent(QNetworkReply *reply) {
       QString fichero = content.section( QChar( '\"' ), 1, 1 );
 
       QUrl replyUrl = reply->url();
-      QUrl url( QString( "http://" ) + reply->rawHeader( QString("Host").toUtf8() ) + replyUrl.path() );
+      QUrl url( reply->url().scheme() + QLatin1String("://") + reply->rawHeader( QString("Host").toUtf8() ) + replyUrl.path() );
 
       if ( !fichero.endsWith( QString( ".torrent" ) ) ) { // Si el header no me dice el nombre del fichero
         // METODO NUEVO (poner el titulo)
@@ -362,7 +362,7 @@ void Rss_lite::readDataTorrent(QNetworkReply *reply) {
         fichero = posts.take( url.toString() );
         // METODO VIEJO (poner el id)
         if ( fichero.isEmpty() ) {
-          tracker *trk = trackers.value( QString( "http://" ) + url.host() );
+          tracker *trk = trackers.value( reply->url().scheme() + QLatin1String("://") + url.host() );
           if ( trk == nullptr ) return;
           fichero = QUrlQuery(url).queryItemValue( trk->id );
         }

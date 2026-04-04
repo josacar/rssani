@@ -75,7 +75,7 @@ void rssani_lite::miraSubida( QString subida ) {
   QString url, seccion, titulo;
   int primero = subida.indexOf( QLatin1Char('-') );
   int ultimo = subida.lastIndexOf( QLatin1Char('-') );
-  QRegularExpression rehttp( QLatin1String("\\s(http://[\\S]*)") );
+  QRegularExpression rehttp( QLatin1String("\\s(https?://[\\S]*)") );
   if ( values->Debug() ) qDebug() << "SUBIDA:" << subida;
   QRegularExpressionMatch match = rehttp.match( subida );
   if ( match.hasMatch() ) {

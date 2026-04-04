@@ -37,5 +37,5 @@
   - `regexp::fechaDescarga` is now `QDateTime` value type, no more `new`/`delete`
 - [x] Move IRC channel/server (`#PuntoTorrent`, `irc.irc-hispano.org`) to settings
 - [x] Move tracker configuration from `iniciaTrackers()` hardcoded block to settings
-- [ ] Use HTTPS for tracker URLs (currently all `http://`)
+- [x] Use HTTPS for tracker URLs (no more hardcoded `http://`; scheme derived from URL)
 - [ ] Thread safety: `xmlrpc.cpp` runs in a `QThread` and calls `rssani_lite` methods directly without mutex protection
