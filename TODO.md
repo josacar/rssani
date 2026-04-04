@@ -38,4 +38,4 @@
 - [x] Move IRC channel/server (`#PuntoTorrent`, `irc.irc-hispano.org`) to settings
 - [x] Move tracker configuration from `iniciaTrackers()` hardcoded block to settings
 - [x] Use HTTPS for tracker URLs (no more hardcoded `http://`; scheme derived from URL)
-- [ ] Thread safety: `xmlrpc.cpp` runs in a `QThread` and calls `rssani_lite` methods directly without mutex protection
+- [x] Thread safety: `xmlrpc.cpp` runs in a `QThread` — all `rssani_lite` public methods now protected by `QMutex`

@@ -4,6 +4,8 @@
 #include <QtCore/QTimer>
 #include <QtCore/QSettings>
 #include <QtCore/QFileInfo>
+#include <QtCore/QMutex>
+#include <QtCore/QMutexLocker>
 #include "rss_lite.h"
 #include "myircsession.h"
 #ifdef __unix__
@@ -197,6 +199,7 @@ class rssani_lite : public QObject {
      */
     void readSettings();
     Rss_lite *rss;
+    mutable QMutex mutex;
     QSettings *settings;
     Values *values;
 
