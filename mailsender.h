@@ -17,7 +17,7 @@ class MailSender : public QObject
     enum Priority {HighPriority, NormalPriority, LowPriority};
     enum ContentType {TextContent, HtmlContent};
     enum Encoding {Encoding_7bit, Encoding_8bit, Encoding_base64};
-    enum ISO {utf8, iso88591};
+    enum ISO {utf8};
 
     MailSender(const QString &smtpServer, const QString &from, const QStringList &to);
     ~MailSender();

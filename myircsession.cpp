@@ -17,7 +17,7 @@ QString MyIrcSession::irc_color_strip_from_mirc( const QString &source ) {
       if ( i + 1 < source.size() && source.at( i + 1 ).isDigit() ) {
         i++;
         if ( i + 1 < source.size() && source.at( i + 1 ).isDigit() ) i++;
-        if ( i + 1 < source.size() && source.at( i + 1 ) == QLatin1Char(',') && i + 2 < source.size() && source.at( i + 2 ).isDigit() ) {
+        if ( i + 1 < source.size() && source.at( i + 1 ) == QChar(',') && i + 2 < source.size() && source.at( i + 2 ).isDigit() ) {
           i += 2;
           if ( i + 1 < source.size() && source.at( i + 1 ).isDigit() ) i++;
         }
@@ -39,7 +39,7 @@ MyIrcSession::MyIrcSession( QObject* parent, datosIrc *datos, bool depurar ) : Q
                              misdatos->nick, QString(), misdatos->user);
   addr.SetRealname(misdatos->name);
 
-  network = new libircclient::Network(addr, QStringLiteral("rssani"), libircclient::EncodingLatin);
+  network = new libircclient::Network(addr, QStringLiteral("rssani"), libircclient::EncodingUTF8);
 
   connect( network, &libircclient::Network::Event_Connected, this, &MyIrcSession::on_connected );
   connect( network, &libircclient::Network::Event_PRIVMSG, this, &MyIrcSession::on_privmsg );
@@ -63,7 +63,7 @@ void MyIrcSession::joinChannels() {
 }
 
 void MyIrcSession::on_timeout() {
-  network->TransferRaw(QLatin1String("PING ") + QString::number(QRandomGenerator::global()->bounded(1000000)));
+  network->TransferRaw(QStringLiteral("PING ") + QString::number(QRandomGenerator::global()->bounded(1000000)));
 }
 
 void MyIrcSession::on_connected() {
@@ -87,9 +87,9 @@ void MyIrcSession::on_privmsg(libircclient::Parser *parser) {
 
   if ( debug ) qDebug() << "message:" << nick << channel << message;
 
-  if ( !channel.startsWith( QLatin1Char('#') ) ) return;
+  if ( !channel.startsWith( QChar('#') ) ) return;
 
-  QString ssubida = QLatin1String("[Nueva Subida] ");
+  QString ssubida = QStringLiteral("[Nueva Subida] ");
   QString mensaje = irc_color_strip_from_mirc( message );
 
   if ( nick == misdatos->botNick ) {

@@ -41,8 +41,8 @@ rssani_lite::rssani_lite( QObject* parent ) : QObject( parent ) {
   sigaction( SIGUSR1, &sigTermAction, nullptr );
 #endif
   tiempo = 10;
-  rpcUser = QLatin1String("rssani-rpc");
-  rpcPass = QLatin1String("rssanipass-rpc");
+  rpcUser = QStringLiteral("rssani-rpc");
+  rpcPass = QStringLiteral("rssanipass-rpc");
   values = std::make_unique<Values>();
 
   lista = std::make_unique<QList<regexp*>>();
@@ -55,7 +55,7 @@ rssani_lite::rssani_lite( QObject* parent ) : QObject( parent ) {
 
   readSettings();
   QFileInfo fi( settings->fileName() );
-  flog = std::make_unique<QFile>( fi.canonicalPath() + QLatin1String( "/rssani.log" ) );
+  flog = std::make_unique<QFile>( fi.canonicalPath() + QStringLiteral("/rssani.log") );
 
   timer.start( tiempo * 60 * 1000 );
 
@@ -73,9 +73,9 @@ rssani_lite::rssani_lite( QObject* parent ) : QObject( parent ) {
 
 void rssani_lite::miraSubida( QString subida ) {
   QString url, seccion, titulo;
-  int primero = subida.indexOf( QLatin1Char('-') );
-  int ultimo = subida.lastIndexOf( QLatin1Char('-') );
-  QRegularExpression rehttp( QLatin1String("\\s(https?://[\\S]*)") );
+  int primero = subida.indexOf( QChar('-') );
+  int ultimo = subida.lastIndexOf( QChar('-') );
+  QRegularExpression rehttp( QStringLiteral("\\s(https?://[\\S]*)") );
   if ( values->Debug() ) qDebug() << "SUBIDA:" << subida;
   QRegularExpressionMatch match = rehttp.match( subida );
   if ( match.hasMatch() ) {
@@ -99,7 +99,7 @@ rssani_lite::~rssani_lite() = default;
 
 std::string rssani_lite::verUltimo() {
   QMutexLocker<QMutex> locker(&mutex);
-  return rss->verUltimo().toString( QLatin1String( "dd/MM/yyyy hh:mm:ss" ) ).toStdString();
+  return rss->verUltimo().toString( QStringLiteral("dd/MM/yyyy hh:mm:ss") ).toStdString();
 }
 
 int rssani_lite::verTimer() {
@@ -288,126 +288,126 @@ void rssani_lite::prepareSignals() {
 }
 
 void rssani_lite::writeSettings() {
-  QString dia = QDate::currentDate().toString( QLatin1String("yyyyMMdd") );
+  QString dia = QDate::currentDate().toString( QStringLiteral("yyyyMMdd") );
   QFileInfo fi( settings->fileName() );
-  QFile::remove( fi.canonicalPath() + QLatin1Char('/') + fi.fileName() + QLatin1Char('.') + dia );
-  QFile::copy( settings->fileName(), fi.canonicalPath() + QLatin1Char('/') + fi.fileName() + QLatin1Char('.') + dia );
-  settings->beginGroup( QLatin1String("principal") );
-  settings->setValue( QLatin1String("fromMail"), values->FromMail() );
-  settings->setValue( QLatin1String("toMail"), values->ToMail() );
-  settings->setValue( QLatin1String("path"), values->Ruta() );
-  settings->setValue( QLatin1String("debug"), values->Debug() );
-  settings->setValue( QLatin1String("timer"), tiempo );
-  settings->setValue( QLatin1String("fecha"), values->Fecha() );
-  settings->setValue( QLatin1String("rpcUser"), rpcUser );
-  settings->setValue( QLatin1String("rpcPass"), rpcPass );
-  settings->setValue( QLatin1String("smtpServer"), values->SmtpServer() );
-  settings->setValue( QLatin1String("smtpLogin"), values->SmtpLogin() );
-  settings->setValue( QLatin1String("smtpPass"), values->SmtpPass() );
-  settings->setValue( QLatin1String("smtpPort"), values->SmtpPort() );
+  QFile::remove( fi.canonicalPath() + QChar('/') + fi.fileName() + QChar('.') + dia );
+  QFile::copy( settings->fileName(), fi.canonicalPath() + QChar('/') + fi.fileName() + QChar('.') + dia );
+  settings->beginGroup( QStringLiteral("principal") );
+  settings->setValue( QStringLiteral("fromMail"), values->FromMail() );
+  settings->setValue( QStringLiteral("toMail"), values->ToMail() );
+  settings->setValue( QStringLiteral("path"), values->Ruta() );
+  settings->setValue( QStringLiteral("debug"), values->Debug() );
+  settings->setValue( QStringLiteral("timer"), tiempo );
+  settings->setValue( QStringLiteral("fecha"), values->Fecha() );
+  settings->setValue( QStringLiteral("rpcUser"), rpcUser );
+  settings->setValue( QStringLiteral("rpcPass"), rpcPass );
+  settings->setValue( QStringLiteral("smtpServer"), values->SmtpServer() );
+  settings->setValue( QStringLiteral("smtpLogin"), values->SmtpLogin() );
+  settings->setValue( QStringLiteral("smtpPass"), values->SmtpPass() );
+  settings->setValue( QStringLiteral("smtpPort"), values->SmtpPort() );
   settings->endGroup();
 
-  settings->beginGroup( QLatin1String("regexps") );
-  settings->beginWriteArray( QLatin1String("items") );
-  settings->remove( QLatin1String("") );
+  settings->beginGroup( QStringLiteral("regexps") );
+  settings->beginWriteArray( QStringLiteral("items") );
+  settings->remove( QStringLiteral("") );
   regexp *re;
   qDebug() << "Num. regexps :" << lista->count();
   for ( int i = 0; i < lista->count(); ++i ) {
     settings->setArrayIndex( i );
     re = lista->at( i );
-    settings->setValue( QLatin1String("item"), re->nombre );
-    settings->setValue( QLatin1String("vencimiento"), re->vencimiento );
-    settings->setValue( QLatin1String("mail"), re->mail );
-    settings->setValue( QLatin1String("tracker"), re->tracker );
-    settings->setValue( QLatin1String("dias"), re->diasDescarga );
+    settings->setValue( QStringLiteral("item"), re->nombre );
+    settings->setValue( QStringLiteral("vencimiento"), re->vencimiento );
+    settings->setValue( QStringLiteral("mail"), re->mail );
+    settings->setValue( QStringLiteral("tracker"), re->tracker );
+    settings->setValue( QStringLiteral("dias"), re->diasDescarga );
     if ( re->fechaDescarga.isValid() ) {
-      settings->setValue( QLatin1String("fecha"), re->fechaDescarga );
+      settings->setValue( QStringLiteral("fecha"), re->fechaDescarga );
       qDebug() << "-" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga << re->fechaDescarga.toString( Qt::ISODate );
     } else {
       qDebug() << "-" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga;
     }
-    settings->setValue( QLatin1String("activa"), re->activa );
+    settings->setValue( QStringLiteral("activa"), re->activa );
   }
   settings->endArray();
   settings->endGroup();
 
   // auths para los trackers
-  settings->beginGroup( QLatin1String("trackers") );
-  settings->beginWriteArray( QLatin1String("trackers") );
-  settings->remove( QLatin1String("") );
+  settings->beginGroup( QStringLiteral("trackers") );
+  settings->beginWriteArray( QStringLiteral("trackers") );
+  settings->remove( QStringLiteral("") );
   qDebug() << "Num. trackers :" << listAuths->count();
   auth au;
   for ( int i = 0; i < listAuths->count(); ++i ) {
     settings->setArrayIndex( i );
     au = listAuths->at( i );
-    settings->setValue( QLatin1String("tracker"), au.tracker );
-    settings->setValue( QLatin1String("uid"), au.uid );
-    settings->setValue( QLatin1String("pass"), au.pass );
-    settings->setValue( QLatin1String("passkey"), au.passkey );
-    settings->setValue( QLatin1String("referer"), au.referer );
-    settings->setValue( QLatin1String("idField"), au.idField );
-    settings->setValue( QLatin1String("urlDownload"), au.urlDownload );
-    settings->setValue( QLatin1String("urlRss"), au.urlRss );
+    settings->setValue( QStringLiteral("tracker"), au.tracker );
+    settings->setValue( QStringLiteral("uid"), au.uid );
+    settings->setValue( QStringLiteral("pass"), au.pass );
+    settings->setValue( QStringLiteral("passkey"), au.passkey );
+    settings->setValue( QStringLiteral("referer"), au.referer );
+    settings->setValue( QStringLiteral("idField"), au.idField );
+    settings->setValue( QStringLiteral("urlDownload"), au.urlDownload );
+    settings->setValue( QStringLiteral("urlRss"), au.urlRss );
     qDebug() << "-" << au.tracker << au.uid << au.pass << au.passkey;
   }
 
   settings->endArray();
   settings->endGroup();
 
-  settings->beginGroup( QLatin1String("irc") );
-  settings->setValue( QLatin1String("nickIrc"), misdatos.nick );
-  settings->setValue( QLatin1String("userIrc"), misdatos.user );
-  settings->setValue( QLatin1String("nameIrc"), misdatos.name );
-  settings->setValue( QLatin1String("serverIrc"), misdatos.server );
-  settings->setValue( QLatin1String("portIrc"), misdatos.port );
-  settings->setValue( QLatin1String("channelsIrc"), misdatos.channels );
-  settings->setValue( QLatin1String("botNickIrc"), misdatos.botNick );
-  settings->setValue( QLatin1String("debugIrc"), misdatos.debug );
+  settings->beginGroup( QStringLiteral("irc") );
+  settings->setValue( QStringLiteral("nickIrc"), misdatos.nick );
+  settings->setValue( QStringLiteral("userIrc"), misdatos.user );
+  settings->setValue( QStringLiteral("nameIrc"), misdatos.name );
+  settings->setValue( QStringLiteral("serverIrc"), misdatos.server );
+  settings->setValue( QStringLiteral("portIrc"), misdatos.port );
+  settings->setValue( QStringLiteral("channelsIrc"), misdatos.channels );
+  settings->setValue( QStringLiteral("botNickIrc"), misdatos.botNick );
+  settings->setValue( QStringLiteral("debugIrc"), misdatos.debug );
   settings->endGroup();
 
   settings->sync();
 }
 
 void rssani_lite::readSettings() {
-  settings->beginGroup( QLatin1String("principal") );
-  values->setFromMail( settings->value( QLatin1String("fromMail") ).toString() );
-  values->setToMail( settings->value( QLatin1String("toMail") ).toString() );
-  values->setRuta( settings->value( QLatin1String("path") ).toString() );
-  values->setDebug( settings->value( QLatin1String("debug"), false ).toBool() );
+  settings->beginGroup( QStringLiteral("principal") );
+  values->setFromMail( settings->value( QStringLiteral("fromMail") ).toString() );
+  values->setToMail( settings->value( QStringLiteral("toMail") ).toString() );
+  values->setRuta( settings->value( QStringLiteral("path") ).toString() );
+  values->setDebug( settings->value( QStringLiteral("debug"), false ).toBool() );
 
-  tiempo = settings->value( QLatin1String("timer") ).toInt();
-  values->setFecha( settings->value( QLatin1String("fecha") ).toString() );
+  tiempo = settings->value( QStringLiteral("timer") ).toInt();
+  values->setFecha( settings->value( QStringLiteral("fecha") ).toString() );
 
-  rpcUser = settings->value( QLatin1String("rpcUser"), QLatin1String("rssani-rpc") ).toString();
-  rpcPass = settings->value( QLatin1String("rpcPass"), QLatin1String("rssanipass-rpc") ).toString();
-  values->setSmtpServer( settings->value( QLatin1String("smtpServer") ).toString() );
-  values->setSmtpLogin( settings->value( QLatin1String("smtpLogin") ).toString() );
-  values->setSmtpPass( settings->value( QLatin1String("smtpPass") ).toString() );
-  values->setSmtpPort( settings->value( QLatin1String("smtpPort"), 587 ).toInt() );
+  rpcUser = settings->value( QStringLiteral("rpcUser"), QStringLiteral("rssani-rpc") ).toString();
+  rpcPass = settings->value( QStringLiteral("rpcPass"), QStringLiteral("rssanipass-rpc") ).toString();
+  values->setSmtpServer( settings->value( QStringLiteral("smtpServer") ).toString() );
+  values->setSmtpLogin( settings->value( QStringLiteral("smtpLogin") ).toString() );
+  values->setSmtpPass( settings->value( QStringLiteral("smtpPass") ).toString() );
+  values->setSmtpPort( settings->value( QStringLiteral("smtpPort"), 587 ).toInt() );
   settings->endGroup();
 
-  settings->beginGroup( QLatin1String("regexps") );
-  int size = settings->beginReadArray( QLatin1String("items") );
+  settings->beginGroup( QStringLiteral("regexps") );
+  int size = settings->beginReadArray( QStringLiteral("items") );
   regexp *re;
   qDebug() << "Num. regexps :" << size;
   for ( int i = 0; i < size; ++i ) {
     settings->setArrayIndex( i );
     re = new regexp();
-    re->nombre = settings->value( QLatin1String("item") ).toString();
-    re->vencimiento = settings->value( QLatin1String("vencimiento") ).toString();
-    re->mail = settings->value( QLatin1String("mail") ).toBool();
-    re->tracker = settings->value( QLatin1String("tracker") ).toString();
-    re->diasDescarga = settings->value( QLatin1String("dias"), 0 ).toInt();
-    if ( settings->value( QLatin1String("fecha") ).toDateTime().isNull() ) {
+    re->nombre = settings->value( QStringLiteral("item") ).toString();
+    re->vencimiento = settings->value( QStringLiteral("vencimiento") ).toString();
+    re->mail = settings->value( QStringLiteral("mail") ).toBool();
+    re->tracker = settings->value( QStringLiteral("tracker") ).toString();
+    re->diasDescarga = settings->value( QStringLiteral("dias"), 0 ).toInt();
+    if ( settings->value( QStringLiteral("fecha") ).toDateTime().isNull() ) {
       re->fechaDescarga = QDateTime();
     } else {
-      re->fechaDescarga = settings->value( QLatin1String("fecha")).toDateTime();
+      re->fechaDescarga = settings->value( QStringLiteral("fecha")).toDateTime();
     }
-    re->activa = settings->value( QLatin1String("activa"), true ).toBool();
+    re->activa = settings->value( QStringLiteral("activa"), true ).toBool();
     lista->append( re );
 
     if ( re->fechaDescarga.isValid() )
-      qDebug() << "-" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga << re->fechaDescarga.toString( QLatin1String("dd-MM-yyyy") );
+      qDebug() << "-" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga << re->fechaDescarga.toString( QStringLiteral("dd-MM-yyyy") );
     else 
       qDebug() << "-" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga;
   }
@@ -415,21 +415,21 @@ void rssani_lite::readSettings() {
   settings->endArray();
   settings->endGroup();
 
-  settings->beginGroup( QLatin1String("trackers") );
+  settings->beginGroup( QStringLiteral("trackers") );
   // auths para los trackers
-  size = settings->beginReadArray( QLatin1String("trackers") );
+  size = settings->beginReadArray( QStringLiteral("trackers") );
   auth au;
   qDebug() << "Num. trackers :" << size;
   for ( int i = 0; i < size; ++i ) {
     settings->setArrayIndex( i );
-    au.tracker =	settings->value( QLatin1String("tracker") ).toString();
-    au.uid = settings->value( QLatin1String("uid") ).toString();
-    au.pass = settings->value( QLatin1String("pass") ).toString();
-    au.passkey = settings->value( QLatin1String("passkey") ).toString();
-    au.referer = settings->value( QLatin1String("referer"), QLatin1String("/browse.php") ).toString();
-    au.idField = settings->value( QLatin1String("idField"), QLatin1String("id") ).toString();
-    au.urlDownload = settings->value( QLatin1String("urlDownload"), QLatin1String("/download.php?id=") ).toString();
-    au.urlRss = settings->value( QLatin1String("urlRss"), QLatin1String("/rss.php") ).toString();
+    au.tracker =	settings->value( QStringLiteral("tracker") ).toString();
+    au.uid = settings->value( QStringLiteral("uid") ).toString();
+    au.pass = settings->value( QStringLiteral("pass") ).toString();
+    au.passkey = settings->value( QStringLiteral("passkey") ).toString();
+    au.referer = settings->value( QStringLiteral("referer"), QStringLiteral("/browse.php") ).toString();
+    au.idField = settings->value( QStringLiteral("idField"), QStringLiteral("id") ).toString();
+    au.urlDownload = settings->value( QStringLiteral("urlDownload"), QStringLiteral("/download.php?id=") ).toString();
+    au.urlRss = settings->value( QStringLiteral("urlRss"), QStringLiteral("/rss.php") ).toString();
     listAuths->append( au );
     hashAuths->insert( au.tracker, au );
     qDebug() << "-" << au.tracker << au.uid << au.pass << au.passkey;
@@ -438,18 +438,18 @@ void rssani_lite::readSettings() {
   settings->endArray();
   settings->endGroup();
 
-  settings->beginGroup( QLatin1String("irc") );
+  settings->beginGroup( QStringLiteral("irc") );
   // auths para el irc
-  misdatos.nick = settings->value( QLatin1String("nickIrc") ).toString();
-  misdatos.user = settings->value( QLatin1String("userIrc") ).toString();
-  misdatos.name = settings->value( QLatin1String("nameIrc") ).toString();
-  misdatos.server = settings->value( QLatin1String("serverIrc"), QLatin1String("irc.irc-hispano.org") ).toString();
-  misdatos.port = settings->value( QLatin1String("portIrc"), 6667 ).toInt();
-  misdatos.channels = settings->value( QLatin1String("channelsIrc") ).toStringList();
-  if ( misdatos.channels.isEmpty() ) misdatos.channels << QLatin1String("#PuntoTorrent");
-  misdatos.botNick = settings->value( QLatin1String("botNickIrc"), QLatin1String("PuntoTorrent") ).toString();
-  misdatos.debug = settings->value( QLatin1String("debugIrc"), false ).toBool();
-  if ( !misdatos.nick.isEmpty() && !misdatos.nick.startsWith( QLatin1String("OFF:") ) ) misdatos.activo = true;
+  misdatos.nick = settings->value( QStringLiteral("nickIrc") ).toString();
+  misdatos.user = settings->value( QStringLiteral("userIrc") ).toString();
+  misdatos.name = settings->value( QStringLiteral("nameIrc") ).toString();
+  misdatos.server = settings->value( QStringLiteral("serverIrc"), QStringLiteral("irc.irc-hispano.org") ).toString();
+  misdatos.port = settings->value( QStringLiteral("portIrc"), 6667 ).toInt();
+  misdatos.channels = settings->value( QStringLiteral("channelsIrc") ).toStringList();
+  if ( misdatos.channels.isEmpty() ) misdatos.channels << QStringLiteral("#PuntoTorrent");
+  misdatos.botNick = settings->value( QStringLiteral("botNickIrc"), QStringLiteral("PuntoTorrent") ).toString();
+  misdatos.debug = settings->value( QStringLiteral("debugIrc"), false ).toBool();
+  if ( !misdatos.nick.isEmpty() && !misdatos.nick.startsWith( QStringLiteral("OFF:") ) ) misdatos.activo = true;
 
   settings->endGroup();
 }
