@@ -10,6 +10,16 @@
 - [x] Convert all `SIGNAL()`/`SLOT()` macro connections to Qt5 pointer-to-member syntax
 - [x] Replace `QTextCodec` usage in `mailsender.cpp`
 
+## Qt6 Migration (complete)
+
+- [x] Update `CMakeLists.txt`: `find_package(Qt6)`, `Qt6::Core`, `Qt6::Network`, `qt6_create_translation`
+- [x] Update `CMakeLists.txt`: libcommuni ExternalProject `qmake` → `qmake6`
+- [x] Patch libcommuni `module_build.pri` to add `core5compat` (Qt6 moved `QTextCodec` to Qt5Compat)
+- [x] Fix `QMutexLocker` → `QMutexLocker<QMutex>` (templated in Qt6) in `rssani_lite.cpp`
+- [x] Fix `QList::move()` removal in `rssani_lite.cpp` `moverRegexp()` — replaced with `takeAt()`/`insert()`
+- [x] Fix `std::max(qsizetype, int)` type mismatch in `xmlrpc.cpp` (`QList::count()` returns `qsizetype` in Qt6)
+- [x] Verify build compiles and links against Qt6
+
 ## Bugs / FIXMEs in code
 
 - [x] SMTP server is empty string — now read from settings via `Values::SmtpServer()`

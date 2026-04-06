@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(ExternalProject)
 
-find_package(Qt5 COMPONENTS Core LinguistTools Network REQUIRED)
+find_package(Qt6 COMPONENTS Core LinguistTools Network Core5Compat REQUIRED)
 
 set(DEPS_PREFIX ${CMAKE_BINARY_DIR}/deps)
 
@@ -33,7 +33,8 @@ ExternalProject_Add(libcommuni_ext
   GIT_TAG v3.7.0
   GIT_SHALLOW ON
   PREFIX ${DEPS_PREFIX}/libcommuni
-  CONFIGURE_COMMAND qmake <SOURCE_DIR>/libcommuni.pro IRC_INSTALL_LIBS=<INSTALL_DIR>/lib IRC_INSTALL_HEADERS=<INSTALL_DIR>/include IRC_INSTALL_FEATURES=<INSTALL_DIR>/features
+  CONFIGURE_COMMAND qmake6 <SOURCE_DIR>/libcommuni.pro IRC_INSTALL_LIBS=<INSTALL_DIR>/lib IRC_INSTALL_HEADERS=<INSTALL_DIR>/include IRC_INSTALL_FEATURES=<INSTALL_DIR>/features CONFIG+=no_tests CONFIG+=no_examples
+  PATCH_COMMAND sed -i "s/QT = core network/QT = core network core5compat/" <SOURCE_DIR>/src/module_build.pri
   BUILD_COMMAND make -j4
   INSTALL_COMMAND make install
   BUILD_IN_SOURCE ON
@@ -68,11 +69,11 @@ target_link_directories(rssani PRIVATE
   ${LIBCOMMUNI_INSTALL_DIR}/lib
 )
 
-target_link_libraries(rssani Qt5::Core Qt5::Network ulxmlrpcpp IrcCore)
+target_link_libraries(rssani Qt6::Core Qt6::Network ulxmlrpcpp IrcCore)
 
 set_target_properties(rssani PROPERTIES
   INSTALL_RPATH "${ULXMLRPCPP_INSTALL_DIR}/lib;${LIBCOMMUNI_INSTALL_DIR}/lib"
   BUILD_WITH_INSTALL_RPATH ON
 )
 
-qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+qt6_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})

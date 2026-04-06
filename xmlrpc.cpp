@@ -47,7 +47,7 @@ ulxr::MethodResponse Metodos::verLog ( const ulxr::MethodCall &calldata ) {
 
   ini = iniaux.getInteger();
 
-  for ( int i = log.count()- ini -1 ;i >= std::max( log.count() - fin,0) ; i-- ) {
+  for ( int i = log.count()- ini -1 ;i >= std::max( log.count() - fin, qsizetype(0)) ; i-- ) {
     valores << ulxr::RpcString(  (const char*)log.at ( i ).toUtf8() ); // Asi por los acentos
   }
 

@@ -98,22 +98,22 @@ rssani_lite::~rssani_lite() = default;
 // INICIO METODOS RPC
 
 std::string rssani_lite::verUltimo() {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   return rss->verUltimo().toString( QLatin1String( "dd/MM/yyyy hh:mm:ss" ) ).toStdString();
 }
 
 int rssani_lite::verTimer() {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   return timer.interval();
 }
 
 QList<regexp*>* rssani_lite::listaRegexp() {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   return lista.get();
 }
 
 bool rssani_lite::editarRegexp( std::string regexpOrig, std::string regexpDest ) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   int pos = -1;
   for ( int i = 0; i < lista->size(); ++i ) {
     if ( lista->at( i )->nombre == QString::fromStdString( regexpOrig ) ) {
@@ -133,7 +133,7 @@ bool rssani_lite::editarRegexp( std::string regexpOrig, std::string regexpDest )
 }
 
 bool rssani_lite::editarRegexp( int pos, std::string regexpDest ) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   if ( pos != -1 ) {
     regexp *re = lista->at( pos );
     QString regexpOrig = re->nombre;
@@ -146,7 +146,7 @@ bool rssani_lite::editarRegexp( int pos, std::string regexpDest ) {
 }
 
 bool rssani_lite::activarRegexp( int pos ) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   if ( pos != -1 ) {
     regexp *re = lista->at( pos );
     re->activa = ! re->activa;
@@ -158,15 +158,16 @@ bool rssani_lite::activarRegexp( int pos ) {
 }
 
 void rssani_lite::moverRegexp( int from, int to ) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   if ( from >= 0 && from < lista->size() && to >= 0 && to < lista->size() ) {
-    lista->move( from, to );
+    auto *item = lista->takeAt( from );
+    lista->insert( to, item );
     qDebug() << "Movido el item" << from << "al" << to;
   }
 }
 
 void rssani_lite::anadirRegexp( std::string nombre, std::string fecha, bool mail, std::string tracker, int dias ) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   regexp *re = new regexp();
   re->nombre = QString::fromStdString( nombre );
   re->vencimiento = QString::fromStdString( fecha );
@@ -179,13 +180,13 @@ void rssani_lite::anadirRegexp( std::string nombre, std::string fecha, bool mail
 }
 
 void rssani_lite::borrarRegexp( int pos ) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   delete( lista->at(pos) );
   lista->removeAt( pos );
 }
 
 void rssani_lite::borrarRegexp( std::string cad ) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   for ( int i = 0; i < lista->size(); ++i ) {
     if ( QString::compare( lista->at( i )->nombre , QString::fromStdString( cad ) ) == 0 ) {
       lista->removeAt( i );
@@ -195,7 +196,7 @@ void rssani_lite::borrarRegexp( std::string cad ) {
 }
 
 void rssani_lite::anadirAuth( std::string tracker, std::string uid, std::string pass, std::string passkey ) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   auth au;
   au.tracker = QString::fromStdString( tracker );
   au.uid = QString::fromStdString( uid );
@@ -207,7 +208,7 @@ void rssani_lite::anadirAuth( std::string tracker, std::string uid, std::string 
 }
 
 void rssani_lite::borrarAuth( std::string tracker ) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   for ( int i = 0; i < listAuths->size(); ++i ) {
     if ( QString::compare( listAuths->at( i ).tracker , QString::fromStdString( tracker ) ) == 0 ) {
       listAuths->removeAt( i );
@@ -219,12 +220,12 @@ void rssani_lite::borrarAuth( std::string tracker ) {
 }
 
 QList<auth>* rssani_lite::listaAuths() {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   return listAuths.get();
 }
 
 QStringList rssani_lite::verLog() {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   QStringList result;
   if ( flog->open( QIODevice::ReadOnly | QIODevice::Text ) ) {
     QTextStream in( flog.get() );
@@ -236,12 +237,12 @@ QStringList rssani_lite::verLog() {
 }
 
 void rssani_lite::cambiaTimer( int tiempo ) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   this->tiempo = tiempo;
 }
 
 void rssani_lite::guardar() {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   writeSettings();
   qDebug() << "Conf. guardada";
 }
@@ -259,22 +260,22 @@ void rssani_lite::salYa() {
 }
 
 void rssani_lite::setRpcUser( std::string theValue ) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   rpcUser = QString::fromStdString( theValue );
 }
 
 QString rssani_lite::getRpcUser() {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   return rpcUser;
 }
 
 void rssani_lite::setRpcPass( std::string theValue ) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   rpcPass = QString::fromStdString( theValue );
 }
 
 QString rssani_lite::getRpcPass() {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   return rpcPass;
 }
 
@@ -455,7 +456,7 @@ void rssani_lite::readSettings() {
 
 
 Values* rssani_lite::getValues() const {
-  QMutexLocker locker(&mutex);
+  QMutexLocker<QMutex> locker(&mutex);
   return values.get();
 }
 
