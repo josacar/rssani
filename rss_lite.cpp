@@ -235,6 +235,7 @@ int Rss_lite::parseTitle( QString seccion, QString titulo,  QString enlace, bool
     if ( !lista->at( i )->vencimiento.isEmpty() )
       if ( QDate::currentDate() >= QDate::fromString( lista->at( i )->vencimiento, QStringLiteral("dd-MM-yyyy") ) ) {
         out  << "Borrado caducado" << lista->at( i )->nombre << "\n";
+        delete lista->at( i );
         lista->removeAt( i );
         i--;
         continue;
@@ -380,6 +381,23 @@ void Rss_lite::readDataTorrent(QNetworkReply *reply) {
     }
 
     datos[downloadKey]->append( reply->readAll() );
+
+    // Write torrent to disk and clean up
+    QString fichero = ficheros.value( downloadKey );
+    QString fullPath = values->Ruta() + QChar('/') + fichero;
+    QFile file( fullPath );
+    if ( file.open( QIODevice::WriteOnly ) ) {
+      file.write( *datos[downloadKey] );
+      file.close();
+      qDebug() << "Grabado:" << fichero;
+      saveLog( fichero );
+      sendMail(
+          QStringLiteral("RSSANI ") + QHostInfo::localHostName() + QDateTime::currentDateTime().toString( QStringLiteral(" dd/MM/yyyy hh:mm:ss") ),
+          fichero );
+    }
+    ficheros.remove( downloadKey );
+    datos.remove( downloadKey );
+    sites.remove( downloadKey );
   }
 }
 

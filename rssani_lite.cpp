@@ -108,7 +108,13 @@ void rssani_lite::miraSubida( QString subida ) {
   }
 }
 
-rssani_lite::~rssani_lite() = default;
+rssani_lite::~rssani_lite() {
+  qDeleteAll(*lista);
+#ifdef __unix__
+  ::close(sigFd[0]);
+  ::close(sigFd[1]);
+#endif
+}
 
 // INICIO METODOS RPC
 
@@ -204,6 +210,7 @@ void rssani_lite::borrarRegexp( std::string cad ) {
   QMutexLocker<QMutex> locker(&mutex);
   for ( int i = 0; i < lista->size(); ++i ) {
     if ( QString::compare( lista->at( i )->nombre , QString::fromStdString( cad ) ) == 0 ) {
+      delete lista->at( i );
       lista->removeAt( i );
       qDebug()  << "Borrado regexp" << QString::fromStdString( cad );
     }

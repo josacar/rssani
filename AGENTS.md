@@ -60,7 +60,7 @@ The script starts the binary, runs 14 tests covering all RPC methods (regexp CRU
 | File | Notes |
 |---|---|
 | `main.cpp` | Entry point. Constructs `rssani_lite`, starts `rssxmlrpc` thread. |
-| `rss_lite.cpp` | RSS/torrent logic. Trackers loaded from settings via `iniciaTrackers()`. Uses reply URL as download key for concurrent torrent downloads. |
+| `rss_lite.cpp` | RSS/torrent logic. Trackers loaded from settings via `iniciaTrackers()`. Uses reply URL as download key for concurrent torrent downloads. Downloads are written to disk in `readDataTorrent()` and logged via `saveLog()`. |
 | `rssani_lite.cpp` | Settings I/O, regexp CRUD, signal wiring. All public methods mutex-protected. Uses `QRegularExpression`. POSIX signal handling uses self-pipe trick with `QSocketNotifier` to avoid deadlocks. |
 | `myircsession.cpp` | IRC client. Uses `QRandomGenerator`. Connects to `libircclient::Network` signals (`Event_PRIVMSG`, `Event_Connected`, `Event_SelfKick`, `Event_MOTDEnd`). |
 | `mailsender.cpp` | SMTP sender. Credentials read from `Values`. Uses `QRandomGenerator`. |

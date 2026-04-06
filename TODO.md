@@ -79,3 +79,9 @@
 - [x] Use HTTPS for tracker URLs (no more hardcoded `http://`; scheme derived from URL)
 - [x] Thread safety: `xmlrpc.cpp` runs in a `QThread` — all `rssani_lite` public methods now protected by `QMutex`
 - [x] Fix signal handler deadlock — replaced unsafe `sigHandler` (called mutex methods from signal context) with self-pipe trick using `QSocketNotifier`; `salir()` now uses `QCoreApplication::quit()` for clean shutdown
+- [x] Fix memory leaks:
+  - `borrarRegexp(string)` now deletes `regexp*` before removing from list
+  - `parseTitle()` now deletes expired `regexp*` before removing from list
+  - `readDataTorrent()` now writes torrent to disk and clears `ficheros`/`datos`/`sites` hashes
+  - `~rssani_lite()` now calls `qDeleteAll(*lista)` to free all `regexp*` pointers
+  - `~rssani_lite()` now closes `sigFd` socketpair file descriptors
