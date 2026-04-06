@@ -11,7 +11,7 @@ Originally created in 2004 for the Animersion community. Tested on Linux.
 | `main.cpp` | Entry point, creates `rssani_lite` + XML-RPC thread |
 | `rssani_lite.cpp/h` | Core app: settings, regexp management, IRC integration, signal wiring |
 | `rss_lite.cpp/h` | RSS fetching, XML parsing, torrent downloading, regexp matching |
-| `myircsession.cpp/h` | IRC client (libcommuni) monitoring channels for new uploads |
+| `myircsession.cpp/h` | IRC client (libirc/grumpy-irc) monitoring channels for new uploads |
 | `xmlrpc.cpp/h` | XML-RPC server thread (xmlrpc-c / Abyss) exposing management API |
 | `mailsender.cpp/h` | SMTP email sender with SSL/TLS support |
 | `values.h` | Configuration value object (paths, mail, debug flag) |
@@ -20,14 +20,14 @@ Originally created in 2004 for the Animersion community. Tested on Linux.
 
 - Qt6 (Core, Network, Core5Compat)
 - [xmlrpc-c](http://xmlrpc-c.sourceforge.net/) (system package: `libxmlrpc-c++9-dev`)
-- [libcommuni](https://github.com/communi/libcommuni) 3.7.0
+- [libirc](https://github.com/grumpy-irc/libirc) (grumpy-irc)
 - A C++ compiler with C++20 support
 - CMake ≥ 3.14
 - Doxygen (optional, for docs)
 
 ## Build
 
-xmlrpc-c must be installed as a system package (`libxmlrpc-c++9-dev` on Debian/Ubuntu). libcommuni is fetched and built automatically via CMake `ExternalProject`:
+xmlrpc-c must be installed as a system package (`libxmlrpc-c++9-dev` on Debian/Ubuntu). libirc is fetched and built automatically via CMake `ExternalProject`:
 
 ```bash
 mkdir build && cd build

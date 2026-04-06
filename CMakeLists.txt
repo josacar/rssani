@@ -29,25 +29,29 @@ endif()
 
 set(DEPS_PREFIX ${CMAKE_BINARY_DIR}/deps)
 
-# --- libcommuni ---
-ExternalProject_Add(libcommuni_ext
-  GIT_REPOSITORY https://github.com/communi/libcommuni.git
-  GIT_TAG v3.7.0
+# --- libirc (grumpy-irc) ---
+ExternalProject_Add(libirc_ext
+  GIT_REPOSITORY https://github.com/grumpy-irc/libirc.git
   GIT_SHALLOW ON
-  PREFIX ${DEPS_PREFIX}/libcommuni
-  CONFIGURE_COMMAND qmake6 <SOURCE_DIR>/libcommuni.pro IRC_INSTALL_LIBS=<INSTALL_DIR>/lib IRC_INSTALL_HEADERS=<INSTALL_DIR>/include IRC_INSTALL_FEATURES=<INSTALL_DIR>/features CONFIG+=no_tests CONFIG+=no_examples
-  PATCH_COMMAND sed -i "s/QT = core network/QT = core network core5compat/" <SOURCE_DIR>/src/module_build.pri
-  BUILD_COMMAND make -j4
-  INSTALL_COMMAND bash -c "make -C src/core install && make -C src/model install && make -C src/util install"
-  BUILD_IN_SOURCE ON
+  PREFIX ${DEPS_PREFIX}/libirc
+  CMAKE_ARGS
+    -DQT6_BUILD=true
+    -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+    -DCMAKE_CXX_STANDARD=20
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+  BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR>
+  INSTALL_COMMAND
+    ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/libirc <INSTALL_DIR>/include/libirc
+    COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/libircclient <INSTALL_DIR>/include/libircclient
+    COMMAND ${CMAKE_COMMAND} -E copy <BINARY_DIR>/libirc/libirc.so <INSTALL_DIR>/lib/libirc.so
+    COMMAND ${CMAKE_COMMAND} -E copy <BINARY_DIR>/libircclient/libircclient.so <INSTALL_DIR>/lib/libircclient.so
 )
-ExternalProject_Get_Property(libcommuni_ext INSTALL_DIR)
-set(LIBCOMMUNI_INSTALL_DIR ${INSTALL_DIR})
+ExternalProject_Get_Property(libirc_ext INSTALL_DIR)
+set(LIBIRC_INSTALL_DIR ${INSTALL_DIR})
 
 # --- rssani ---
 set(TS_FILES rssani_en_US.ts)
-
-add_definitions(-DIRC_STATIC)
 
 add_executable(rssani
   main.cpp
@@ -59,24 +63,24 @@ add_executable(rssani
   ${TS_FILES}
 )
 
-add_dependencies(rssani libcommuni_ext)
+add_dependencies(rssani libirc_ext)
 
 target_include_directories(rssani PRIVATE
-  ${LIBCOMMUNI_INSTALL_DIR}/include/IrcCore
+  ${LIBIRC_INSTALL_DIR}/include
 )
 
 target_link_directories(rssani PRIVATE
-  ${LIBCOMMUNI_INSTALL_DIR}/lib
+  ${LIBIRC_INSTALL_DIR}/lib
 )
 
 separate_arguments(XMLRPC_CFLAGS_LIST UNIX_COMMAND "${XMLRPC_CFLAGS}")
 target_compile_options(rssani PRIVATE ${XMLRPC_CFLAGS_LIST})
 
 separate_arguments(XMLRPC_LIBS_LIST UNIX_COMMAND "${XMLRPC_LIBS}")
-target_link_libraries(rssani Qt6::Core Qt6::Network IrcCore ${XMLRPC_LIBS_LIST})
+target_link_libraries(rssani Qt6::Core Qt6::Network ircclient irc ${XMLRPC_LIBS_LIST})
 
 set_target_properties(rssani PROPERTIES
-  INSTALL_RPATH "${LIBCOMMUNI_INSTALL_DIR}/lib"
+  INSTALL_RPATH "${LIBIRC_INSTALL_DIR}/lib"
   BUILD_WITH_INSTALL_RPATH ON
 )
 

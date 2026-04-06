@@ -44,6 +44,14 @@
 - [x] Update `CMakeLists.txt` — removed ulxmlrpcpp `ExternalProject_Add`, link xmlrpc-c via `xmlrpc-c-config`
 - [x] Shutdown method calls `server.terminate()` to cleanly stop the Abyss event loop
 
+## IRC library migration (complete)
+
+- [x] Replace libcommuni with libirc (grumpy-irc) — Qt-based IRC library with native Qt6 support
+- [x] Rewrite `myircsession.h` — `MyIrcSession` now inherits `QObject`, uses `libircclient::Network`
+- [x] Rewrite `myircsession.cpp` — uses `libirc::ServerAddress`, `Network::Event_*` signals
+- [x] Update `CMakeLists.txt` — replaced libcommuni `ExternalProject_Add` with libirc, `-DQT6_BUILD=true`
+- [x] Removed `IRC_STATIC` define and `connectSlotsByName()` old-style macro connections
+
 ## Code quality
 
 - [x] Normalize null pointers — `nullptr` everywhere

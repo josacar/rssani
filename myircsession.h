@@ -1,13 +1,14 @@
 #ifndef MYIRCSESSION_H
 #define MYIRCSESSION_H
 
-#include <QtCore/QThread>
+#include <QtCore/QObject>
 #include <QtCore/QDebug>
 #include <QtCore/QTimer>
 #include <QtCore/QRandomGenerator>
 #include <QtCore/QStringList>
-#include <IrcConnection>
-#include <IrcCommand>
+
+namespace libirc { class ServerAddress; }
+namespace libircclient { class Network; class Parser; class Channel; }
 
 struct datosIrc {
   bool	activo;
@@ -21,39 +22,30 @@ struct datosIrc {
   bool debug;
 };
 
-class MyIrcSession : public IrcConnection {
+class MyIrcSession : public QObject {
   Q_OBJECT
 
   public:
     MyIrcSession( QObject* parent = nullptr, datosIrc *datos = nullptr, bool depurar = false);
+    ~MyIrcSession() override;
 
-    protected slots:
-      void on_connected();
-    void on_timeout();
-    void connectSlotsByName(QObject *source);
-    void on_msgNickChanged( const QString& origin, const QString& nick );
-    void on_msgQuit( const QString& origin, const QString& message );
-    void on_msgJoined( const QString& origin, const QString& channel );
-    void on_msgParted( const QString& origin, const QString& channel, const QString& message );
-    void on_userModeChanged( const QString& origin, const QString& mode );
-    void on_msgModeChanged( const QString& origin, const QString& channel, const QString& mode, const QString& args );
-    void on_msgTopicChanged( const QString& origin, const QString& channel, const QString& topic );
-    void on_msgKicked( const QString& origin, const QString& channel, const QString& nick, const QString& message );
-    void on_channelMessageReceived( const QString& origin, const QString& channel, const QString& message );
-    void on_msgMessageReceived( const QString& origin, const QString& receiver, const QString& message );
-    void on_msgNoticeReceived( const QString& origin, const QString& receiver, const QString& message );
-    void on_msgInvited( const QString& origin, const QString& nick, const QString& channel );
-    void on_msgCtcpRequestReceived( const QString& origin, const QString& message );
-    void on_msgCtcpReplyReceived( const QString& origin, const QString& message );
-    void on_msgCtcpActionReceived( const QString& origin, const QString& message );
-    void on_msgUnknownMessageReceived( const QString& origin, const QStringList& params );
-    void on_msgNumericMessageReceived( const QString& origin, uint code, const QStringList& params );
 signals:
     void nuevaSubida( QString msg );
+
+  private slots:
+    void on_connected();
+    void on_timeout();
+    void on_privmsg(libircclient::Parser *parser);
+    void on_kick(libircclient::Parser *parser, libircclient::Channel *chan);
+    void on_numericMessage(libircclient::Parser *parser);
+
   private:
+    static QString irc_color_strip_from_mirc( const QString &source );
+    void joinChannels();
     bool debug;
     datosIrc *misdatos;
     QTimer *timer;
+    libircclient::Network *network;
 };
 
 #endif
