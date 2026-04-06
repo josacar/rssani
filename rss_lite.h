@@ -18,7 +18,6 @@
 
 #include <iostream>
 #include <cstdlib>
-#include <cstdio>
 #include <memory>
 #include "mailsender.h"
 #include "values.h"

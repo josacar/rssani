@@ -311,8 +311,8 @@ void rssani_lite::writeSettings() {
   settings->beginWriteArray( QStringLiteral("items") );
   settings->remove( QStringLiteral("") );
   regexp *re;
-  qDebug() << "Num. regexps :" << lista->count();
-  for ( int i = 0; i < lista->count(); ++i ) {
+  qDebug() << "Num. regexps :" << lista->size();
+  for ( int i = 0; i < lista->size(); ++i ) {
     settings->setArrayIndex( i );
     re = lista->at( i );
     settings->setValue( QStringLiteral("item"), re->nombre );
@@ -335,9 +335,9 @@ void rssani_lite::writeSettings() {
   settings->beginGroup( QStringLiteral("trackers") );
   settings->beginWriteArray( QStringLiteral("trackers") );
   settings->remove( QStringLiteral("") );
-  qDebug() << "Num. trackers :" << listAuths->count();
+  qDebug() << "Num. trackers :" << listAuths->size();
   auth au;
-  for ( int i = 0; i < listAuths->count(); ++i ) {
+  for ( int i = 0; i < listAuths->size(); ++i ) {
     settings->setArrayIndex( i );
     au = listAuths->at( i );
     settings->setValue( QStringLiteral("tracker"), au.tracker );

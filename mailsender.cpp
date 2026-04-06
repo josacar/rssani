@@ -9,7 +9,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QHostInfo>
-#include <time.h>
+#include <ctime>
 
 enum QDataStreamError {
     BAD_FILE_FORMAT,
@@ -187,29 +187,27 @@ QString MailSender::mailData() const
   data.append(QStringLiteral("Message-ID: ") + id + QStringLiteral("@") + QHostInfo::localHostName() + QStringLiteral("\n"));
   data.append(QStringLiteral("From: \"") + m_from + QStringLiteral("\" <") + m_fromName + QStringLiteral(">\n"));
 
-  if ( m_to.count() > 0 ) {
+  if ( !m_to.isEmpty() ) {
     data.append(QStringLiteral("To: "));
     bool first = true;
-    //foreach (QString val, m_to) {
-    for (int i = 0;i < m_to.size(); i++) {
+    for (const auto &val : m_to) {
       if(!first) {
         data.append(QStringLiteral(","));
       }
-      data.append(QStringLiteral("<") + m_to.at(i) + QStringLiteral(">"));
+      data.append(QStringLiteral("<") + val + QStringLiteral(">"));
       first = false;
     }
     data.append(QStringLiteral("\n"));
   }
 
-  if ( m_cc.count() > 0 ) {
+  if ( !m_cc.isEmpty() ) {
     data.append(QStringLiteral("Cc: "));
     bool first = true;
-    //foreach (QString val, m_cc) {
-    for (int i = 0;i < m_cc.size(); i++) {
+    for (const auto &val : m_cc) {
       if(!first) {
         data.append(QStringLiteral(","));
       }
-      data.append(m_cc.at(i));
+      data.append(val);
       first = false;
     }
     data.append(QStringLiteral("\n"));
@@ -240,11 +238,10 @@ QString MailSender::mailData() const
 
   addMimeBody(&data);
 
-  if ( m_attachments.count() > 0 ) {
-    //foreach (QString val, m_attachments) {
-    for (int i = 0;i < m_attachments.size(); i++) {
+  if ( !m_attachments.isEmpty() ) {
+    for (const auto &val : m_attachments) {
       data.append(QStringLiteral("--") + boundary + QStringLiteral("\n"));
-      addMimeAttachment(&data, m_attachments.at(i));
+      addMimeAttachment(&data, val);
     }
   }
 
@@ -336,7 +333,7 @@ QString MailSender::mailData() const
 
   bool MailSender::send()
   {
-    m_lastError = QStringLiteral("");
+    m_lastError.clear();
 
     if(m_socket) {
       delete m_socket;
@@ -396,8 +393,8 @@ QString MailSender::mailData() const
     }
 
     QStringList recipients = m_to + m_cc + m_bcc;
-    for (int i=0; i< recipients.count(); i++) {
-      if( !sendCommand(QStringLiteral("RCPT TO:<") + recipients.at(i) + QStringLiteral(">"), QStringLiteral("250")) ) {
+    for (const auto &recipient : recipients) {
+      if( !sendCommand(QStringLiteral("RCPT TO:<") + recipient + QStringLiteral(">"), QStringLiteral("250")) ) {
         return false;
       }
     }

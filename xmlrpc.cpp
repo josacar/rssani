@@ -43,9 +43,9 @@ public:
         int ini = params.getInt(0);
         int fin = params.getInt(1);
         QStringList log = rss->verLog();
-        if (fin == 0) fin = log.count();
+        if (fin == 0) fin = log.size();
         std::vector<xmlrpc_c::value> valores;
-        for (int i = log.count() - ini - 1; i >= std::max(log.count() - fin, qsizetype(0)); i--)
+        for (int i = log.size() - ini - 1; i >= std::max(log.size() - fin, qsizetype(0)); i--)
             valores.push_back(xmlrpc_c::value_string(log.at(i).toStdString()));
         *retvalP = xmlrpc_c::value_array(valores);
     }
@@ -62,14 +62,14 @@ public:
                  xmlrpc_c::value * const retvalP) override {
         QList<regexp*> *log = rss->listaRegexp();
         std::vector<xmlrpc_c::value> valores;
-        for (int i = 0; i < log->count(); i++) {
+        for (const auto &item : *log) {
             std::map<std::string, xmlrpc_c::value> m;
-            m["nombre"]      = xmlrpc_c::value_string(log->at(i)->nombre.toStdString());
-            m["vencimiento"] = xmlrpc_c::value_string(log->at(i)->vencimiento.toStdString());
-            m["mail"]        = xmlrpc_c::value_boolean(log->at(i)->mail);
-            m["tracker"]     = xmlrpc_c::value_string(log->at(i)->tracker.toStdString());
-            m["dias"]        = xmlrpc_c::value_int(log->at(i)->diasDescarga);
-            m["activa"]      = xmlrpc_c::value_boolean(log->at(i)->activa);
+            m["nombre"]      = xmlrpc_c::value_string(item->nombre.toStdString());
+            m["vencimiento"] = xmlrpc_c::value_string(item->vencimiento.toStdString());
+            m["mail"]        = xmlrpc_c::value_boolean(item->mail);
+            m["tracker"]     = xmlrpc_c::value_string(item->tracker.toStdString());
+            m["dias"]        = xmlrpc_c::value_int(item->diasDescarga);
+            m["activa"]      = xmlrpc_c::value_boolean(item->activa);
             valores.push_back(xmlrpc_c::value_struct(m));
         }
         *retvalP = xmlrpc_c::value_array(valores);
@@ -214,12 +214,12 @@ public:
                  xmlrpc_c::value * const retvalP) override {
         QList<auth> *auths = rss->listaAuths();
         std::vector<xmlrpc_c::value> valores;
-        for (int i = 0; i < auths->count(); i++) {
+        for (const auto &item : *auths) {
             std::map<std::string, xmlrpc_c::value> m;
-            m["tracker"] = xmlrpc_c::value_string(auths->at(i).tracker.toStdString());
-            m["uid"]     = xmlrpc_c::value_string(auths->at(i).uid.toStdString());
-            m["pass"]    = xmlrpc_c::value_string(auths->at(i).pass.toStdString());
-            m["passkey"] = xmlrpc_c::value_string(auths->at(i).passkey.toStdString());
+            m["tracker"] = xmlrpc_c::value_string(item.tracker.toStdString());
+            m["uid"]     = xmlrpc_c::value_string(item.uid.toStdString());
+            m["pass"]    = xmlrpc_c::value_string(item.pass.toStdString());
+            m["passkey"] = xmlrpc_c::value_string(item.passkey.toStdString());
             valores.push_back(xmlrpc_c::value_struct(m));
         }
         *retvalP = xmlrpc_c::value_array(valores);

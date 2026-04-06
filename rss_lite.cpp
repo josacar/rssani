@@ -230,9 +230,9 @@ int Rss_lite::parseTitle( QString seccion, QString titulo,  QString enlace, bool
   if ( ! fromIrc ) out << ".";
   if ( recientes.contains( titulo ) ) return 0;
 
-  for ( int i = 0;i < lista->count();i++ ) {
+  for ( int i = 0;i < lista->size();i++ ) {
     // Quitamos lo que haya vencido
-    if ( lista->at( i )->vencimiento != QStringLiteral("") )
+    if ( !lista->at( i )->vencimiento.isEmpty() )
       if ( QDate::currentDate() >= QDate::fromString( lista->at( i )->vencimiento, QStringLiteral("dd-MM-yyyy") ) ) {
         out  << "Borrado caducado" << lista->at( i )->nombre << "\n";
         lista->removeAt( i );
@@ -241,7 +241,7 @@ int Rss_lite::parseTitle( QString seccion, QString titulo,  QString enlace, bool
       }
 
     if ( lista->at( i )->activa && subida.contains( QRegularExpression( lista->at( i )->nombre, QRegularExpression::CaseInsensitiveOption ) ) ) {
-      if ( lista->at( i )->tracker != QStringLiteral("") ) { // Si tiene tracker especifico miro a ver y si no drop
+      if ( !lista->at( i )->tracker.isEmpty() ) { // Si tiene tracker especifico miro a ver y si no drop
         urlRegexp = QUrl( lista->at( i )->tracker );
         if ( values->Debug() )
           qDebug() << "Tracker" << urlRegexp.host() << urlLink.host();

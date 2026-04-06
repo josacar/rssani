@@ -52,6 +52,19 @@
 - [x] Update `CMakeLists.txt` — replaced libcommuni `ExternalProject_Add` with libirc, `-DQT6_BUILD=true`
 - [x] Removed `IRC_STATIC` define and `connectSlotsByName()` old-style macro connections
 
+## Qt6 style modernization (complete)
+
+- [x] Replace `.count()` with `.size()` across all source files
+- [x] Replace `QLatin1String` with `QStringLiteral`, `QLatin1Char` with `QChar`
+- [x] Replace `QString::fromUtf8`/`fromLatin1` string literals with `QStringLiteral`
+- [x] Replace `!= ""` comparisons with `!isEmpty()`
+- [x] Replace `.size() > 0` with `!isEmpty()`
+- [x] Modernize `values.h`: const getters, const ref setters, default ctor/dtor, member initializers
+- [x] Replace `#include <time.h>` with `<ctime>`, remove unused `<cstdio>`
+- [x] Remove commented-out `foreach` lines
+- [x] IRC encoding: `EncodingLatin` → `EncodingUTF8`
+- [x] Remove unused `iso88591` enum from mailsender
+
 ## Code quality
 
 - [x] Normalize null pointers — `nullptr` everywhere
