@@ -35,6 +35,16 @@ cmake ..
 make
 ```
 
+## Testing
+
+Integration tests for the XML-RPC interface:
+
+```bash
+python3 test_xmlrpc.py ./build/rssani
+```
+
+Covers 14 tests: regexp CRUD, auth CRUD, options, timer, log, save, and shutdown.
+
 ## Configuration
 
 Settings are stored via `QSettings` (INI-style) in the standard Qt config path. Configurable options include:

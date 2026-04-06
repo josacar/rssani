@@ -38,7 +38,17 @@ make
 - Signal/slot: Qt5 pointer-to-member syntax (`&Class::method`) throughout.
 - Memory management: `std::unique_ptr` and `std::shared_ptr` used for owned objects.
 - Thread safety: `rssani_lite` public methods are protected by `QMutex` for safe access from the XML-RPC thread.
-- No tests exist. No CI/CD.
+- No CI/CD.
+
+## Testing
+
+Integration tests for the XML-RPC interface are in `test_xmlrpc.py` (Python 3, uses `xmlrpc.client`):
+
+```bash
+python3 test_xmlrpc.py ./build/rssani
+```
+
+The script starts the binary, runs 14 tests covering all RPC methods (regexp CRUD, auth CRUD, options, timer, log, save, shutdown), then shuts down.
 
 ## Important Caveats
 
