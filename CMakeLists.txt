@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(ExternalProject)
 
-find_package(Qt6 COMPONENTS Core LinguistTools Network Core5Compat REQUIRED)
+find_package(Qt6 COMPONENTS Core LinguistTools Network REQUIRED)
 
 # --- xmlrpc-c (system) ---
 find_program(XMLRPC_C_CONFIG xmlrpc-c-config)

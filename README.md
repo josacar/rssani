@@ -18,7 +18,7 @@ Originally created in 2004 for the Animersion community. Tested on Linux.
 
 ## Requirements
 
-- Qt6 (Core, Network, Core5Compat)
+- Qt6 (Core, Network)
 - [xmlrpc-c](http://xmlrpc-c.sourceforge.net/) (system package: `libxmlrpc-c++9-dev`)
 - [libirc](https://github.com/grumpy-irc/libirc) (grumpy-irc)
 - A C++ compiler with C++20 support
