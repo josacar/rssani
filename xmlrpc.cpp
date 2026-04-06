@@ -329,6 +329,11 @@ public:
 
 rssxmlrpc::rssxmlrpc(rssani_lite *rss) : QThread(), rss(rss) {}
 
+rssxmlrpc::~rssxmlrpc() {
+    if (auto *s = server.load()) s->terminate();
+    wait();
+}
+
 void rssxmlrpc::run() {
     xmlrpc_c::registry registry;
 
@@ -355,14 +360,15 @@ void rssxmlrpc::run() {
     registry.addMethod("rssani.guardar",           xmlrpc_c::methodPtr(new Guardar(rss)));
     registry.addMethod("rssani.shutdown",          xmlrpc_c::methodPtr(shutdownMethod));
 
-    xmlrpc_c::serverAbyss server(
+    xmlrpc_c::serverAbyss srv(
         xmlrpc_c::serverAbyss::constrOpt()
             .registryP(&registry)
             .portNumber(8080)
             .serverOwnsSignals(false)
     );
 
-    shutdownMethod->setServer(&server);
+    shutdownMethod->setServer(&srv);
 
-    server.run();
+    server.store(&srv);
+    srv.run();
 }

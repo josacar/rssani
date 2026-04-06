@@ -9,7 +9,7 @@ Originally created in 2004 for the Animersion community. Tested on Linux.
 | File | Description |
 |---|---|
 | `main.cpp` | Entry point, creates `rssani_lite` + XML-RPC thread |
-| `rssani_lite.cpp/h` | Core app: settings, regexp management, IRC integration, signal wiring |
+| `rssani_lite.cpp/h` | Core app: settings, regexp management, IRC integration, POSIX signal handling (self-pipe trick + `QSocketNotifier`) |
 | `rss_lite.cpp/h` | RSS fetching, XML parsing, torrent downloading, regexp matching |
 | `myircsession.cpp/h` | IRC client (libirc/grumpy-irc) monitoring channels for new uploads |
 | `xmlrpc.cpp/h` | XML-RPC server thread (xmlrpc-c / Abyss) exposing management API |

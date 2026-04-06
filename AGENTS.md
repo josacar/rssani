@@ -7,7 +7,7 @@ rssani is a headless C++ Qt6 console application that monitors RSS feeds and IRC
 ## Architecture
 
 ```
-main.cpp            → Entry point, creates rssani_lite + rssxmlrpc thread
+main.cpp            → Entry point, creates rssani_lite + rssxmlrpc thread, registers signal handlers
 rssani_lite.cpp/h   → Core app: settings, regexp management, IRC integration, signal wiring
 rss_lite.cpp/h      → RSS fetching, XML parsing, torrent downloading, regexp matching
 myircsession.cpp/h  → IRC client (libirc/grumpy-irc) monitoring channel for new uploads
@@ -59,9 +59,10 @@ The script starts the binary, runs 14 tests covering all RPC methods (regexp CRU
 
 | File | Notes |
 |---|---|
+| `main.cpp` | Entry point. Constructs `rssani_lite`, starts `rssxmlrpc` thread. |
 | `rss_lite.cpp` | RSS/torrent logic. Trackers loaded from settings via `iniciaTrackers()`. Uses reply URL as download key for concurrent torrent downloads. |
-| `rssani_lite.cpp` | Settings I/O, regexp CRUD, signal wiring. All public methods mutex-protected. Uses `QRegularExpression`. |
+| `rssani_lite.cpp` | Settings I/O, regexp CRUD, signal wiring. All public methods mutex-protected. Uses `QRegularExpression`. POSIX signal handling uses self-pipe trick with `QSocketNotifier` to avoid deadlocks. |
 | `myircsession.cpp` | IRC client. Uses `QRandomGenerator`. Connects to `libircclient::Network` signals (`Event_PRIVMSG`, `Event_Connected`, `Event_SelfKick`, `Event_MOTDEnd`). |
 | `mailsender.cpp` | SMTP sender. Credentials read from `Values`. Uses `QRandomGenerator`. |
-| `xmlrpc.cpp` | Runs in a `QThread`. Uses xmlrpc-c (Abyss server). Each RPC method is a `xmlrpc_c::method2` subclass. Accesses `rssani_lite` through mutex-protected API. |
+| `xmlrpc.cpp` | Runs in a `QThread`. Uses xmlrpc-c (Abyss server). Each RPC method is a `xmlrpc_c::method2` subclass. Accesses `rssani_lite` through mutex-protected API. Destructor terminates the Abyss server and waits for the thread to finish. |
 | `CMakeLists.txt` | Uses `ExternalProject_Add` for libirc (grumpy-irc). xmlrpc-c linked as system library via `xmlrpc-c-config`. RPATH set for runtime linking. |

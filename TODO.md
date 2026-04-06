@@ -78,3 +78,4 @@
 - [x] Move tracker configuration from `iniciaTrackers()` hardcoded block to settings
 - [x] Use HTTPS for tracker URLs (no more hardcoded `http://`; scheme derived from URL)
 - [x] Thread safety: `xmlrpc.cpp` runs in a `QThread` — all `rssani_lite` public methods now protected by `QMutex`
+- [x] Fix signal handler deadlock — replaced unsafe `sigHandler` (called mutex methods from signal context) with self-pipe trick using `QSocketNotifier`; `salir()` now uses `QCoreApplication::quit()` for clean shutdown

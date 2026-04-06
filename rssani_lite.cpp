@@ -1,23 +1,33 @@
 #include "rssani_lite.h"
 #include "rss_lite.h"
+#include <QtCore/QCoreApplication>
 #include <QtCore/QRegularExpression>
+#ifdef __unix__
+#include <unistd.h>
+#include <sys/socket.h>
+#endif
 
 rssani_lite *gRss = nullptr;
 
 #ifdef __unix__
-void sigHandler( int signo ) {
-  if ( gRss != nullptr )
-    switch ( signo ) {
-      case SIGUSR1:
-        if ( gRss ) gRss->debugea();
-        break;
-      case SIGINT:
-      case SIGTERM:
-        gRss->guardar();
-        gRss->salir();
-    }
+int rssani_lite::sigFd[2] = {0, 0};
+
+void sigHandler( int ) {
+  char a = 1;
+  ::write(rssani_lite::sigFd[0], &a, sizeof(a));
 }
 #endif
+
+void rssani_lite::handleSigTerm() {
+  snTerm->setEnabled(false);
+  char tmp;
+  ::read(sigFd[1], &tmp, sizeof(tmp));
+
+  guardar();
+  salir();
+
+  snTerm->setEnabled(true);
+}
 
 void rssani_lite::debugea(){
   if ( values->Debug() == false ) {
@@ -31,10 +41,15 @@ void rssani_lite::debugea(){
 rssani_lite::rssani_lite( QObject* parent ) : QObject( parent ) {
   gRss = this;
 #ifdef __unix__
+  ::socketpair(AF_UNIX, SOCK_STREAM, 0, sigFd);
+  snTerm = std::make_unique<QSocketNotifier>(sigFd[1], QSocketNotifier::Read, this);
+  connect(snTerm.get(), &QSocketNotifier::activated, this, &rssani_lite::handleSigTerm);
+
   struct sigaction sigTermAction;
   memset( &sigTermAction, 0, sizeof( sigTermAction ) );
-
   sigTermAction.sa_handler = sigHandler;
+  sigemptyset(&sigTermAction.sa_mask);
+  sigTermAction.sa_flags = SA_RESTART;
 
   sigaction( SIGTERM, &sigTermAction, nullptr );
   sigaction( SIGINT, &sigTermAction, nullptr );
@@ -249,9 +264,7 @@ void rssani_lite::guardar() {
 
 void rssani_lite::salir() {
   qDebug() << "intentando salir";
-  // 	shutdown.start( 5000 );
-  // 	connect ( &shutdown, SIGNAL ( timeout() ), this, SLOT ( salYa() ) );
-  exit( 0 );
+  QCoreApplication::quit();
 }
 
 void rssani_lite::salYa() {

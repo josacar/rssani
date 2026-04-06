@@ -6,6 +6,7 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QMutex>
 #include <QtCore/QMutexLocker>
+#include <QtCore/QSocketNotifier>
 #include "rss_lite.h"
 #include "myircsession.h"
 #include <memory>
@@ -20,6 +21,7 @@ class rssani_lite : public QObject {
   Q_OBJECT
 
   public:
+    static int sigFd[2];
     /**
      * Construye la clase principal de la aplicación
      * @param parent Clase padre
@@ -171,7 +173,8 @@ class rssani_lite : public QObject {
      * @return Valores de configuracion
      */
     Values* getValues() const;
-    void debugea();	
+    void debugea();
+
   protected:
     /**
      * Prepara las señales y los slots
@@ -189,6 +192,7 @@ class rssani_lite : public QObject {
        */
       void salYa();
     void miraSubida( QString msg);
+    void handleSigTerm();
   private:
     /**
      * Lee la configuración del disco
@@ -209,6 +213,7 @@ class rssani_lite : public QObject {
     QString rpcUser,rpcPass;
     MyIrcSession *session;
     datosIrc misdatos;
+    std::unique_ptr<QSocketNotifier> snTerm;
 signals:
     void nuevaSubida ( QString seccion, QString titulo, QString url);
     void timeout();
