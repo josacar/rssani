@@ -22,126 +22,132 @@
 #include "mailsender.h"
 #include "values.h"
 
+/**
+ * @brief Regexp matching rule for torrent downloads.
+ */
 struct regexp {
-  QString nombre;
-  QString vencimiento;
-  bool mail;
-  QString tracker;
-  int diasDescarga;
-  QDateTime fechaDescarga;
-  bool activa;
-};
-
-struct tracker {
-  QString urlTracker;
-  QString referer;
-  QString cookie;
-  QString urlRss;
-  QString urlDownload;
-  QString id;
-  bool esRss;
+  QString nombre;        ///< Regexp pattern string.
+  QString vencimiento;   ///< Expiration date for the rule.
+  bool mail;             ///< If true, only send email without downloading.
+  QString tracker;       ///< Tracker this rule applies to.
+  int diasDescarga;      ///< Minimum days between downloads.
+  QDateTime fechaDescarga; ///< Timestamp of the last download for this rule.
+  bool activa;           ///< Whether the rule is active.
 };
 
 /**
- * Clase que maneja los RSS
+ * @brief Tracker configuration.
+ */
+struct tracker {
+  QString urlTracker;   ///< Tracker base URL.
+  QString referer;      ///< HTTP Referer header value.
+  QString cookie;       ///< Authentication cookie.
+  QString urlRss;       ///< RSS feed URL.
+  QString urlDownload;  ///< Base URL for torrent downloads.
+  QString id;           ///< Query parameter name for the torrent ID.
+  bool esRss;           ///< Whether this tracker uses RSS (vs. IRC only).
+};
+
+/**
+ * @brief RSS feed fetcher, XML parser, torrent downloader, and regexp matcher.
  */
 class Rss_lite : public QObject {
   Q_OBJECT
 
   public:
     /**
-     * Constructor de la clase RSS
-     * @param values Lista de opciones guardadas
-     * @param lista Lista de regexps
-     * @param log Ruta absoluta del fichero log
-     * @param auths Tracker con sus auths
-     * @param parent Puntero a la clase padre
+     * @brief Constructs the RSS handler.
+     * @param values Configuration values.
+     * @param lista List of regexp matching rules.
+     * @param log Log file handle.
+     * @param auths Tracker authentication credentials.
+     * @param parent Parent QObject.
      */
     Rss_lite ( Values* values, QList<regexp*>* lista, QFile* log, QHash<QString,auth> *auths, QObject* parent );
 
     /**
-     * Desructor por defecto
+     * @brief Destructor.
      */
     ~Rss_lite();
 
     public slots:
       /**
-       * 
-       * @return 
+       * @brief Returns the timestamp of the last RSS fetch.
+       * @return Date/time of the last fetch.
        */
       QDateTime verUltimo();
+
     /**
-     * 
-     * @param seccion 
-     * @param titulo 
-     * @param link 
-     * @param fromIrc
+     * @brief Checks a title from IRC against the regexp list.
+     * @param seccion Section/category.
+     * @param titulo Title of the upload.
+     * @param link Download link.
+     * @param fromIrc Whether the call originates from IRC (default true).
      */
     void miraTitulo(QString seccion, QString titulo, QString link, bool fromIrc = true);
   protected:
     /**
-     * Prepara las señales de las descargas RSS y Torrent. También los link correctos.
-     * @see Rss()
-     * @see ~Rss()
+     * @brief Sets up signal/slot connections for RSS and torrent downloads.
      */
     void prepareSignals();
 
     public slots:
       /**
-       * Hace un get al RSS, y envia la señal de lectura a readDataRSS
+       * @brief Fetches the RSS feed and triggers XML parsing via readDataRSS.
        */
       void fetch();
 
     /**
-     * Parsea el XML conforme le va llegando
-     * @param resp Encabezado de respuesta HTTP
+     * @brief Parses incoming RSS XML data.
+     * @param reply HTTP reply containing the RSS data.
      */
     void readDataRSS (QNetworkReply *reply);
 
     /**
-     * Mira el nombre del fichero y graba el torrent
-     * @param resp Encabezado HTTP del torrent
+     * @brief Reads the torrent file name from the response and saves it to disk.
+     * @param reply HTTP reply containing the torrent data.
      */
     void readDataTorrent (QNetworkReply *reply );
 
     /**
-     * Prepara el GET del .torrent en cuestión
-     * @param linkString Enlace del torrent
+     * @brief Prepares and issues the HTTP GET for a .torrent file.
+     * @param linkString Torrent download URL.
+     * @param title Title of the torrent.
      */
     void parseLink ( QString linkString, QString title);
 
     /**
-     * Graba el torrent al log
-     * @param fichero Ruta absoluta del fichero
-     * @return Indica si ha grabado bien el log
+     * @brief Appends a downloaded torrent filename to the log.
+     * @param fichero Absolute path of the downloaded file.
+     * @return 0 on success.
      */
     int saveLog ( QString fichero);
   private:
     /**
-     * Parsea el XML y ve si algo nos interesa
+     * @brief Parses RSS XML and checks items against regexp rules.
      */
     void parseXml(QXmlStreamReader *xml);
 
     /**
-     * Mira a ver si coincide con alguna regexp y devuelve true
-     * @param seccion Seccion de la descarga
-     * @param titleString Nombre de la descarga
-     * @param linkString Link de la descarga
-     * @param fromIrc Indica si la llamada proviene del IRC
-     * @return Si hace match con alguna regexp de la lista
+     * @brief Checks a title against all regexp rules.
+     * @param seccion Section/category.
+     * @param titleString Title of the download.
+     * @param linkString Download link.
+     * @param fromIrc Whether the call originates from IRC.
+     * @return Index of the matching regexp, or -1 if none.
      */
     int parseTitle ( QString seccion, QString titleString, QString linkString, bool fromIrc);
 
     /**
-     * Inicializa los trackers con sus variables
+     * @brief Initializes tracker configurations from settings.
      */
     void iniciaTrackers ();
 
     /**
-     * Envia un mail con el asunto y el mensaje
-     * @param asunto El asunto del mail
-     * @param mensaje El mensaje del mail
-     * @return -1 si falla, 0 si va bien
+     * @brief Sends an email notification.
+     * @param asunto Email subject.
+     * @param mensaje Email body.
+     * @return 0 on success, -1 on failure.
      */
     int sendMail( QString asunto, QString mensaje );
 
@@ -173,8 +179,9 @@ class Rss_lite : public QObject {
     QStringList listaTrackers;
 signals:
     /**
-     * Señal que se emite cuando el titulo hace match con una regexp
-     * @param link Enlace del torrent
+     * @brief Emitted when a title matches a regexp rule.
+     * @param link Torrent download URL.
+     * @param title Title of the matched torrent.
      */
     void linkCorrecto ( QString link, QString title );
 };

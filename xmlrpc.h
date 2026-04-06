@@ -9,11 +9,19 @@
 #include "rssani_lite.h"
 
 /**
- * Clase con el hilo de peticiones XML-RPC (xmlrpc-c / Abyss)
+ * @brief Thread that runs the XML-RPC server (xmlrpc-c / Abyss).
  */
 class rssxmlrpc : public QThread {
 public:
+    /**
+     * @brief Constructs the XML-RPC server thread.
+     * @param rss Pointer to the core application instance.
+     */
     rssxmlrpc(rssani_lite *rss);
+
+    /**
+     * @brief Destructor. Terminates the Abyss server and waits for the thread to finish.
+     */
     ~rssxmlrpc() override;
 
 protected:

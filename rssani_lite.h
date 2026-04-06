@@ -16,187 +16,198 @@
 #endif
 
 /**
- * Clase que maneja la aplicación
+ * @brief Core application class. Manages settings, regexps, IRC integration, and signal wiring.
+ *
+ * All public methods are mutex-protected for thread-safe access from the XML-RPC thread.
  */
 class rssani_lite : public QObject {
   Q_OBJECT
 
   public:
+    /// @brief File descriptors for the POSIX signal self-pipe trick.
     static std::array<int, 2> sigFd;
+
     /**
-     * Construye la clase principal de la aplicación
-     * @param parent Clase padre
+     * @brief Constructs the main application object.
+     * @param parent Parent QObject.
      */
     rssani_lite ( QObject* parent = nullptr);
+
     /**
-     * Destructor por defecto
+     * @brief Destructor.
      */
     ~rssani_lite();
 
     public slots:
       /**
-       * Añade una regexp
-       * @param nombre Nombre de la regexp
-       * @param fecha Fecha de vencimiento de la regexp
-       * @param mail Solo mail son descargar
-       * @param tracker Tracker
-       * @param dias Dias entre descargas
+       * @brief Adds a new regexp rule.
+       * @param nombre Regexp pattern string.
+       * @param fecha Expiration date for the rule.
+       * @param mail If true, only send email without downloading.
+       * @param tracker Tracker name this rule applies to.
+       * @param dias Minimum days between downloads.
        */
       void anadirRegexp(std::string nombre, std::string fecha,bool mail,std::string tracker, int dias);
 
     /**
-     * Edita una regexp
-     * @param regexpOrig Regexp a cambiar
-     * @param regexpDest Regexp destino
-     * @return Devuelve 0 si tiene exito
+     * @brief Edits an existing regexp rule by matching its pattern.
+     * @param regexpOrig Original regexp pattern to find.
+     * @param regexpDest New regexp pattern to replace it with.
+     * @return True on success.
      */
     bool editarRegexp ( std::string regexpOrig, std::string regexpDest );
+
     /**
-     * Edita una regexp
-     * @param regexpOrig Regexp a cambiar
-     * @param regexpDest Regexp destino
-     * @return Devuelve 0 si tiene exito
+     * @brief Edits an existing regexp rule by index.
+     * @param regexpOrig Index of the regexp to edit.
+     * @param regexpDest New regexp pattern to replace it with.
+     * @return True on success.
      */
     bool editarRegexp ( int regexpOrig, std::string regexpDest );
+
     /**
-     * Edita una regexp
-     * @param regexpOrig Regexp a cambiar
-     * @param regexpDest Regexp destino
-     * @return Devuelve 0 si tiene exito
+     * @brief Toggles the active state of a regexp rule.
+     * @param regexpOrig Index of the regexp to toggle.
+     * @return True on success.
      */
     bool activarRegexp ( int regexpOrig );
 
     /**
-     * Mueve una regexp de sitio en la lista
-     * @param from Posicion inicial de la regexp
-     * @param to Posicion final de la regexp
+     * @brief Moves a regexp rule to a different position in the list.
+     * @param from Current position.
+     * @param to Target position.
      */
     void moverRegexp ( int from, int to );
 
     /**
-     * Devuelve el log en una lista
-     * @return La lista con el log
+     * @brief Returns the application log contents.
+     * @return List of log lines.
      */
     QStringList verLog();
 
     /**
-     * Devuelve la lista de regexp con sus atributos
-     * @return La lista de regexp
+     * @brief Returns the list of regexp rules.
+     * @return Pointer to the regexp list.
      */
     QList<regexp*>* listaRegexp();
 
     /**
-     * Borra la regexp de una posicion
-     * @param pos La posicion a borrar
+     * @brief Deletes a regexp rule by position.
+     * @param pos Index of the rule to delete.
      */
     void borrarRegexp(int pos);
 
     /**
-     * Borra la regexp
-     * @param cad  La regexp a borrar
+     * @brief Deletes a regexp rule by pattern string.
+     * @param cad Regexp pattern to delete.
      */
     void borrarRegexp(std::string cad);
 
     /**
-     * Cambia el timer del get del rss
-     * @param tiempo El valor en minutos del timer
+     * @brief Changes the RSS fetch timer interval.
+     * @param tiempo Interval in minutes.
      */
     void cambiaTimer(int tiempo);
 
     /**
-     * Muestra el valor del timer
-     * @return El valor del timer
+     * @brief Returns the current RSS fetch timer interval.
+     * @return Interval in minutes.
      */
     int verTimer();
 
     /**
-     * Muestra la fecha del ultimo get
-     * @return El string con la fecha
+     * @brief Returns the timestamp of the last RSS fetch.
+     * @return Date/time string of the last fetch.
      */
     std::string verUltimo();
 
     /**
-     * Guarda la configuración
+     * @brief Saves the current configuration to disk.
      */
     void guardar();
 
     /**
-     * Sale de la aplicación
+     * @brief Initiates a graceful application shutdown.
      */
     void salir();
 
     /**
-     * Cambia el usuario del xml-rpc
-     * @param theValue El nuevo nombre del usuario
+     * @brief Sets the XML-RPC authentication username.
+     * @param theValue New username.
      */
     void setRpcUser ( std::string theValue );
 
     /**
-     * Devuelve el usuario del xml-rpc
-     * @return El nombre del usuario
+     * @brief Returns the XML-RPC authentication username.
+     * @return Username string.
      */
     QString getRpcUser();
 
     /**
-     * Cambia la contraseña del xml-rpc
-     * @param theValue La nueva contraseña del usuario
+     * @brief Sets the XML-RPC authentication password.
+     * @param theValue New password.
      */
     void setRpcPass ( std::string theValue );
 
     /**
-     * Devuelve la contraseña del xml-rpc
-     * @return La contraseña del usuario
+     * @brief Returns the XML-RPC authentication password.
+     * @return Password string.
      */
     QString getRpcPass();
 
     /**
-     * Añade las credenciales del tracker
-     * @param tracker 
-     * @param uid 
-     * @param pass 
-     * @param passkey 
+     * @brief Adds tracker authentication credentials.
+     * @param tracker Tracker name.
+     * @param uid User ID.
+     * @param pass Password.
+     * @param passkey Passkey.
      */
     void anadirAuth ( std::string tracker, std::string uid, std::string pass, std::string passkey);
 
     /**
-     * Borra las credenciales del tracker
-     * @param tracker 
+     * @brief Removes tracker authentication credentials.
+     * @param tracker Tracker name to remove.
      */
     void borrarAuth ( std::string tracker );
+
     /**
-     * Devuelve los auth de los trackers
-     * @return Lista de auths de los trackers
+     * @brief Returns the list of tracker authentication entries.
+     * @return Pointer to the auth list.
      */
     QList<auth>* listaAuths();
 
     /**
-     * 
-     * @return Valores de configuracion
+     * @brief Returns the configuration values object.
+     * @return Pointer to the Values instance.
      */
     Values* getValues() const;
+
+    /**
+     * @brief Toggles debug mode.
+     */
     void debugea();
 
   protected:
     /**
-     * Prepara las señales y los slots
+     * @brief Sets up signal/slot connections.
      */
     void prepareSignals();
 
     protected slots:
       /**
-       * Escribe la configuración a disco
+       * @brief Writes the current configuration to disk.
        */
       void writeSettings();
     private slots:
       /**
-       * Sale inmediatamente
+       * @brief Performs an immediate shutdown.
        */
       void salYa();
     void miraSubida( QString msg);
     void handleSigTerm();
   private:
     /**
-     * Lee la configuración del disco
+     * @brief Reads configuration from disk.
      */
     void readSettings();
     Rss_lite *rss;
@@ -216,7 +227,17 @@ class rssani_lite : public QObject {
     datosIrc misdatos;
     std::unique_ptr<QSocketNotifier> snTerm;
 signals:
+    /**
+     * @brief Emitted when a new upload is detected.
+     * @param seccion Section/category of the upload.
+     * @param titulo Title of the upload.
+     * @param url Download URL.
+     */
     void nuevaSubida ( QString seccion, QString titulo, QString url);
+
+    /**
+     * @brief Emitted when the RSS fetch timer fires.
+     */
     void timeout();
 };
 

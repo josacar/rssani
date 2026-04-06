@@ -10,26 +10,46 @@
 namespace libirc { class ServerAddress; }
 namespace libircclient { class Network; class Parser; class Channel; }
 
+/**
+ * @brief IRC connection parameters.
+ */
 struct datosIrc {
-  bool	activo;
-  QString nick;
-  QString user;
-  QString name;
-  QString server;
-  int port;
-  QStringList channels;
-  QString botNick;
-  bool debug;
+  bool	activo;       ///< Whether the IRC connection is active.
+  QString nick;       ///< Nickname used on the IRC server.
+  QString user;       ///< Username (ident) for the IRC connection.
+  QString name;       ///< Real name sent to the IRC server.
+  QString server;     ///< IRC server hostname.
+  int port;           ///< IRC server port.
+  QStringList channels; ///< List of channels to join.
+  QString botNick;    ///< Nick of the bot that announces uploads.
+  bool debug;         ///< Enable debug logging for IRC.
 };
 
+/**
+ * @brief IRC client that monitors channels for new upload announcements.
+ */
 class MyIrcSession : public QObject {
   Q_OBJECT
 
   public:
+    /**
+     * @brief Constructs the IRC session.
+     * @param parent Parent QObject.
+     * @param datos IRC connection parameters.
+     * @param depurar Enable debug logging.
+     */
     MyIrcSession( QObject* parent = nullptr, datosIrc *datos = nullptr, bool depurar = false);
+
+    /**
+     * @brief Destructor.
+     */
     ~MyIrcSession() override;
 
 signals:
+    /**
+     * @brief Emitted when a new upload is announced on IRC.
+     * @param msg The announcement message.
+     */
     void nuevaSubida( QString msg );
 
   private slots:
