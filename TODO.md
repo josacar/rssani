@@ -85,3 +85,30 @@
   - `readDataTorrent()` now writes torrent to disk and clears `ficheros`/`datos`/`sites` hashes
   - `~rssani_lite()` now calls `qDeleteAll(*lista)` to free all `regexp*` pointers
   - `~rssani_lite()` now closes `sigFd` socketpair file descriptors
+
+## clang-tidy findings
+
+### Bugs / potential crashes
+
+- [ ] `xmlrpc.cpp` `VerLog::execute()` — `qsizetype` (64-bit) narrowed to `int` for `ini`/`fin` loop variables
+- [ ] `rss_lite.cpp` `miraTitulo()` — switch on `parseTitle()` return has no default case
+- [ ] `rss_lite.h`/`rss_lite.cpp` — `parseTitle` param names differ between declaration (`titleString`, `linkString`) and definition (`titulo`, `enlace`)
+- [ ] `rssani_lite.h`/`rssani_lite.cpp` — `editarRegexp(int)` param name differs: `regexpOrig` vs `pos`
+- [ ] `rssani_lite.h`/`rssani_lite.cpp` — `activarRegexp` param name differs: `regexpOrig` vs `pos`
+- [ ] `rssani_lite.h`/`rssani_lite.cpp` — `miraSubida` param name differs: `msg` vs `subida`
+- [ ] `rssani_lite.cpp` — `tmp` in `handleSigTerm()` and `re` in `writeSettings()`/`readSettings()` uninitialized
+
+### Performance
+
+- [ ] Pass `QString`/`std::string` by `const &` instead of by value (~15 instances across `parseTitle`, `miraTitulo`, `parseLink`, `sendMail`, `saveLog`, `anadirRegexp`, `anadirAuth`, `borrarAuth`, `borrarRegexp`, `editarRegexp`, `setRpcUser`, `setRpcPass`, `miraSubida`, `getMimeType`)
+- [ ] `rss_lite.cpp` — use `'\n'` instead of `std::endl` (avoids unnecessary flush)
+- [ ] `rss_lite.cpp` `iniciaTrackers()` — `std::move(trk)` on `shared_ptr` passed to `QHash::insert` taking const ref; move has no effect
+
+### Modernize (clang-tidy)
+
+- [x] `mailsender.cpp:370` — use `auto` when initializing with `qobject_cast` (`modernize-use-auto`)
+- [x] `rss_lite.cpp:27` — use `= default` for trivial `~Rss_lite()` destructor (`modernize-use-equals-default`)
+- [x] `rssani_lite.cpp:13` — replace C-style array `sigFd[2]` with `std::array<int, 2>` (`modernize-avoid-c-arrays`)
+- [x] `rssani_lite.cpp` — `editarRegexp`/`activarRegexp` return `0`/`1` as `bool`; use `false`/`true` (`modernize-use-bool-literals`)
+- [x] `rssani_lite.cpp:192` — use `auto` when initializing with `new regexp()` (`modernize-use-auto`)
+- [x] `xmlrpc.cpp:310` — use default member initializer `{nullptr}` for `Shutdown::server` (`modernize-use-default-member-init`)

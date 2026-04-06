@@ -307,9 +307,9 @@ public:
 
 class Shutdown : public xmlrpc_c::method2 {
     rssani_lite *rss;
-    xmlrpc_c::serverAbyss *server;
+    xmlrpc_c::serverAbyss *server{nullptr};
 public:
-    Shutdown(rssani_lite *r) : rss(r), server(nullptr) {
+    Shutdown(rssani_lite *r) : rss(r) {
         _signature = "b:";
         _help = "Cierra RSSANI";
     }

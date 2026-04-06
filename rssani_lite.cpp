@@ -10,7 +10,7 @@
 rssani_lite *gRss = nullptr;
 
 #ifdef __unix__
-int rssani_lite::sigFd[2] = {0, 0};
+std::array<int, 2> rssani_lite::sigFd = {0, 0};
 
 void sigHandler( int ) {
   char a = 1;
@@ -41,7 +41,7 @@ void rssani_lite::debugea(){
 rssani_lite::rssani_lite( QObject* parent ) : QObject( parent ) {
   gRss = this;
 #ifdef __unix__
-  ::socketpair(AF_UNIX, SOCK_STREAM, 0, sigFd);
+  ::socketpair(AF_UNIX, SOCK_STREAM, 0, sigFd.data());
   snTerm = std::make_unique<QSocketNotifier>(sigFd[1], QSocketNotifier::Read, this);
   connect(snTerm.get(), &QSocketNotifier::activated, this, &rssani_lite::handleSigTerm);
 
@@ -147,9 +147,9 @@ bool rssani_lite::editarRegexp( std::string regexpOrig, std::string regexpDest )
     re->nombre = QString::fromStdString( regexpDest );
     // 		lista->replace( pos, re );
     qDebug()  << "Cambiado" << QString::fromStdString( regexpOrig ) << "--> " << re->nombre;
-    return 0;
+    return false;
   } else {
-    return 1;
+    return true;
   }
 }
 
@@ -160,9 +160,9 @@ bool rssani_lite::editarRegexp( int pos, std::string regexpDest ) {
     QString regexpOrig = re->nombre;
     re->nombre = QString::fromStdString( regexpDest );
     qDebug()  << "Cambiado" << regexpOrig << "--> " << re->nombre;
-    return 0;
+    return false;
   } else {
-    return 1;
+    return true;
   }
 }
 
@@ -172,9 +172,9 @@ bool rssani_lite::activarRegexp( int pos ) {
     regexp *re = lista->at( pos );
     re->activa = ! re->activa;
     qDebug()  << "Cambiado" << !re->activa << "--> " << re->activa;
-    return 0;
+    return false;
   } else {
-    return 1;
+    return true;
   }
 }
 
@@ -189,7 +189,7 @@ void rssani_lite::moverRegexp( int from, int to ) {
 
 void rssani_lite::anadirRegexp( std::string nombre, std::string fecha, bool mail, std::string tracker, int dias ) {
   QMutexLocker<QMutex> locker(&mutex);
-  regexp *re = new regexp();
+  auto *re = new regexp();
   re->nombre = QString::fromStdString( nombre );
   re->vencimiento = QString::fromStdString( fecha );
   re->tracker = QString::fromStdString( tracker );

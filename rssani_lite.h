@@ -9,6 +9,7 @@
 #include <QtCore/QSocketNotifier>
 #include "rss_lite.h"
 #include "myircsession.h"
+#include <array>
 #include <memory>
 #ifdef __unix__
 #include <sys/signal.h>
@@ -21,7 +22,7 @@ class rssani_lite : public QObject {
   Q_OBJECT
 
   public:
-    static int sigFd[2];
+    static std::array<int, 2> sigFd;
     /**
      * Construye la clase principal de la aplicación
      * @param parent Clase padre

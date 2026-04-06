@@ -367,7 +367,7 @@ QString MailSender::mailData() const
       if ( !sendCommand(QStringLiteral("STARTTLS"), QStringLiteral("220")) ) {
         return false;
       }
-      QSslSocket *pssl = qobject_cast<QSslSocket *>(m_socket);
+      auto *pssl = qobject_cast<QSslSocket *>(m_socket);
       if(pssl == nullptr) {
         error(QStringLiteral("internal error casting to QSslSocket"));
         return false;

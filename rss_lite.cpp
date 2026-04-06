@@ -24,8 +24,7 @@ Rss_lite::Rss_lite( Values* values, QList<regexp*>* lista, QFile* log, QHash<QSt
 /**
  * Destructor por defecto
  */
-Rss_lite::~Rss_lite() {
-}
+Rss_lite::~Rss_lite() = default;
 
 /**
  * Muestra la fecha del ultimo get
