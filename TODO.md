@@ -36,6 +36,14 @@
 - [x] Add `build/` to `.gitignore`
 - [x] Remove `run.sh` `LD_PRELOAD` hack — RPATH is set in CMakeLists.txt
 
+## XML-RPC library migration (complete)
+
+- [x] Replace ulxmlrpcpp with xmlrpc-c (system package `libxmlrpc-c++9-dev`)
+- [x] Rewrite `xmlrpc.h` — removed `Metodos` class, header now only declares `rssxmlrpc` thread
+- [x] Rewrite `xmlrpc.cpp` — each RPC method is a `xmlrpc_c::method2` subclass, server uses `xmlrpc_c::serverAbyss`
+- [x] Update `CMakeLists.txt` — removed ulxmlrpcpp `ExternalProject_Add`, link xmlrpc-c via `xmlrpc-c-config`
+- [x] Shutdown method calls `server.terminate()` to cleanly stop the Abyss event loop
+
 ## Code quality
 
 - [x] Normalize null pointers — `nullptr` everywhere

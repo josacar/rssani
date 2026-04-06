@@ -13,19 +13,21 @@ include(ExternalProject)
 
 find_package(Qt6 COMPONENTS Core LinguistTools Network Core5Compat REQUIRED)
 
-set(DEPS_PREFIX ${CMAKE_BINARY_DIR}/deps)
+# --- xmlrpc-c (system) ---
+find_program(XMLRPC_C_CONFIG xmlrpc-c-config)
+if(XMLRPC_C_CONFIG)
+  execute_process(COMMAND ${XMLRPC_C_CONFIG} c++2 abyss-server --cflags
+    OUTPUT_VARIABLE XMLRPC_CFLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
+  execute_process(COMMAND ${XMLRPC_C_CONFIG} c++2 abyss-server --libs
+    OUTPUT_VARIABLE XMLRPC_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
+else()
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(XMLRPC REQUIRED xmlrpc_server_abyss++)
+  set(XMLRPC_CFLAGS "${XMLRPC_CFLAGS_OTHER}")
+  set(XMLRPC_LIBS "${XMLRPC_LINK_LIBRARIES}")
+endif()
 
-# --- ulxmlrpcpp ---
-ExternalProject_Add(ulxmlrpcpp_ext
-  URL https://sourceforge.net/projects/ulxmlrpcpp/files/ulxmlrpcpp/1.7.5/ulxmlrpcpp-1.7.5-src.tar.bz2
-  PREFIX ${DEPS_PREFIX}/ulxmlrpcpp
-  PATCH_COMMAND find <SOURCE_DIR> -name "*.cpp" -exec sed -i "s|SSL_METHOD \\*meth = SSLv23_method|const SSL_METHOD *meth = SSLv23_method|g" {} +
-  CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
-  BUILD_COMMAND make -j4
-  INSTALL_COMMAND bash -c "make -C ulxmlrpcpp install-libLTLIBRARIES && make -C ulxmlrpcpp/contrib install-libLTLIBRARIES && mkdir -p <INSTALL_DIR>/include/ulxmlrpcpp && cp <SOURCE_DIR>/ulxmlrpcpp/*.h <INSTALL_DIR>/include/ulxmlrpcpp/"
-)
-ExternalProject_Get_Property(ulxmlrpcpp_ext INSTALL_DIR)
-set(ULXMLRPCPP_INSTALL_DIR ${INSTALL_DIR})
+set(DEPS_PREFIX ${CMAKE_BINARY_DIR}/deps)
 
 # --- libcommuni ---
 ExternalProject_Add(libcommuni_ext
@@ -36,7 +38,7 @@ ExternalProject_Add(libcommuni_ext
   CONFIGURE_COMMAND qmake6 <SOURCE_DIR>/libcommuni.pro IRC_INSTALL_LIBS=<INSTALL_DIR>/lib IRC_INSTALL_HEADERS=<INSTALL_DIR>/include IRC_INSTALL_FEATURES=<INSTALL_DIR>/features CONFIG+=no_tests CONFIG+=no_examples
   PATCH_COMMAND sed -i "s/QT = core network/QT = core network core5compat/" <SOURCE_DIR>/src/module_build.pri
   BUILD_COMMAND make -j4
-  INSTALL_COMMAND make install
+  INSTALL_COMMAND bash -c "make -C src/core install && make -C src/model install && make -C src/util install"
   BUILD_IN_SOURCE ON
 )
 ExternalProject_Get_Property(libcommuni_ext INSTALL_DIR)
@@ -57,22 +59,24 @@ add_executable(rssani
   ${TS_FILES}
 )
 
-add_dependencies(rssani ulxmlrpcpp_ext libcommuni_ext)
+add_dependencies(rssani libcommuni_ext)
 
 target_include_directories(rssani PRIVATE
-  ${ULXMLRPCPP_INSTALL_DIR}/include
   ${LIBCOMMUNI_INSTALL_DIR}/include/IrcCore
 )
 
 target_link_directories(rssani PRIVATE
-  ${ULXMLRPCPP_INSTALL_DIR}/lib
   ${LIBCOMMUNI_INSTALL_DIR}/lib
 )
 
-target_link_libraries(rssani Qt6::Core Qt6::Network ulxmlrpcpp IrcCore)
+separate_arguments(XMLRPC_CFLAGS_LIST UNIX_COMMAND "${XMLRPC_CFLAGS}")
+target_compile_options(rssani PRIVATE ${XMLRPC_CFLAGS_LIST})
+
+separate_arguments(XMLRPC_LIBS_LIST UNIX_COMMAND "${XMLRPC_LIBS}")
+target_link_libraries(rssani Qt6::Core Qt6::Network IrcCore ${XMLRPC_LIBS_LIST})
 
 set_target_properties(rssani PROPERTIES
-  INSTALL_RPATH "${ULXMLRPCPP_INSTALL_DIR}/lib;${LIBCOMMUNI_INSTALL_DIR}/lib"
+  INSTALL_RPATH "${LIBCOMMUNI_INSTALL_DIR}/lib"
   BUILD_WITH_INSTALL_RPATH ON
 )
 

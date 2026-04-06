@@ -12,14 +12,14 @@ Originally created in 2004 for the Animersion community. Tested on Linux.
 | `rssani_lite.cpp/h` | Core app: settings, regexp management, IRC integration, signal wiring |
 | `rss_lite.cpp/h` | RSS fetching, XML parsing, torrent downloading, regexp matching |
 | `myircsession.cpp/h` | IRC client (libcommuni) monitoring channels for new uploads |
-| `xmlrpc.cpp/h` | XML-RPC server thread (ulxmlrpcpp) exposing management API |
+| `xmlrpc.cpp/h` | XML-RPC server thread (xmlrpc-c / Abyss) exposing management API |
 | `mailsender.cpp/h` | SMTP email sender with SSL/TLS support |
 | `values.h` | Configuration value object (paths, mail, debug flag) |
 
 ## Requirements
 
 - Qt6 (Core, Network, Core5Compat)
-- [ulxmlrpcpp](https://sourceforge.net/projects/ulxmlrpcpp/) 1.7.5
+- [xmlrpc-c](http://xmlrpc-c.sourceforge.net/) (system package: `libxmlrpc-c++9-dev`)
 - [libcommuni](https://github.com/communi/libcommuni) 3.7.0
 - A C++ compiler with C++20 support
 - CMake ≥ 3.14
@@ -27,7 +27,7 @@ Originally created in 2004 for the Animersion community. Tested on Linux.
 
 ## Build
 
-Dependencies are fetched and built automatically via CMake `ExternalProject`:
+xmlrpc-c must be installed as a system package (`libxmlrpc-c++9-dev` on Debian/Ubuntu). libcommuni is fetched and built automatically via CMake `ExternalProject`:
 
 ```bash
 mkdir build && cd build
