@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-rssani is a headless C++ Qt5 console application that monitors RSS feeds and IRC channels from XBT/XBTT torrent trackers, downloads matching `.torrent` files based on user-defined regexps, and optionally sends email notifications. It exposes an XML-RPC API for remote management. Started in 2004, originally targeting the Animersion community.
+rssani is a headless C++ Qt6 console application that monitors RSS feeds and IRC channels from XBT/XBTT torrent trackers, downloads matching `.torrent` files based on user-defined regexps, and optionally sends email notifications. It exposes an XML-RPC API for remote management. Started in 2004, originally targeting the Animersion community.
 
 ## Architecture
 
@@ -18,38 +18,41 @@ values.h            → Configuration value object (paths, mail, debug flag)
 
 ## Build
 
+Dependencies (ulxmlrpcpp, libcommuni) are fetched and built automatically via CMake `ExternalProject`:
+
 ```bash
-cmake . && make
+mkdir build && cd build
+cmake ..
+make
 ```
 
-Dependencies: Qt5 (Core, Network), ulxmlrpcpp, libcommuni (IrcCore). CMakeLists.txt currently has hardcoded paths to local builds of ulxmlrpcpp and libcommuni — these must be adapted per machine.
+## Agent Instructions
+
+- After every code change, update `AGENTS.md`, `README.md`, and `TODO.md` to reflect the new state of the project.
 
 ## Key Conventions
 
-- Language: C++11 with Qt5. Comments and identifiers are mostly in Spanish.
+- Language: C++20 with Qt6. Comments and identifiers are mostly in Spanish.
 - Configuration: `QSettings` (INI-style), stored in the standard Qt config path.
 - Logging: `QFile`-based plain text logs (`rssani.log`, `matches.log`) in the config directory.
-- Signal/slot: Currently uses old `SIGNAL()`/`SLOT()` macro syntax throughout.
+- Signal/slot: Qt5 pointer-to-member syntax (`&Class::method`) throughout, except `myircsession.cpp` `connectSlotsByName()` which uses old `SIGNAL()`/`SLOT()` macros (required by libcommuni API).
+- Memory management: `std::unique_ptr` and `std::shared_ptr` used for owned objects.
+- Thread safety: `rssani_lite` public methods are protected by `QMutex` for safe access from the XML-RPC thread.
 - No tests exist. No CI/CD.
 
 ## Important Caveats
 
-- The Qt5 migration from Qt4 is **incomplete**. See `TODO.md` for details.
-- `finishedRSS()` and `finishedTorrent()` slots exist but are **never connected** — they are dead code left from the Qt4 `QHttp` API migration.
-- `readDataTorrent()` uses a hardcoded `downloadId = 1` instead of tracking per-reply, so concurrent torrent downloads will collide.
-- Tracker configuration is hardcoded in `iniciaTrackers()` rather than loaded from settings.
-- SMTP server and login credentials are empty strings with `//FIXME` comments in `sendMail()`.
-- The IRC channel (`#PuntoTorrent`) and server (`irc.irc-hispano.org`) are hardcoded.
-- Memory management uses raw `new` without smart pointers; several potential leaks exist (e.g., `verLog()` returns `new QStringList` that callers never delete, tracker objects in `iniciaTrackers()`).
-- Mix of `NULL`, `nullptr`, and `0` for null pointers.
+- IRC server/channel and tracker configuration are read from `QSettings`, with hardcoded defaults (`irc.irc-hispano.org`, `#PuntoTorrent`) as fallbacks.
+- `myircsession.cpp` `connectSlotsByName()` still uses old `SIGNAL()`/`SLOT()` macros — this is a libcommuni API constraint, not a migration oversight.
+- `rss` and `session` in `rssani_lite` constructor are still raw `new` (Qt parent-child ownership).
 
 ## File-by-File Notes
 
 | File | Notes |
 |---|---|
-| `rss_lite.cpp` | Most migration issues live here. Contains commented-out Qt4 `QHttp` code, dead slots, hardcoded download ID, and all RSS/torrent logic. |
-| `rssani_lite.cpp` | Settings I/O, regexp CRUD, signal wiring. Uses `QRegExp` for IRC message parsing. |
-| `myircsession.cpp` | Uses deprecated `qsrand()`/`qrand()`. IRC color stripping uses raw C `malloc`. |
-| `mailsender.cpp` | Uses deprecated `qrand()`, `QTextCodec`. Attachment handling has a suspicious magic-number check. |
-| `xmlrpc.cpp` | Runs in a `QThread`. Exposes all management methods. No thread-safety on shared data. |
-| `CMakeLists.txt` | Hardcoded absolute paths. Should use `find_package` or `pkg-config` for dependencies. |
+| `rss_lite.cpp` | RSS/torrent logic. Trackers loaded from settings via `iniciaTrackers()`. Uses reply URL as download key for concurrent torrent downloads. |
+| `rssani_lite.cpp` | Settings I/O, regexp CRUD, signal wiring. All public methods mutex-protected. Uses `QRegularExpression`. |
+| `myircsession.cpp` | IRC client. Uses `QRandomGenerator`. `connectSlotsByName()` uses old-style macros (libcommuni constraint). |
+| `mailsender.cpp` | SMTP sender. Credentials read from `Values`. Uses `QRandomGenerator`. |
+| `xmlrpc.cpp` | Runs in a `QThread`. Exposes all management methods. Accesses `rssani_lite` through mutex-protected API. |
+| `CMakeLists.txt` | Uses `ExternalProject_Add` for ulxmlrpcpp and libcommuni. RPATH set for runtime linking. |

@@ -1,6 +1,6 @@
 # rssani
 
-Headless C++ Qt5 console application that monitors RSS feeds and IRC channels from XBT/XBTT torrent trackers, downloads matching `.torrent` files based on user-defined regexps, and optionally sends email notifications. Exposes an XML-RPC API for remote management.
+Headless C++ Qt6 console application that monitors RSS feeds and IRC channels from XBT/XBTT torrent trackers, downloads matching `.torrent` files based on user-defined regexps, and optionally sends email notifications. Exposes an XML-RPC API for remote management.
 
 Originally created in 2004 for the Animersion community. Tested on Linux.
 
@@ -18,7 +18,7 @@ Originally created in 2004 for the Animersion community. Tested on Linux.
 
 ## Requirements
 
-- Qt5 (Core, Network)
+- Qt6 (Core, Network, Core5Compat)
 - [ulxmlrpcpp](https://sourceforge.net/projects/ulxmlrpcpp/) 1.7.5
 - [libcommuni](https://github.com/communi/libcommuni) 3.7.0
 - A C++ compiler with C++20 support
