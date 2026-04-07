@@ -42,6 +42,22 @@ make
 
 ## Testing
 
+### Unit Tests (Qt Test / C++)
+Unit tests are in `tests/` and built as separate executables (`rssani_tests_values`, `rssani_tests_mail`, `rssani_tests_rss`). Built via CMake alongside the main binary.
+
+Run via Docker:
+```bash
+docker build -t rssani-tests . && docker run --rm rssani-tests
+```
+
+Or run individual executables from the build directory:
+```bash
+./build/rssani_tests_values
+./build/rssani_tests_mail
+./build/rssani_tests_rss
+```
+
+### Integration Tests (Python / XML-RPC)
 Integration tests for the XML-RPC interface are in `test_xmlrpc.py` (Python 3, uses `xmlrpc.client`):
 
 ```bash

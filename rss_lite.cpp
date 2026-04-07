@@ -150,17 +150,17 @@ void Rss_lite::parseXml( QXmlStreamReader *xml ) {
     xml->readNext();
 
     if ( xml->isStartElement() ) {
-      if ( xml->name() == "item" ) {
+      if ( xml->name() == QStringLiteral("item") ) {
         linkString = xml->attributes().value( QStringLiteral("rss:about") ).toString();
         pila.push( 0 );
       }
-      if ( xml->name() == "enclosure" ) { // Con esto machaco
+      if ( xml->name() == QStringLiteral("enclosure") ) { // Con esto machaco
         linkString = xml->attributes().value( QStringLiteral("url") ).toString();
         // 				qDebug() << "Enclosure:" << linkString;
       }
       currentTag = xml->name().toString();
     } else if ( xml->isEndElement() ) {
-      if ( xml->name() == "item" ) {
+      if ( xml->name() == QStringLiteral("item") ) {
         QDateTime date = QDateTime::fromString( pubDate.section( QChar(' '), 1, 4 ), QStringLiteral("dd MMM yyyy hh:mm:ss") );
         dateS = date.toString( QStringLiteral("yyyyMMddhhmmss") );
 

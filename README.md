@@ -35,15 +35,27 @@ cmake ..
 make
 ```
 
+### Docker
+
+A `Dockerfile` is provided for building and running tests in a clean Debian environment:
+
+```bash
+docker build -t rssani-tests . && docker run --rm rssani-tests
+```
+
 ## Testing
 
-Integration tests for the XML-RPC interface:
+### Unit Tests (C++ / Qt Test)
+```bash
+docker build -t rssani-tests . && docker run --rm rssani-tests
+```
+24 unit tests covering `Values`, `MailSender`, and `Rss_lite` classes.
 
+### Integration Tests (Python / XML-RPC)
 ```bash
 python3 test_xmlrpc.py ./build/rssani
 ```
-
-Covers 14 tests: regexp CRUD, auth CRUD, options, timer, log, save, and shutdown.
+14 integration tests covering the XML-RPC API (regexp CRUD, auth CRUD, options, timer, log, save, shutdown).
 
 ## Configuration
 

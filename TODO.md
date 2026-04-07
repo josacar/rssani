@@ -1,5 +1,16 @@
 # TODO.md
 
+## Unit Tests
+
+- [x] Add Qt Test framework to CMakeLists.txt
+- [x] Create Dockerfile for building and running tests (Debian bookworm, Qt6, xmlrpc-c)
+- [x] Unit tests for `Values` class (10 tests: defaults, setters, SMTP settings, filledValues)
+- [x] Unit tests for `MailSender` class (9 tests: constructor, setters, content type, priority, encoding)
+- [x] Unit tests for `Rss_lite` class (5 tests: saveLog, miraTitulo, verUltimo)
+- [ ] Unit tests for `rssani_lite` class (regexp CRUD, auth CRUD, timer, settings)
+- [ ] Unit tests for `MyIrcSession` class
+- [ ] Add CTest integration (`ctest --test-dir build`)
+
 ## Qt5 Migration (complete)
 
 - [x] Replace `QRegExp` with `QRegularExpression` (5 occurrences)

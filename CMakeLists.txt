@@ -11,7 +11,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(ExternalProject)
 
-find_package(Qt6 COMPONENTS Core LinguistTools Network REQUIRED)
+find_package(Qt6 COMPONENTS Core Network Test REQUIRED)
+find_package(Qt6 COMPONENTS LinguistTools QUIET)
 
 # --- xmlrpc-c (system) ---
 find_program(XMLRPC_C_CONFIG xmlrpc-c-config)
@@ -84,4 +85,40 @@ set_target_properties(rssani PROPERTIES
   BUILD_WITH_INSTALL_RPATH ON
 )
 
-qt6_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+if(Qt6LinguistTools_FOUND)
+  qt6_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+endif()
+
+# --- Unit Tests ---
+# Use QTest framework with separate test executables to avoid multiple main() definitions
+add_executable(rssani_tests_values tests/test_values.cpp)
+add_executable(rssani_tests_mail tests/test_mail_sender.cpp mailsender.cpp)
+add_executable(rssani_tests_rss tests/test_rss_lite.cpp mailsender.cpp rss_lite.cpp)
+
+# Link each test executable separately
+foreach(test_tgt rssani_tests_values rssani_tests_mail rssani_tests_rss)
+  target_include_directories(${test_tgt} PRIVATE
+    ${LIBIRC_INSTALL_DIR}/include
+    ${CMAKE_SOURCE_DIR}
+  )
+  target_link_directories(${test_tgt} PRIVATE
+    ${LIBIRC_INSTALL_DIR}/lib
+  )
+  target_link_libraries(${test_tgt} PRIVATE
+    Qt6::Core Qt6::Network Qt6::Test
+  )
+  set_target_properties(${test_tgt} PROPERTIES
+    INSTALL_RPATH "${LIBIRC_INSTALL_DIR}/lib"
+    BUILD_WITH_INSTALL_RPATH ON
+  )
+  target_compile_options(${test_tgt} PRIVATE ${XMLRPC_CFLAGS_LIST})
+  add_dependencies(${test_tgt} libirc_ext)
+endforeach()
+
+# The rssani_tests_rss needs irc libs (Rss_lite depends on them)
+target_link_libraries(rssani_tests_rss PRIVATE ircclient irc ${XMLRPC_LIBS_LIST})
+
+# Add all tests to CTest
+add_test(NAME test_values COMMAND rssani_tests_values)
+add_test(NAME test_mail_sender COMMAND rssani_tests_mail)
+add_test(NAME test_rss_lite COMMAND rssani_tests_rss)

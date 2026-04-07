@@ -1,0 +1,5 @@
+build/
+*.log
+*.conf
+.DS_Store
+*.qm
