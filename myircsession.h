@@ -31,6 +31,8 @@ struct datosIrc {
 class MyIrcSession : public QObject {
   Q_OBJECT
 
+  friend class TestMyIrcSession;
+
   public:
     /**
      * @brief Constructs the IRC session.
