@@ -28,7 +28,7 @@ jobs:
             && rm -rf /var/lib/apt/lists/*
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Configure
         run: |
