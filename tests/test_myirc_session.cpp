@@ -103,17 +103,17 @@ void TestMyIrcSession::testIrcColorStripFromMircReset() {
 void TestMyIrcSession::testIrcColorStripFromMircComplex() {
     // Test complex string with multiple IRC codes
     // Bold + Color + Underline
-    QString input = QString("%1Hello%2 %3World%4").arg(
+    QString input = QStringLiteral("%1Hello%2 %3World%4").arg(
         QChar(0x02),  // Bold
-        QChar(0x03) + "04",  // Color
+        QString(QChar(0x03)) + QStringLiteral("04"),  // Color
         QChar(0x1F),  // Underline
         QChar(0x0F)   // Reset
     );
     QString result = MyIrcSession::irc_color_strip_from_mirc(input);
-    QCOMPARE(result, QString("Hello World"));
+    QCOMPARE(result, QStringLiteral("Hello World"));
 
     // Test multiple codes in sequence
-    input = QString("%1%2%3Test%4%5%6").arg(
+    input = QStringLiteral("%1%2%3Test%4%5%6").arg(
         QChar(0x02),  // Bold
         QChar(0x1F),  // Underline
         QChar(0x16),  // Reverse
@@ -122,7 +122,7 @@ void TestMyIrcSession::testIrcColorStripFromMircComplex() {
         QChar(0x1F)   // Underline again
     );
     result = MyIrcSession::irc_color_strip_from_mirc(input);
-    QCOMPARE(result, QString("Test"));
+    QCOMPARE(result, QStringLiteral("Test"));
 }
 
 QTEST_MAIN(TestMyIrcSession)
