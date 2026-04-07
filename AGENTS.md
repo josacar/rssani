@@ -29,6 +29,7 @@ make
 ## Agent Instructions
 
 - After every code change, update `AGENTS.md`, `README.md`, and `TODO.md` to reflect the new state of the project.
+- After modifying code or tests, run `docker build -t rssani-tests . && docker run --rm rssani-tests` to verify all tests pass before committing.
 
 ## Key Conventions
 
