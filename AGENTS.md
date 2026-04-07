@@ -43,7 +43,7 @@ make
 ## Testing
 
 ### Unit Tests (Qt Test / C++)
-Unit tests are in `tests/` and built as separate executables (`rssani_tests_values`, `rssani_tests_mail`, `rssani_tests_rss`). Built via CMake alongside the main binary.
+Unit tests are in `tests/` and built as separate executables (`rssani_tests_values`, `rssani_tests_mail`, `rssani_tests_rss`, `rssani_tests_rssani`, `rssani_tests_irc`). Built via CMake alongside the main binary.
 
 Run via Docker:
 ```bash
@@ -55,7 +55,21 @@ Or run individual executables from the build directory:
 ./build/rssani_tests_values
 ./build/rssani_tests_mail
 ./build/rssani_tests_rss
+./build/rssani_tests_rssani
+./build/rssani_tests_irc
 ```
+
+Or run all tests via CTest:
+```bash
+ctest --test-dir build
+```
+
+**Test coverage:**
+- `test_values.cpp` — `Values` class (defaults, setters, SMTP settings, filledValues)
+- `test_mail_sender.cpp` — `MailSender` class (constructor, setters, content type, priority, encoding)
+- `test_rss_lite.cpp` — `Rss_lite` class (saveLog, miraTitulo, verUltimo)
+- `test_rssani_lite.cpp` — `rssani_lite` class (regexp CRUD, auth CRUD, timer, settings, RPC credentials, debug)
+- `test_myirc_session.cpp` — `MyIrcSession` class (datosIrc struct, IRC color stripping)
 
 ### Integration Tests (Python / XML-RPC)
 Integration tests for the XML-RPC interface are in `test_xmlrpc.py` (Python 3, uses `xmlrpc.client`):
@@ -82,3 +96,8 @@ The script starts the binary, runs 14 tests covering all RPC methods (regexp CRU
 | `mailsender.cpp` | SMTP sender. Credentials read from `Values`. Uses `QRandomGenerator`. |
 | `xmlrpc.cpp` | Runs in a `QThread`. Uses xmlrpc-c (Abyss server). Each RPC method is a `xmlrpc_c::method2` subclass. Accesses `rssani_lite` through mutex-protected API. Destructor terminates the Abyss server and waits for the thread to finish. |
 | `CMakeLists.txt` | Uses `ExternalProject_Add` for libirc (grumpy-irc). xmlrpc-c linked as system library via `xmlrpc-c-config`. RPATH set for runtime linking. |
+| `tests/test_values.cpp` | Unit tests for `Values` class. |
+| `tests/test_mail_sender.cpp` | Unit tests for `MailSender` class. |
+| `tests/test_rss_lite.cpp` | Unit tests for `Rss_lite` class. |
+| `tests/test_rssani_lite.cpp` | Unit tests for `rssani_lite` class (regexp CRUD, auth CRUD, timer, settings). |
+| `tests/test_myirc_session.cpp` | Unit tests for `MyIrcSession` class (datosIrc struct, IRC color stripping). |

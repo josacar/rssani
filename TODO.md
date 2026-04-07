@@ -7,9 +7,9 @@
 - [x] Unit tests for `Values` class (10 tests: defaults, setters, SMTP settings, filledValues)
 - [x] Unit tests for `MailSender` class (9 tests: constructor, setters, content type, priority, encoding)
 - [x] Unit tests for `Rss_lite` class (5 tests: saveLog, miraTitulo, verUltimo)
-- [ ] Unit tests for `rssani_lite` class (regexp CRUD, auth CRUD, timer, settings)
-- [ ] Unit tests for `MyIrcSession` class
-- [ ] Add CTest integration (`ctest --test-dir build`)
+- [x] Unit tests for `rssani_lite` class (20 tests: regexp CRUD, auth CRUD, timer, settings, RPC credentials, debug)
+- [x] Unit tests for `MyIrcSession` class (10 tests: datosIrc struct, IRC color stripping)
+- [x] Add CTest integration (`ctest --test-dir build`)
 
 ## Qt5 Migration (complete)
 
