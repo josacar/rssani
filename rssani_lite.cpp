@@ -196,6 +196,7 @@ void rssani_lite::anadirRegexp( std::string nombre, std::string fecha, bool mail
   re->mail = mail;
   re->diasDescarga = dias;
   re->fechaDescarga = QDateTime();
+  re->activa = true;
   lista->append( re ) ;
   qDebug()  << "Añadida regexp" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga;
 }
