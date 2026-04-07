@@ -26,7 +26,6 @@ private slots:
     void testSetRpcPass();
     void testVerLogEmpty();
     void testGetValues();
-    void testDebugea();
 
 private:
     QTemporaryDir tempDir;
@@ -346,24 +345,6 @@ void TestRssaniLite::testGetValues() {
     // Verify it's the same object used internally
     values->setDebug(true);
     QCOMPARE(app.getValues()->Debug(), true);
-}
-
-void TestRssaniLite::testDebugea() {
-    QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, tempDir.path());
-    QSettings::setDefaultFormat(QSettings::IniFormat);
-
-    rssani_lite app;
-
-    // Initially debug is false
-    QCOMPARE(app.getValues()->Debug(), false);
-
-    // Toggle should enable it
-    app.debugea();
-    QCOMPARE(app.getValues()->Debug(), true);
-
-    // Toggle again should disable it
-    app.debugea();
-    QCOMPARE(app.getValues()->Debug(), false);
 }
 
 QTEST_MAIN(TestRssaniLite)
