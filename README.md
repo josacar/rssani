@@ -1,5 +1,7 @@
 # rssani
 
+[![CI](https://github.com/josacar/rssani/actions/workflows/ci.yml/badge.svg)](https://github.com/josacar/rssani/actions/workflows/ci.yml)
+
 Headless C++ Qt6 console application that monitors RSS feeds and IRC channels from XBT/XBTT torrent trackers, downloads matching `.torrent` files based on user-defined regexps, and optionally sends email notifications. Exposes an XML-RPC API for remote management.
 
 Originally created in 2004 for the Animersion community. Tested on Linux.
@@ -43,13 +45,36 @@ A `Dockerfile` is provided for building and running tests in a clean Debian envi
 docker build -t rssani-tests . && docker run --rm rssani-tests
 ```
 
+To update the Docker CMD to run all tests, update the last line of `Dockerfile`:
+```dockerfile
+CMD ["sh", "-c", "cd build && ./rssani_tests_values && ./rssani_tests_mail && ./rssani_tests_rss && ./rssani_tests_rssani && ./rssani_tests_irc"]
+```
+
+## CI/CD
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push and PR to `master`. It builds the project and runs all unit tests and CTest in a `debian:trixie-slim` container.
+
 ## Testing
 
 ### Unit Tests (C++ / Qt Test)
 ```bash
 docker build -t rssani-tests . && docker run --rm rssani-tests
 ```
-24 unit tests covering `Values`, `MailSender`, and `Rss_lite` classes.
+39 unit tests covering `Values`, `MailSender`, `Rss_lite`, `rssani_lite`, and `MyIrcSession` classes.
+
+Run individual test binaries from the build directory:
+```bash
+./build/rssani_tests_values
+./build/rssani_tests_mail
+./build/rssani_tests_rss
+./build/rssani_tests_rssani
+./build/rssani_tests_irc
+```
+
+Or run all via CTest:
+```bash
+ctest --test-dir build --output-on-failure
+```
 
 ### Integration Tests (Python / XML-RPC)
 ```bash

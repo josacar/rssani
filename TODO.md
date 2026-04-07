@@ -11,6 +11,10 @@
 - [x] Unit tests for `MyIrcSession` class (10 tests: datosIrc struct, IRC color stripping)
 - [x] Add CTest integration (`ctest --test-dir build`)
 
+## CI/CD
+
+- [x] Add GitHub Actions workflow (build + unit tests on push/PR)
+
 ## Qt5 Migration (complete)
 
 - [x] Replace `QRegExp` with `QRegularExpression` (5 occurrences)

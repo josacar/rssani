@@ -40,6 +40,10 @@ make
 - Thread safety: `rssani_lite` public methods are protected by `QMutex` for safe access from the XML-RPC thread.
 - No CI/CD.
 
+## CI/CD
+
+GitHub Actions workflow at `.github/workflows/ci.yml` triggers on push/PR to `master`. Runs in a `debian:trixie-slim` container: installs dependencies, configures via CMake, builds with `make -j2`, runs all 5 unit test executables, and runs CTest.
+
 ## Testing
 
 ### Unit Tests (Qt Test / C++)

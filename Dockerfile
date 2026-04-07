@@ -24,5 +24,5 @@ COPY . .
 # Build (limit parallelism to avoid OOM)
 RUN mkdir -p build && cd build && cmake .. && make -j2
 
-# Default command: run unit tests
-CMD ["sh", "-c", "./build/rssani_tests_values && ./build/rssani_tests_mail && ./build/rssani_tests_rss"]
+# Default command: run all unit tests
+CMD ["sh", "-c", "cd build && ./rssani_tests_values && ./rssani_tests_mail && ./rssani_tests_rss && ./rssani_tests_rssani && ./rssani_tests_irc"]

@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    container: debian:trixie-slim
+
+    steps:
+      - name: Install dependencies
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update && apt-get install -y --no-install-recommends \
+            build-essential \
+            cmake \
+            git \
+            pkg-config \
+            ca-certificates \
+            qt6-base-dev \
+            qt6-base-dev-tools \
+            qt6-tools-dev \
+            libxmlrpc-c++9-dev \
+            && rm -rf /var/lib/apt/lists/*
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: |
+          mkdir -p build
+          cd build
+          cmake ..
+
+      - name: Build
+        run: |
+          cd build
+          make -j2
+
+      - name: Run unit tests
+        run: |
+          cd build
+          ./rssani_tests_values && \
+          ./rssani_tests_mail && \
+          ./rssani_tests_rss && \
+          ./rssani_tests_rssani && \
+          ./rssani_tests_irc
+
+      - name: Run CTest
+        run: |
+          ctest --test-dir build --output-on-failure
