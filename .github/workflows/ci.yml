@@ -24,7 +24,10 @@ jobs:
             qt6-base-dev \
             qt6-base-dev-tools \
             qt6-tools-dev \
-            libxmlrpc-c++9-dev \
+            libgrpc++-dev \
+            libprotobuf-dev \
+            protobuf-compiler \
+            protobuf-compiler-grpc \
             && rm -rf /var/lib/apt/lists/*
 
       - name: Checkout

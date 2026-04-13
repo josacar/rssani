@@ -1,6 +1,5 @@
 FROM debian:trixie-slim
 
-# Avoid interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install build dependencies
@@ -13,15 +12,28 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     qt6-base-dev \
     qt6-base-dev-tools \
     qt6-tools-dev \
-    libxmlrpc-c++9-dev \
+    libgrpc++-dev \
+    libprotobuf-dev \
+    protobuf-compiler \
+    protobuf-compiler-grpc \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy project files
-COPY . .
+# Copy only source files needed for the build
+COPY CMakeLists.txt .
+COPY rssani.proto .
+COPY mailsender.cpp mailsender.h .
+COPY myircsession.cpp myircsession.h .
+COPY rss_lite.cpp rss_lite.h .
+COPY rssani_lite.cpp rssani_lite.h .
+COPY grpc_server.cpp grpc_server.h .
+COPY main.cpp .
+COPY values.h .
+COPY rssani_en_US.ts .
+COPY tests/ tests/
 
-# Build (limit parallelism to avoid OOM)
+# Build the project
 RUN mkdir -p build && cd build && cmake .. && make -j2
 
 # Default command: run all unit tests

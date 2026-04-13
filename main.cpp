@@ -1,7 +1,7 @@
 #include <memory>
 #include <QtCore/QCoreApplication>
 #include "rssani_lite.h"
-#include "xmlrpc.h"
+#include "grpc_server.h"
 
 #ifdef __unix__
 #include <sys/signal.h>
@@ -15,7 +15,7 @@ int main ( int argc, char **argv ) {
 	app.setOrganizationName(QString("Selu"));
 	app.setApplicationName(QString("rssani"));
 	auto rss = std::make_unique<rssani_lite>();
-	auto rpc = std::make_unique<rssxmlrpc>(rss.get());
-	rpc->start();
+	auto grpc = std::make_unique<GrpcServer>(rss.get());
+	grpc->start();
 	return app.exec();
 }

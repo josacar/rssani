@@ -14,19 +14,39 @@ include(ExternalProject)
 find_package(Qt6 COMPONENTS Core Network Test REQUIRED)
 find_package(Qt6 COMPONENTS LinguistTools QUIET)
 
-# --- xmlrpc-c (system) ---
-find_program(XMLRPC_C_CONFIG xmlrpc-c-config)
-if(XMLRPC_C_CONFIG)
-  execute_process(COMMAND ${XMLRPC_C_CONFIG} c++2 abyss-server --cflags
-    OUTPUT_VARIABLE XMLRPC_CFLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
-  execute_process(COMMAND ${XMLRPC_C_CONFIG} c++2 abyss-server --libs
-    OUTPUT_VARIABLE XMLRPC_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
-else()
-  find_package(PkgConfig REQUIRED)
-  pkg_check_modules(XMLRPC REQUIRED xmlrpc_server_abyss++)
-  set(XMLRPC_CFLAGS "${XMLRPC_CFLAGS_OTHER}")
-  set(XMLRPC_LIBS "${XMLRPC_LINK_LIBRARIES}")
+# --- gRPC and Protobuf ---
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(gRPCPP REQUIRED grpc++)
+pkg_check_modules(PROTOBUF REQUIRED protobuf)
+find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin)
+find_program(PROTOC protoc)
+
+if(NOT GRPC_CPP_PLUGIN)
+  message(FATAL_ERROR "grpc_cpp_plugin not found")
 endif()
+if(NOT PROTOC)
+  message(FATAL_ERROR "protoc not found")
+endif()
+
+# Generate gRPC and Protobuf files from .proto
+set(PROTO_FILES ${CMAKE_CURRENT_SOURCE_DIR}/rssani.proto)
+set(PROTO_SRC ${CMAKE_CURRENT_BINARY_DIR}/rssani.pb.cc)
+set(PROTO_HDR ${CMAKE_CURRENT_BINARY_DIR}/rssani.pb.h)
+set(GRPC_SRC ${CMAKE_CURRENT_BINARY_DIR}/rssani.grpc.pb.cc)
+set(GRPC_HDR ${CMAKE_CURRENT_BINARY_DIR}/rssani.grpc.pb.h)
+
+add_custom_command(
+  OUTPUT ${PROTO_SRC} ${PROTO_HDR} ${GRPC_SRC} ${GRPC_HDR}
+  COMMAND ${PROTOC}
+    --grpc_out=${CMAKE_CURRENT_BINARY_DIR}
+    --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+    --proto_path=${CMAKE_CURRENT_SOURCE_DIR}
+    --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN}
+    ${PROTO_FILES}
+  DEPENDS ${PROTO_FILES}
+  COMMENT "Generating gRPC and Protobuf files"
+  VERBATIM
+)
 
 set(DEPS_PREFIX ${CMAKE_BINARY_DIR}/deps)
 
@@ -60,7 +80,9 @@ add_executable(rssani
   myircsession.cpp
   rss_lite.cpp
   rssani_lite.cpp
-  xmlrpc.cpp
+  grpc_server.cpp
+  ${PROTO_SRC}
+  ${GRPC_SRC}
   ${TS_FILES}
 )
 
@@ -68,17 +90,20 @@ add_dependencies(rssani libirc_ext)
 
 target_include_directories(rssani PRIVATE
   ${LIBIRC_INSTALL_DIR}/include
+  ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 target_link_directories(rssani PRIVATE
   ${LIBIRC_INSTALL_DIR}/lib
 )
 
-separate_arguments(XMLRPC_CFLAGS_LIST UNIX_COMMAND "${XMLRPC_CFLAGS}")
-target_compile_options(rssani PRIVATE ${XMLRPC_CFLAGS_LIST})
+separate_arguments(gRPCPP_CFLAGS_LIST UNIX_COMMAND "${gRPCPP_CFLAGS}")
+separate_arguments(PROTOBUF_CFLAGS_LIST UNIX_COMMAND "${PROTOBUF_CFLAGS}")
+target_compile_options(rssani PRIVATE ${gRPCPP_CFLAGS_LIST} ${PROTOBUF_CFLAGS_LIST})
 
-separate_arguments(XMLRPC_LIBS_LIST UNIX_COMMAND "${XMLRPC_LIBS}")
-target_link_libraries(rssani Qt6::Core Qt6::Network ircclient irc ${XMLRPC_LIBS_LIST})
+separate_arguments(gRPCPP_LIBS_LIST UNIX_COMMAND "${gRPCPP_LDFLAGS}")
+separate_arguments(PROTOBUF_LIBS_LIST UNIX_COMMAND "${PROTOBUF_LDFLAGS}")
+target_link_libraries(rssani Qt6::Core Qt6::Network ircclient irc ${gRPCPP_LIBS_LIST} ${PROTOBUF_LIBS_LIST})
 
 set_target_properties(rssani PROPERTIES
   INSTALL_RPATH "${LIBIRC_INSTALL_DIR}/lib"
@@ -113,13 +138,13 @@ foreach(test_tgt rssani_tests_values rssani_tests_mail rssani_tests_rss rssani_t
     INSTALL_RPATH "${LIBIRC_INSTALL_DIR}/lib"
     BUILD_WITH_INSTALL_RPATH ON
   )
-  target_compile_options(${test_tgt} PRIVATE ${XMLRPC_CFLAGS_LIST})
+  target_compile_options(${test_tgt} PRIVATE ${gRPCPP_CFLAGS_LIST} ${PROTOBUF_CFLAGS_LIST})
   add_dependencies(${test_tgt} libirc_ext)
 endforeach()
 
-# The rssani_tests_rss and rssani_tests_rssani need irc libs and xmlrpc
-target_link_libraries(rssani_tests_rss PRIVATE ircclient irc ${XMLRPC_LIBS_LIST})
-target_link_libraries(rssani_tests_rssani PRIVATE ircclient irc ${XMLRPC_LIBS_LIST})
+# The rssani_tests_rss and rssani_tests_rssani need irc libs
+target_link_libraries(rssani_tests_rss PRIVATE ircclient irc ${gRPCPP_LIBS_LIST} ${PROTOBUF_LIBS_LIST})
+target_link_libraries(rssani_tests_rssani PRIVATE ircclient irc ${gRPCPP_LIBS_LIST} ${PROTOBUF_LIBS_LIST})
 target_link_libraries(rssani_tests_irc PRIVATE ircclient irc)
 
 # Add all tests to CTest

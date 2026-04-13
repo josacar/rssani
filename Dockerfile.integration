@@ -1,0 +1,24 @@
+# Integration tests — uses pre-built binary from the rssani-tests image.
+# Only installs Python + gRPC runtime, no C++ compilers or CMake.
+FROM rssani-tests
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 python3-pip python3-venv protobuf-compiler-grpc \
+    && rm -rf /var/lib/apt/lists/* \
+    && python3 -m venv /opt/venv \
+    && /opt/venv/bin/pip install --no-cache-dir grpcio grpcio-tools
+
+WORKDIR /app
+
+COPY rssani.proto .
+COPY tests/integration/ ./tests/integration/
+
+RUN python3 -m grpc_tools.protoc -I. \
+    --python_out=./tests/integration \
+    --grpc_python_out=./tests/integration \
+    rssani.proto
+
+CMD ["python3", "tests/integration/test_grpc.py", "./build/rssani"]

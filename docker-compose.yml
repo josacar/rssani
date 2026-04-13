@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  # Builds and runs all C++ unit tests
+  unit-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: rssani-tests
+
+  # Integration tests: starts rssani binary and tests gRPC interface
+  integration-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.integration
+    depends_on:
+      - unit-tests
+    image: rssani-grpc-tests
+    network_mode: host

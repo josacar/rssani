@@ -1,0 +1,149 @@
+syntax = "proto3";
+
+package rssani;
+
+service RssaniService {
+  // Read-only methods
+  rpc VerUltimo (EmptyRequest) returns (StringResponse);
+  rpc VerTimer (EmptyRequest) returns (IntResponse);
+  rpc VerLog (LogRequest) returns (LogResponse);
+  rpc ListaExpresiones (EmptyRequest) returns (RegexpListResponse);
+  rpc ListaAuths (EmptyRequest) returns (AuthListResponse);
+  rpc VerOpciones (EmptyRequest) returns (OpcionesResponse);
+
+  // Regexp CRUD
+  rpc AnadirRegexp (AnadirRegexpRequest) returns (BoolResponse);
+  rpc EditarRegexp (EditarRegexpRequest) returns (BoolResponse);
+  rpc EditarRegexpI (EditarRegexpIRequest) returns (BoolResponse);
+  rpc ActivarRegexp (ActivarRegexpRequest) returns (BoolResponse);
+  rpc MoverRegexp (MoverRegexpRequest) returns (BoolResponse);
+  rpc BorrarRegexpI (BorrarRegexpIRequest) returns (BoolResponse);
+  rpc BorrarRegexpS (BorrarRegexpSRequest) returns (BoolResponse);
+
+  // Auth CRUD
+  rpc AnadirAuth (AnadirAuthRequest) returns (BoolResponse);
+  rpc BorrarAuth (BorrarAuthRequest) returns (BoolResponse);
+
+  // Options and config
+  rpc PonerCredenciales (PonerCredencialesRequest) returns (BoolResponse);
+  rpc PonerOpciones (PonerOpcionesRequest) returns (BoolResponse);
+  rpc CambiaTimer (CambiaTimerRequest) returns (BoolResponse);
+  rpc Guardar (EmptyRequest) returns (BoolResponse);
+  rpc Shutdown (EmptyRequest) returns (BoolResponse);
+}
+
+// Request/Response messages
+
+message EmptyRequest {}
+
+message StringResponse {
+  string value = 1;
+}
+
+message IntResponse {
+  int32 value = 1;
+}
+
+message BoolResponse {
+  bool value = 1;
+}
+
+message LogRequest {
+  int32 ini = 1;
+  int32 fin = 2;
+}
+
+message LogResponse {
+  repeated string lines = 1;
+}
+
+message RegexpEntry {
+  string nombre = 1;
+  string vencimiento = 2;
+  bool mail = 3;
+  string tracker = 4;
+  int32 dias = 5;
+  bool activa = 6;
+}
+
+message RegexpListResponse {
+  repeated RegexpEntry entries = 1;
+}
+
+message AuthEntry {
+  string tracker = 1;
+  string uid = 2;
+  string pass = 3;
+  string passkey = 4;
+}
+
+message AuthListResponse {
+  repeated AuthEntry entries = 1;
+}
+
+message OpcionesResponse {
+  string fromMail = 1;
+  string toMail = 2;
+  string path = 3;
+}
+
+message AnadirRegexpRequest {
+  string nombre = 1;
+  string fecha = 2;
+  bool mail = 3;
+  string tracker = 4;
+  int32 dias = 5;
+}
+
+message EditarRegexpRequest {
+  string regexpOrig = 1;
+  string regexpDest = 2;
+}
+
+message EditarRegexpIRequest {
+  int32 regexpOrig = 1;
+  string regexpDest = 2;
+}
+
+message ActivarRegexpRequest {
+  int32 regexpOrig = 1;
+}
+
+message MoverRegexpRequest {
+  int32 from_position = 1;
+  int32 to = 2;
+}
+
+message BorrarRegexpIRequest {
+  int32 pos = 1;
+}
+
+message BorrarRegexpSRequest {
+  string nombre = 1;
+}
+
+message AnadirAuthRequest {
+  string tracker = 1;
+  string uid = 2;
+  string password = 3;
+  string passkey = 4;
+}
+
+message BorrarAuthRequest {
+  string tracker = 1;
+}
+
+message PonerCredencialesRequest {
+  string user = 1;
+  string password = 2;
+}
+
+message PonerOpcionesRequest {
+  string fromMail = 1;
+  string toMail = 2;
+  string path = 3;
+}
+
+message CambiaTimerRequest {
+  int32 tiempo = 1;
+}

@@ -3,37 +3,35 @@
 ## Unit Tests
 
 - [x] Add Qt Test framework to CMakeLists.txt
-- [x] Create Dockerfile for building and running tests (Debian bookworm, Qt6, xmlrpc-c)
 - [x] Unit tests for `Values` class (10 tests: defaults, setters, SMTP settings, filledValues)
 - [x] Unit tests for `MailSender` class (9 tests: constructor, setters, content type, priority, encoding)
 - [x] Unit tests for `Rss_lite` class (5 tests: saveLog, miraTitulo, verUltimo)
 - [x] Unit tests for `rssani_lite` class (20 tests: regexp CRUD, auth CRUD, timer, settings, RPC credentials, debug)
-- [x] Unit tests for `MyIrcSession` class (10 tests: datosIrc struct, IRC color stripping)
+- [x] Unit tests for `MyIrcSession` class (11 tests: datosIrc struct, IRC color stripping)
 - [x] Add CTest integration (`ctest --test-dir build`)
+
+## Integration Tests
+
+- [x] gRPC integration tests (14 tests: regexp CRUD, auth CRUD, options, timer, log, save, shutdown)
+- [x] Docker Compose setup with `unit-tests` and `integration-tests` services
+- [x] Integration test image inherits from unit test image (no duplicate C++ builds)
 
 ## CI/CD
 
 - [x] Add GitHub Actions workflow (build + unit tests on push/PR)
+- [ ] Update CI to also run gRPC integration tests
 
-## Qt5 Migration (complete)
+## gRPC Migration (complete)
 
-- [x] Replace `QRegExp` with `QRegularExpression` (5 occurrences)
-- [x] Replace deprecated `qsrand()`/`qrand()` with `QRandomGenerator`
-- [x] Remove dead slots `finishedRSS()` and `finishedTorrent()`
-- [x] Remove commented-out Qt4 code blocks in `rss_lite.cpp`
-- [x] Fix `readDataTorrent()` — use reply URL as key instead of hardcoded `downloadId = 1`
-- [x] Convert all `SIGNAL()`/`SLOT()` macro connections to Qt5 pointer-to-member syntax
-- [x] Replace `QTextCodec` usage in `mailsender.cpp`
-
-## Qt6 Migration (complete)
-
-- [x] Update `CMakeLists.txt`: `find_package(Qt6)`, `Qt6::Core`, `Qt6::Network`, `qt6_create_translation`
-- [x] Update `CMakeLists.txt`: libcommuni ExternalProject `qmake` → `qmake6`
-- [x] Patch libcommuni `module_build.pri` to add `core5compat` (Qt6 moved `QTextCodec` to Qt5Compat)
-- [x] Fix `QMutexLocker` → `QMutexLocker<QMutex>` (templated in Qt6) in `rssani_lite.cpp`
-- [x] Fix `QList::move()` removal in `rssani_lite.cpp` `moverRegexp()` — replaced with `takeAt()`/`insert()`
-- [x] Fix `std::max(qsizetype, int)` type mismatch in `xmlrpc.cpp` (`QList::count()` returns `qsizetype` in Qt6)
-- [x] Verify build compiles and links against Qt6
+- [x] Create `rssani.proto` with 20 RPC methods and typed request/response messages
+- [x] Replace xmlrpc-c with gRPC++ in CMakeLists.txt
+- [x] Create `grpc_server.cpp/h` — `GrpcServer` class + `RssaniServiceImpl`
+- [x] Update `main.cpp` to use `GrpcServer` instead of `rssxmlrpc`
+- [x] gRPC server listens on `0.0.0.0:50051`
+- [x] Dockerfile updated for gRPC/Protobuf dependencies
+- [x] `Dockerfile.integration` for Python gRPC tests (reuses pre-built binary)
+- [x] `docker-compose.yml` with `unit-tests` and `integration-tests` services
+- [x] `.dockerignore` updated to exclude build artifacts and generated files
 
 ## Bugs / FIXMEs in code
 
@@ -50,14 +48,6 @@
 - [x] Remove hardcoded absolute paths in `CMakeLists.txt` — replaced with `ExternalProject_Add`
 - [x] Add `build/` to `.gitignore`
 - [x] Remove `run.sh` `LD_PRELOAD` hack — RPATH is set in CMakeLists.txt
-
-## XML-RPC library migration (complete)
-
-- [x] Replace ulxmlrpcpp with xmlrpc-c (system package `libxmlrpc-c++9-dev`)
-- [x] Rewrite `xmlrpc.h` — removed `Metodos` class, header now only declares `rssxmlrpc` thread
-- [x] Rewrite `xmlrpc.cpp` — each RPC method is a `xmlrpc_c::method2` subclass, server uses `xmlrpc_c::serverAbyss`
-- [x] Update `CMakeLists.txt` — removed ulxmlrpcpp `ExternalProject_Add`, link xmlrpc-c via `xmlrpc-c-config`
-- [x] Shutdown method calls `server.terminate()` to cleanly stop the Abyss event loop
 
 ## IRC library migration (complete)
 
@@ -92,7 +82,7 @@
 - [x] Move IRC channel/server (`#PuntoTorrent`, `irc.irc-hispano.org`) to settings
 - [x] Move tracker configuration from `iniciaTrackers()` hardcoded block to settings
 - [x] Use HTTPS for tracker URLs (no more hardcoded `http://`; scheme derived from URL)
-- [x] Thread safety: `xmlrpc.cpp` runs in a `QThread` — all `rssani_lite` public methods now protected by `QMutex`
+- [x] Thread safety: `grpc_server.cpp` runs in a separate thread — all `rssani_lite` public methods now protected by `QMutex`
 - [x] Fix signal handler deadlock — replaced unsafe `sigHandler` (called mutex methods from signal context) with self-pipe trick using `QSocketNotifier`; `salir()` now uses `QCoreApplication::quit()` for clean shutdown
 - [x] Fix memory leaks:
   - `borrarRegexp(string)` now deletes `regexp*` before removing from list
@@ -105,7 +95,7 @@
 
 ### Bugs / potential crashes
 
-- [ ] `xmlrpc.cpp` `VerLog::execute()` — `qsizetype` (64-bit) narrowed to `int` for `ini`/`fin` loop variables
+- [ ] `grpc_server.cpp` `VerLog` — `qsizetype` (64-bit) narrowed to `int` for `ini`/`fin` loop variables
 - [ ] `rss_lite.cpp` `miraTitulo()` — switch on `parseTitle()` return has no default case
 - [ ] `rss_lite.h`/`rss_lite.cpp` — `parseTitle` param names differ between declaration (`titleString`, `linkString`) and definition (`titulo`, `enlace`)
 - [ ] `rssani_lite.h`/`rssani_lite.cpp` — `editarRegexp(int)` param name differs: `regexpOrig` vs `pos`
@@ -126,4 +116,4 @@
 - [x] `rssani_lite.cpp:13` — replace C-style array `sigFd[2]` with `std::array<int, 2>` (`modernize-avoid-c-arrays`)
 - [x] `rssani_lite.cpp` — `editarRegexp`/`activarRegexp` return `0`/`1` as `bool`; use `false`/`true` (`modernize-use-bool-literals`)
 - [x] `rssani_lite.cpp:192` — use `auto` when initializing with `new regexp()` (`modernize-use-auto`)
-- [x] `xmlrpc.cpp:310` — use default member initializer `{nullptr}` for `Shutdown::server` (`modernize-use-default-member-init`)
+- [x] `grpc_server.cpp` — `GrpcServer::server` uses `std::unique_ptr` for ownership (`modernize-use-default-member-init`)

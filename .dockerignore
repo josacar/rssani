@@ -1,5 +1,30 @@
+# Build artifacts
 build/
+deps/
+*.o
+*.so
+*.a
+cmake_install.cmake
+Makefile
+CMakeCache.txt
+CMakeFiles/
+rssani_autogen/
+.qt/
+.cmake/
+target/
+rssani
+
+# Generated files
+*.qm
 *.log
 *.conf
+rssani_pb2.py
+rssani_pb2_grpc.py
+tests/integration/rssani_pb2.py
+tests/integration/rssani_pb2_grpc.py
+__pycache__/
+
+# Editor/OS files
 .DS_Store
-*.qm
+*.swp
+*~
