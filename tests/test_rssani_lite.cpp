@@ -42,9 +42,8 @@ void TestRssaniLite::testConstructorDefaults() {
     QCOMPARE(app.getRpcUser(), QString("rssani-rpc"));
     QCOMPARE(app.getRpcPass(), QString("rssanipass-rpc"));
 
-    // Timer interval depends on settings; with no config file,
-    // readSettings() sets tiempo to 0 (empty value converts to 0)
-    QCOMPARE(app.verTimer(), 0);
+    // Default timer should be 10 minutes (600000 ms)
+    QCOMPARE(app.verTimer(), 600000);
 
     // Values should be initialized
     Values* values = app.getValues();

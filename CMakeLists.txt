@@ -114,7 +114,10 @@ if(Qt6LinguistTools_FOUND)
   qt6_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 endif()
 
-# --- Unit Tests ---
+# --- Unit Tests (optional, enabled by default) ---
+option(RSSANI_BUILD_TESTS "Build unit test executables" ON)
+
+if(RSSANI_BUILD_TESTS)
 # Use QTest framework with separate test executables to avoid multiple main() definitions
 add_executable(rssani_tests_values tests/test_values.cpp)
 add_executable(rssani_tests_mail tests/test_mail_sender.cpp mailsender.cpp)
@@ -153,3 +156,5 @@ add_test(NAME test_mail_sender COMMAND rssani_tests_mail)
 add_test(NAME test_rss_lite COMMAND rssani_tests_rss)
 add_test(NAME test_rssani_lite COMMAND rssani_tests_rssani)
 add_test(NAME test_myirc_session COMMAND rssani_tests_irc)
+
+endif()

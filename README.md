@@ -67,15 +67,34 @@ See all available tasks with `mise tasks ls`.
 
 ### Docker
 
+The project uses a **multi-stage Dockerfile** with separate stages for testing and release builds:
+
 ```bash
-# Unit tests (55 tests)
+# Unit tests (runs all 5 test executables)
 podman-compose run unit-tests
 
 # Integration tests (14 gRPC tests)
 podman-compose run integration-tests
+
+# Release build (minimal image, no tests)
+podman-compose run release
 ```
 
+**Dockerfile stages:**
+
+| Stage | Target | Description |
+|---|---|---|
+| `test` | `test` | Builds all source code + test executables, runs unit tests on startup |
+| `release` | `release` | Builds only the `rssani` binary (no tests), minimal runtime image |
+
 The integration test image inherits from the unit test image — the C++ binary is built once and reused. Only Python gRPC stubs are generated at test time.
+
+**Build release image only:**
+
+```bash
+podman-compose build release
+podman-compose run release
+```
 
 ## CI/CD
 

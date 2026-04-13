@@ -26,3 +26,5 @@ rssani_autogen/
 build/
 deps/
 .qt/
+
+/.qwen

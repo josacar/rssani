@@ -396,7 +396,9 @@ void rssani_lite::readSettings() {
   values->setRuta( settings->value( QStringLiteral("path") ).toString() );
   values->setDebug( settings->value( QStringLiteral("debug"), false ).toBool() );
 
-  tiempo = settings->value( QStringLiteral("timer") ).toInt();
+  tiempo = settings->value( QStringLiteral("timer"), 10 ).toInt();
+  if ( tiempo <= 0 )
+    tiempo = 10;
   values->setFecha( settings->value( QStringLiteral("fecha") ).toString() );
 
   rpcUser = settings->value( QStringLiteral("rpcUser"), QStringLiteral("rssani-rpc") ).toString();

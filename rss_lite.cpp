@@ -62,8 +62,7 @@ void Rss_lite::fetch() {
   httpRss.disconnect();
 
   if ( !values->filledValues() ) {
-    std::cerr << "Configuración errónea" << std::endl;
-    exit( 1 );
+    return;
   }
 
 

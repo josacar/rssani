@@ -6,6 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: test
     image: rssani-tests
 
   # Integration tests: starts rssani binary and tests gRPC interface
@@ -17,3 +18,13 @@ services:
       - unit-tests
     image: rssani-grpc-tests
     network_mode: host
+
+  # Release build: minimal image with only the rssani binary
+  release:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: release
+    image: rssani-release
+    ports:
+      - "50051:50051"

@@ -46,19 +46,29 @@ The `rssani.proto` file is compiled automatically by CMake into `rssani.pb.cc/h`
 
 ## Docker
 
-Two images are defined in `docker-compose.yml`:
+The project uses a **multi-stage Dockerfile** with separate stages for testing and release builds:
 
-| Image | Dockerfile | Purpose |
-|---|---|---|
-| `rssani-tests` | `Dockerfile` | Builds the project and runs all 5 unit test executables |
-| `rssani-grpc-tests` | `Dockerfile.integration` | Inherits from `rssani-tests`, adds Python + gRPC, runs integration tests against the gRPC server |
+| Stage | Target | Image | Purpose |
+|---|---|---|---|
+| `test-builder` | (internal) | — | Builds all source code + test executables |
+| `test` | `test` | `rssani-tests` | Runs all 5 unit test executables |
+| `release-builder` | (internal) | — | Builds only the rssani binary (no tests) via `-DRSSANI_BUILD_TESTS=OFF` |
+| `release` | `release` | `rssani-release` | Minimal runtime image with only the rssani binary and libirc `.so` files (via `LD_LIBRARY_PATH=/app/lib`) |
 
-The integration test image **does not rebuild** the C++ binary — it reuses the pre-built one from `rssani-tests`, only installing the Python gRPC runtime and generating Python stubs from `rssani.proto`.
+The `test` stage copies test sources and builds everything. The `release` stage builds only the `rssani` binary using `-DRSSANI_BUILD_TESTS=OFF` to skip test compilation.
+
+The integration test image (`Dockerfile.integration`) **does not rebuild** the C++ binary — it reuses the pre-built one from `rssani-tests`, only installing the Python gRPC runtime and generating Python stubs from `rssani.proto`.
 
 Run:
 ```bash
 podman-compose run unit-tests
 podman-compose run integration-tests
+podman-compose run release
+```
+
+Or build the release image specifically:
+```bash
+podman-compose build release
 ```
 
 Or use mise tasks (recommended):
