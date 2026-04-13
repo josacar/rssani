@@ -1,0 +1,145 @@
+[tools]
+# C++ toolchain
+cmake = "latest"
+gcc = "latest"
+
+[tasks.build]
+description = "Build the project"
+run = """
+mkdir -p build
+cd build
+cmake ..
+make -j$(nproc)
+"""
+
+[tasks.clean]
+description = "Clean build artifacts"
+run = "rm -rf build"
+
+[tasks.test]
+description = "Run all unit tests via CTest"
+run = "ctest --test-dir build --output-on-failure"
+depends = ["build"]
+
+[tasks."test:unit"]
+description = "Run all C++ unit tests individually"
+run = """
+cd build
+./rssani_tests_values
+./rssani_tests_mail
+./rssani_tests_rss
+./rssani_tests_rssani
+./rssani_tests_irc
+"""
+depends = ["build"]
+
+[tasks."test:unit:values"]
+description = "Run Values class unit tests"
+run = "./build/rssani_tests_values"
+depends = ["build"]
+
+[tasks."test:unit:mail"]
+description = "Run MailSender unit tests"
+run = "./build/rssani_tests_mail"
+depends = ["build"]
+
+[tasks."test:unit:rss"]
+description = "Run Rss_lite unit tests"
+run = "./build/rssani_tests_rss"
+depends = ["build"]
+
+[tasks."test:unit:rssani"]
+description = "Run rssani_lite unit tests"
+run = "./build/rssani_tests_rssani"
+depends = ["build"]
+
+[tasks."test:unit:irc"]
+description = "Run MyIrcSession unit tests"
+run = "./build/rssani_tests_irc"
+depends = ["build"]
+
+[tasks."test:integration"]
+description = "Run gRPC integration tests"
+run = "python3 tests/integration/test_grpc.py ./build/rssani"
+depends = ["build"]
+
+[tasks."test:all"]
+description = "Run all tests (unit + integration)"
+run = """
+mise run test
+mise run test:integration
+"""
+
+[tasks."test:docker:unit"]
+description = "Run unit tests in Docker (podman)"
+run = "podman-compose run unit-tests"
+
+[tasks."test:docker:integration"]
+description = "Run integration tests in Docker (podman)"
+run = "podman-compose run integration-tests"
+
+[tasks."test:docker:all"]
+description = "Run all tests in Docker"
+run = """
+mise run test:docker:unit
+mise run test:docker:integration
+"""
+
+[tasks.run]
+description = "Run the rssani binary"
+run = "./build/rssani"
+depends = ["build"]
+
+[tasks.proto]
+description = "Regenerate gRPC/Protobuf stubs manually"
+run = """
+protoc --grpc_out=build --cpp_out=build \
+  --proto_path=. \
+  --plugin=protoc-gen-grpc=$(which grpc_cpp_plugin) \
+  rssani.proto
+"""
+
+[tasks.lint]
+description = "Run clang-tidy for code quality checks"
+run = """
+clang-tidy main.cpp mailsender.cpp myircsession.cpp rss_lite.cpp rssani_lite.cpp grpc_server.cpp \
+  -- -std=c++20 \
+  -I$(pkg-config --cflags-only-I grpc++ | sed 's/-I//g') \
+  -I$(pkg-config --cflags-only-I protobuf | sed 's/-I//g') \
+  -I/usr/include/qt6 \
+  -I/usr/include/qt6/QtCore \
+  -I/usr/include/qt6/QtNetwork \
+  -Ibuild
+"""
+
+[tasks.format]
+description = "Format C++ code with clang-format"
+run = """
+clang-format -i \
+  main.cpp mailsender.cpp mailsender.h \
+  myircsession.cpp myircsession.h \
+  rss_lite.cpp rss_lite.h \
+  rssani_lite.cpp rssani_lite.h \
+  grpc_server.cpp grpc_server.h \
+  tests/*.cpp
+"""
+
+[tasks."docs:update"]
+description = "Update AGENTS.md, README.md, and TODO.md after code changes"
+run = """
+echo "Remember to update documentation for recent changes"
+echo "- AGENTS.md: Architecture and file notes"
+echo "- README.md: User-facing documentation"
+echo "- TODO.md: Pending tasks"
+"""
+
+[tasks."docker:build"]
+description = "Build Docker test images"
+run = "podman-compose build"
+
+[tasks.dev]
+description = "Quick rebuild and run during development (incremental)"
+run = """
+cd build && make -j$(nproc)
+./build/rssani
+"""

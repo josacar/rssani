@@ -36,6 +36,35 @@ cmake ..
 make
 ```
 
+### Using mise (Recommended)
+
+This project uses [mise](https://mise.jdx.dev/) to manage common development tasks:
+
+```bash
+# Build the project
+mise run build
+
+# Run all unit tests
+mise run test
+
+# Run integration tests
+mise run test:integration
+
+# Run all tests
+mise run test:all
+
+# Run the application
+mise run run
+
+# Format code
+mise run format
+
+# Run linting checks
+mise run lint
+```
+
+See all available tasks with `mise tasks ls`.
+
 ### Docker
 
 ```bash

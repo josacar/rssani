@@ -61,6 +61,43 @@ podman-compose run unit-tests
 podman-compose run integration-tests
 ```
 
+Or use mise tasks (recommended):
+```bash
+mise run test:docker:unit
+mise run test:docker:integration
+mise run test:docker:all
+```
+
+### mise Tasks
+
+The project uses [mise](https://mise.jdx.dev/) for common development tasks. All tasks are defined in `mise.toml`:
+
+| Task | Description |
+|---|---|
+| `build` | Build the project |
+| `clean` | Clean build artifacts |
+| `test` | Run all unit tests via CTest |
+| `test:unit` | Run all C++ unit tests individually |
+| `test:unit:values` | Run Values class unit tests |
+| `test:unit:mail` | Run MailSender unit tests |
+| `test:unit:rss` | Run Rss_lite unit tests |
+| `test:unit:rssani` | Run rssani_lite unit tests |
+| `test:unit:irc` | Run MyIrcSession unit tests |
+| `test:integration` | Run gRPC integration tests |
+| `test:all` | Run all tests (unit + integration) |
+| `test:docker:unit` | Run unit tests in Docker (podman) |
+| `test:docker:integration` | Run integration tests in Docker (podman) |
+| `test:docker:all` | Run all tests in Docker |
+| `run` | Run the rssani binary |
+| `proto` | Regenerate gRPC/Protobuf stubs manually |
+| `lint` | Run clang-tidy for code quality checks |
+| `format` | Format C++ code with clang-format |
+| `docs:update` | Reminder to update docs after code changes |
+| `docker:build` | Build Docker test images |
+| `dev` | Quick rebuild and run during development |
+
+Run `mise tasks ls` to see all available tasks.
+
 ## Testing
 
 ### Unit Tests (Qt Test / C++)
