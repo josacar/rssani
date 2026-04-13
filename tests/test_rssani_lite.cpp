@@ -275,8 +275,8 @@ void TestRssaniLite::testVerTimer() {
 
     rssani_lite app;
 
-    // With no config file, readSettings() sets tiempo to 0
-    QCOMPARE(app.verTimer(), 0);
+    // Default timer is 10 minutes = 600000 ms
+    QCOMPARE(app.verTimer(), 600000);
 }
 
 void TestRssaniLite::testCambiaTimer() {
@@ -290,8 +290,8 @@ void TestRssaniLite::testCambiaTimer() {
     // Just verify it doesn't crash
     app.cambiaTimer(30);
 
-    // Timer interval remains unchanged
-    QCOMPARE(app.verTimer(), 0);
+    // Timer interval remains unchanged (cambiaTimer doesn't call timer.setInterval)
+    QCOMPARE(app.verTimer(), 600000);
 }
 
 void TestRssaniLite::testSetRpcUser() {
