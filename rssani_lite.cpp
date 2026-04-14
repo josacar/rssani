@@ -68,6 +68,8 @@ rssani_lite::rssani_lite( QObject* parent ) : QObject( parent ) {
   settings = std::make_unique<QSettings>();
   misdatos.activo = false;
 
+  qDebug() << "Config file path:" << settings->fileName();
+
   readSettings();
   QFileInfo fi( settings->fileName() );
   flog = std::make_unique<QFile>( fi.canonicalPath() + QStringLiteral("/rssani.log") );
