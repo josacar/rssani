@@ -12,7 +12,7 @@
 #include <array>
 #include <memory>
 #ifdef __unix__
-#include <sys/signal.h>
+#include <signal.h>
 #endif
 
 /**

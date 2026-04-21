@@ -4,7 +4,7 @@
 #include "grpc_server.h"
 
 #ifdef __unix__
-#include <sys/signal.h>
+#include <signal.h>
 #endif
 
 int main ( int argc, char **argv ) {
