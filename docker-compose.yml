@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   # Builds and runs all C++ unit tests
   unit-tests:

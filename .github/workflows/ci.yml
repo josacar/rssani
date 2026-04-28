@@ -9,26 +9,23 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    container: debian:trixie-slim
+    container: alpine:latest
 
     steps:
       - name: Install dependencies
         run: |
-          export DEBIAN_FRONTEND=noninteractive
-          apt-get update && apt-get install -y --no-install-recommends \
-            build-essential \
+          export LC_ALL=C.UTF-8
+          apk add --no-cache \
+            build-base \
             cmake \
             git \
-            pkg-config \
+            pkgconfig \
             ca-certificates \
-            qt6-base-dev \
-            qt6-base-dev-tools \
-            qt6-tools-dev \
-            libgrpc++-dev \
-            libprotobuf-dev \
-            protobuf-compiler \
-            protobuf-compiler-grpc \
-            && rm -rf /var/lib/apt/lists/*
+            qt6-qtbase-dev \
+            qt6-qttools-dev \
+            grpc-dev \
+            protobuf-dev \
+            protoc
 
       - name: Checkout
         uses: actions/checkout@v6
@@ -42,7 +39,7 @@ jobs:
       - name: Build
         run: |
           cd build
-          make -j2
+          make -j$(nproc)
 
       - name: Run unit tests
         run: |

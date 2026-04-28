@@ -8,13 +8,9 @@ RUN apk add --no-cache \
     git \
     pkgconfig \
     ca-certificates \
-    qt6-qtbase \
     qt6-qtbase-dev \
-    qt6-qttools \
     qt6-qttools-dev \
-    grpc \
     grpc-dev \
-    protobuf \
     protobuf-dev \
     protoc
 
@@ -38,14 +34,14 @@ FROM base AS test-builder
 
 COPY tests/ tests/
 
-RUN mkdir -p build && cd build && cmake .. && make -j2
+RUN mkdir -p build && cd build && cmake .. && make -j$(nproc)
 
 # ============================================================================
 # Release build: builds only the rssani binary (no tests)
 # ============================================================================
 FROM base AS release-builder
 
-RUN mkdir -p build && cd build && cmake -DRSSANI_BUILD_TESTS=OFF .. && make -j2
+RUN mkdir -p build && cd build && cmake -DRSSANI_BUILD_TESTS=OFF .. && make -j$(nproc)
 
 # ============================================================================
 # Test stage: run unit tests

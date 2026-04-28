@@ -12,7 +12,7 @@ rssani_lite.cpp/h      → Core app: settings, regexp management, IRC integratio
 rss_lite.cpp/h         → RSS fetching, XML parsing, torrent downloading, regexp matching
 myircsession.cpp/h     → IRC client (libirc/grumpy-irc) monitoring channel for new uploads
 grpc_server.cpp/h      → gRPC server (grpc++) exposing management API on port 50051
-rssani.proto           → Protocol Buffers service definition (19 RPC methods)
+rssani.proto           → Protocol Buffers service definition (20 RPC methods)
 mailsender.cpp/h       → SMTP email sender with SSL/TLS support
 values.h               → Configuration value object (paths, mail, debug flag)
 ```
@@ -40,9 +40,9 @@ The `rssani.proto` file is compiled automatically by CMake into `rssani.pb.cc/h`
 - Configuration: `QSettings` (INI-style), stored in the standard Qt config path.
 - Logging: `QFile`-based plain text logs (`rssani.log`, `matches.log`) in the config directory.
 - Signal/slot: Qt5 pointer-to-member syntax (`&Class::method`) throughout.
-- Memory management: `std::unique_ptr` and `std::shared_ptr` used for owned objects.
+- Memory management: `std::unique_ptr` used where possible. `rss` and `session` are still raw `new` (Qt parent-child ownership, documented in caveats).
 - Thread safety: `rssani_lite` public methods are protected by `QMutex` for safe access from the gRPC thread.
-- No CI/CD.
+- GitHub Actions CI (`.github/workflows/ci.yml`) runs on every push and PR to `master`.
 
 ## Docker
 
@@ -200,5 +200,3 @@ All methods are defined in `rssani.proto` under the `rssani.RssaniService` servi
 | `tests/test_rssani_lite.cpp` | Unit tests for `rssani_lite` class (regexp CRUD, auth CRUD, timer, settings). |
 | `tests/test_myirc_session.cpp` | Unit tests for `MyIrcSession` class (datosIrc struct, IRC color stripping). |
 | `tests/integration/test_grpc.py` | Python integration tests. Starts binary, waits for gRPC on 50051, exercises all 14 test scenarios, sends shutdown. |
-| `tests/integration/test_xmlrpc.py` | Legacy XML-RPC integration test (kept for reference). |
-| `xmlrpc.cpp/h` | **Deprecated.** Old XML-RPC server. Kept for reference only. |

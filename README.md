@@ -98,12 +98,12 @@ podman-compose run release
 
 ## CI/CD
 
-GitHub Actions (`.github/workflows/ci.yml`) runs on every push and PR to `master`. It builds the project and runs all unit tests and CTest in a `debian:trixie-slim` container.
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push and PR to `master`. It builds the project and runs all unit tests and CTest in an `alpine:latest` container.
 
 ## Testing
 
 ### Unit Tests (C++ / Qt Test)
-55 unit tests covering `Values`, `MailSender`, `Rss_lite`, `rssani_lite`, and `MyIrcSession`.
+46 unit tests covering `Values`, `MailSender`, `Rss_lite`, `rssani_lite`, and `MyIrcSession`.
 
 ```bash
 podman-compose run unit-tests
