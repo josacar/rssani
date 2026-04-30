@@ -200,3 +200,4 @@ All methods are defined in `rssani.proto` under the `rssani.RssaniService` servi
 | `tests/test_rssani_lite.cpp` | Unit tests for `rssani_lite` class (regexp CRUD, auth CRUD, timer, settings). |
 | `tests/test_myirc_session.cpp` | Unit tests for `MyIrcSession` class (datosIrc struct, IRC color stripping). |
 | `tests/integration/test_grpc.py` | Python integration tests. Starts binary, waits for gRPC on 50051, exercises all 14 test scenarios, sends shutdown. |
+| `LICENSE` | MIT License. |

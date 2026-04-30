@@ -151,3 +151,7 @@ Settings are stored via `QSettings` (INI-style) in the standard Qt config path. 
 - Regexp rules for torrent matching
 
 Logs (`rssani.log`, `matches.log`) are written to the config directory.
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
