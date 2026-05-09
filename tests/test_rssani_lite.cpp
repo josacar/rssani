@@ -76,14 +76,14 @@ void TestRssaniLite::testEditarRegexpByString() {
 
     bool result = app.editarRegexp(".*old.*", ".*new.*");
 
-    QCOMPARE(result, false);
+    QCOMPARE(result, true);
 
     QList<regexp> lista = app.listaRegexp();
     QCOMPARE(lista.size(), 1);
     QCOMPARE(lista.at(0).nombre, QString(".*new.*"));
 
     result = app.editarRegexp(".*nonexistent.*", ".*other.*");
-    QCOMPARE(result, true);
+    QCOMPARE(result, false);
 }
 
 void TestRssaniLite::testEditarRegexpByIndex() {
@@ -96,7 +96,7 @@ void TestRssaniLite::testEditarRegexpByIndex() {
     app.anadirRegexp(".*second.*", "", false, "", 0);
 
     bool result = app.editarRegexp(0, ".*modified.*");
-    QCOMPARE(result, false);
+    QCOMPARE(result, true);
 
     QList<regexp> lista = app.listaRegexp();
     QCOMPARE(lista.at(0).nombre, QString(".*modified.*"));
@@ -115,13 +115,13 @@ void TestRssaniLite::testActivarRegexp() {
     QVERIFY(lista.at(0).activa);
 
     bool result = app.activarRegexp(0);
-    QCOMPARE(result, false);
+    QCOMPARE(result, true);
 
     lista = app.listaRegexp();
     QVERIFY(!lista.at(0).activa);
 
     result = app.activarRegexp(0);
-    QCOMPARE(result, false);
+    QCOMPARE(result, true);
 
     lista = app.listaRegexp();
     QVERIFY(lista.at(0).activa);

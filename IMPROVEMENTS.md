@@ -256,13 +256,14 @@ void sigHandler(int) {
 
 ## 3. HIGH: API Design & Return Types
 
-### 3a. Inverted bool returns
+### 3a. Inverted bool returns — **DONE**
 
 **Files:** `rssani_lite.cpp:138-169`, `rssani_lite.cpp:171-180`
 
-`editarRegexp()`, `editarRegexpI()`, and `activarRegexp()` return `false` on success and `true` on failure, which contradicts convention and the gRPC API which maps the return to a `BoolResponse`:
+`editarRegexp()`, `editarRegexpI()`, and `activarRegexp()` returned `false` on success and `true` on failure, which contradicts convention and the gRPC API which maps the return to a `BoolResponse`:
 
 ```cpp
+// BEFORE — inverted returns
 bool rssani_lite::editarRegexp(std::string regexpOrig, std::string regexpDest) {
   // ...
   if (pos != -1) {
@@ -1018,7 +1019,7 @@ Current integration tests cover CRUD operations but not:
 | 1 | Thread safety — return copies not pointers (1a) | Medium | High — data race bug |
 | 2 | Detached gRPC thread — store and join (1b) | Small | High — UB on shutdown |
 | 3 | Make `regexp` value type (2b) | Medium | High — eliminates leak/UAF bugs |
-| 4 | Inverted bool returns (3a) | Small | Medium — API correctness |
+| 4 | Inverted bool returns (3a) — **DONE** | Small | Medium — API correctness |
 | 5 | `[[fallthrough]]` + enum class for parseTitle (5d, 1c) | Small | Medium — correctness |
 | 6 | Remove credential logging (6a) | Tiny | High — security |
 | 7 | Fix `cambiaTimer()` bug (8a) | Tiny | High — timer doesn't actually update |

@@ -54,6 +54,7 @@ ENV LD_LIBRARY_PATH=/app/lib
 RUN apk add --no-cache \
     qt6-qtbase \
     grpc \
+    grpc-cpp \
     protobuf
 
 WORKDIR /app
@@ -73,6 +74,7 @@ ENV LD_LIBRARY_PATH=/app/lib
 RUN apk add --no-cache \
     qt6-qtbase \
     grpc \
+    grpc-cpp \
     protobuf
 
 WORKDIR /app

@@ -135,10 +135,10 @@ bool rssani_lite::editarRegexp( std::string regexpOrig, std::string regexpDest )
     if ( lista.at( i ).nombre == QString::fromStdString( regexpOrig ) ) {
       lista[i].nombre = QString::fromStdString( regexpDest );
       qDebug()  << "Cambiado" << QString::fromStdString( regexpOrig ) << "--> " << lista.at( i ).nombre;
-      return false;
+      return true;
     }
   }
-  return true;
+  return false;
 }
 
 bool rssani_lite::editarRegexp( int pos, std::string regexpDest ) {
@@ -147,9 +147,9 @@ bool rssani_lite::editarRegexp( int pos, std::string regexpDest ) {
     QString regexpOrig = lista.at( pos ).nombre;
     lista[pos].nombre = QString::fromStdString( regexpDest );
     qDebug()  << "Cambiado" << regexpOrig << "--> " << lista.at( pos ).nombre;
-    return false;
-  } else {
     return true;
+  } else {
+    return false;
   }
 }
 
@@ -158,9 +158,9 @@ bool rssani_lite::activarRegexp( int pos ) {
   if ( pos >= 0 && pos < lista.size() ) {
     lista[pos].activa = !lista.at( pos ).activa;
     qDebug()  << "Cambiado" << !lista.at( pos ).activa << "--> " << lista.at( pos ).activa;
-    return false;
-  } else {
     return true;
+  } else {
+    return false;
   }
 }
 

@@ -121,7 +121,7 @@ class TestGrpc(unittest.TestCase):
         edit_resp = self.stub.EditarRegexpI(rssani_pb2.EditarRegexpIRequest(
             regexpOrig=idx, regexpDest="edited.*pattern"
         ))
-        self.assertFalse(edit_resp.value)
+        self.assertTrue(edit_resp.value)
         regexps = self.stub.ListaExpresiones(rssani_pb2.EmptyRequest())
         self.assertEqual(regexps.entries[idx].nombre, "edited.*pattern")
 
@@ -129,7 +129,7 @@ class TestGrpc(unittest.TestCase):
         edit_resp = self.stub.EditarRegexp(rssani_pb2.EditarRegexpRequest(
             regexpOrig="edited.*pattern", regexpDest="final.*pattern"
         ))
-        self.assertFalse(edit_resp.value)
+        self.assertTrue(edit_resp.value)
         regexps = self.stub.ListaExpresiones(rssani_pb2.EmptyRequest())
         self.assertEqual(regexps.entries[idx].nombre, "final.*pattern")
 
@@ -138,7 +138,7 @@ class TestGrpc(unittest.TestCase):
         activ_resp = self.stub.ActivarRegexp(rssani_pb2.ActivarRegexpRequest(
             regexpOrig=idx
         ))
-        self.assertFalse(activ_resp.value)
+        self.assertTrue(activ_resp.value)
         regexps = self.stub.ListaExpresiones(rssani_pb2.EmptyRequest())
         after = regexps.entries[idx].activa
         self.assertNotEqual(before, after)
