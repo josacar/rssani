@@ -749,29 +749,9 @@ private:
 
 ## 8. MEDIUM: Fix Known Bugs
 
-### 8a. `cambiaTimer()` doesn't update the QTimer
+### 8a. `cambiaTimer()` doesn't update the QTimer — **DONE**
 
-**File:** `rssani_lite.cpp:264-267`
-
-```cpp
-void rssani_lite::cambiaTimer(int tiempo) {
-  QMutexLocker<QMutex> locker(&mutex);
-  this->tiempo = tiempo;  // Only updates the stored value
-  // BUG: timer.setInterval() is never called!
-}
-```
-
-The `verTimer()` returns `timer.interval()` which is set once at construction. Changing `tiempo` doesn't affect the actual QTimer.
-
-**Fix:**
-
-```cpp
-void rssani_lite::cambiaTimer(int tiempo) {
-  QMutexLocker<QMutex> locker(&mutex);
-  this->tiempo = tiempo;
-  timer.setInterval(tiempo * 60 * 1000);  // Actually update the timer
-}
-```
+Fixed: `cambiaTimer()` now calls `timer.setInterval(tiempo * 60 * 1000)` to actually update the running timer. `verTimer()` now returns the `tiempo` member (minutes) instead of `timer.interval()` (milliseconds), making the unit consistent with `cambiaTimer()` input.
 
 ### 8b. Uninitialized variables in signal handler
 
@@ -1006,7 +986,7 @@ Current integration tests cover CRUD operations but not:
 | 4 | Inverted bool returns (3a) — **DONE** | Small | Medium — API correctness |
 | 5 | `[[fallthrough]]` + enum class for parseTitle (5d, 1c) — **DONE** | Small | Medium — correctness |
 | 6 | Remove credential logging (6a) | Tiny | High — security |
-| 7 | Fix `cambiaTimer()` bug (8a) | Tiny | High — timer doesn't actually update |
+| 7 | Fix `cambiaTimer()` bug (8a) — **DONE** | Tiny | High — timer doesn't actually update |
 | 8 | Default member initializers (4c, 4d) | Small | Medium — prevents UB |
 | 9 | Encapsulate data model (4a, 4b) | Large | Medium — maintainability |
 | 10 | `QLoggingCategory` (5e) | Medium | Medium — operational visibility |

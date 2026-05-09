@@ -158,7 +158,7 @@ All methods are defined in `rssani.proto` under the `rssani.RssaniService` servi
 | Method | Request | Response | Description |
 |---|---|---|---|
 | `VerUltimo` | `EmptyRequest` | `StringResponse` | Timestamp of last RSS fetch |
-| `VerTimer` | `EmptyRequest` | `IntResponse` | Remaining timer interval in ms |
+| `VerTimer` | `EmptyRequest` | `IntResponse` | Timer interval in minutes |
 | `VerLog` | `LogRequest{ini, fin}` | `LogResponse{lines[]}` | Log entries (reversed, paginated) |
 | `ListaExpresiones` | `EmptyRequest` | `RegexpListResponse{entries[]}` | All regexp rules |
 | `ListaAuths` | `EmptyRequest` | `AuthListResponse{entries[]}` | All tracker auth entries |
@@ -183,7 +183,7 @@ All methods are defined in `rssani.proto` under the `rssani.RssaniService` servi
 - IRC server/channel and tracker configuration are read from `QSettings`, with hardcoded defaults (`irc.irc-hispano.org`, `#PuntoTorrent`) as fallbacks.
 - `rss` and `session` in `rssani_lite` constructor are still raw `new` (Qt parent-child ownership).
 - `PonerOpciones` gRPC method now uses `setOpciones()` instead of directly mutating `Values*`, ensuring atomic updates under mutex.
-- `cambiaTimer` stores the new interval value but does not call `QTimer::setInterval()` — the timer interval is only set at construction time. This is a known bug.
+- `cambiaTimer` now calls `timer.setInterval()` to update the running timer. `verTimer()` returns the interval in minutes (matching `cambiaTimer()` input unit).
 - `handleSigTerm()` reads from the self-pipe with an uninitialized `char tmp` (should be `char tmp = 0`).
 
 ## File-by-File Notes

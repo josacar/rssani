@@ -121,7 +121,7 @@ std::string rssani_lite::verUltimo() {
 
 int rssani_lite::verTimer() {
   QMutexLocker<QMutex> locker(&mutex);
-  return timer.interval();
+  return tiempo;
 }
 
 QList<regexp> rssani_lite::listaRegexp() {
@@ -248,6 +248,7 @@ QStringList rssani_lite::verLog() {
 void rssani_lite::cambiaTimer( int tiempo ) {
   QMutexLocker<QMutex> locker(&mutex);
   this->tiempo = tiempo;
+  timer.setInterval( tiempo * 60 * 1000 );
 }
 
 void rssani_lite::guardar() {

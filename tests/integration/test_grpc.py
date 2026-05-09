@@ -211,6 +211,8 @@ class TestGrpc(unittest.TestCase):
     def test_cambia_timer(self):
         resp = self.stub.CambiaTimer(rssani_pb2.CambiaTimerRequest(tiempo=5))
         self.assertTrue(resp.value)
+        timer_resp = self.stub.VerTimer(rssani_pb2.EmptyRequest())
+        self.assertEqual(timer_resp.value, 5)
 
     def test_poner_credenciales(self):
         resp = self.stub.PonerCredenciales(rssani_pb2.PonerCredencialesRequest(

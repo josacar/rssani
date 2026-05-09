@@ -40,7 +40,7 @@ void TestRssaniLite::testConstructorDefaults() {
     QCOMPARE(app.getRpcUser(), QString("rssani-rpc"));
     QCOMPARE(app.getRpcPass(), QString("rssanipass-rpc"));
 
-    QCOMPARE(app.verTimer(), 600000);
+    QCOMPARE(app.verTimer(), 10);
 
     Values values = app.getValues();
     QCOMPARE(values.Debug(), false);
@@ -259,7 +259,7 @@ void TestRssaniLite::testVerTimer() {
 
     rssani_lite app;
 
-    QCOMPARE(app.verTimer(), 600000);
+    QCOMPARE(app.verTimer(), 10);
 }
 
 void TestRssaniLite::testCambiaTimer() {
@@ -268,9 +268,11 @@ void TestRssaniLite::testCambiaTimer() {
 
     rssani_lite app;
 
+    QCOMPARE(app.verTimer(), 10);
+
     app.cambiaTimer(30);
 
-    QCOMPARE(app.verTimer(), 600000);
+    QCOMPARE(app.verTimer(), 30);
 }
 
 void TestRssaniLite::testSetRpcUser() {
