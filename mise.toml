@@ -1,7 +1,5 @@
 [tools]
-# C++ toolchain
-cmake = "latest"
-gcc = "latest"
+# Use Docker
 
 [tasks.build]
 description = "Build the project"
