@@ -79,25 +79,24 @@
   - `iniciaTrackers()` tracker objects freed in `~Rss_lite()` via `qDeleteAll`
   - `url` in `fetch()` is now a stack `QUrl`, no more `new`/`delete`
   - `regexp::fechaDescarga` is now `QDateTime` value type, no more `new`/`delete`
-- [x] Move IRC channel/server (`#PuntoTorrent`, `irc.irc-hispano.org`) to settings
-- [x] Move tracker configuration from `iniciaTrackers()` hardcoded block to settings
-- [x] Use HTTPS for tracker URLs (no more hardcoded `http://`; scheme derived from URL)
-- [x] Thread safety: `grpc_server.cpp` runs in a separate thread — all `rssani_lite` public methods now protected by `QMutex`
-- [x] Fix signal handler deadlock — replaced unsafe `sigHandler` (called mutex methods from signal context) with self-pipe trick using `QSocketNotifier`; `salir()` now uses `QCoreApplication::quit()` for clean shutdown
-- [x] Fix memory leaks:
-  - `borrarRegexp(string)` now deletes `regexp*` before removing from list
-  - `parseTitle()` now deletes expired `regexp*` before removing from list
-  - `readDataTorrent()` now writes torrent to disk and clears `ficheros`/`datos`/`sites` hashes
-  - `~rssani_lite()` now calls `qDeleteAll(*lista)` to free all `regexp*` pointers
-  - `~rssani_lite()` now closes `sigFd` socketpair file descriptors
+  - `regexp` list is now `QList<regexp>` value type — no more `new regexp()` or manual `delete`
+  - `borrarRegexp()` uses `removeAt()` only, no manual `delete`
+  - `parseTitle()` expiration uses `removeAt()` only, no manual `delete`
+  - `~rssani_lite()` no longer needs `qDeleteAll` for regexp list
+- [x] Thread-safe snapshot returns: `listaRegexp()` returns `QList<regexp>` by value, `listaAuths()` returns `QList<auth>` by value, `getValues()` returns `Values` by value
+- [x] `setOpciones()` method for atomic option updates under mutex (used by `PonerOpciones` gRPC method)
+- [x] gRPC server thread: stored as `std::thread` member and joined in destructor (not detached)
+- [x] `[[fallthrough]]` added to intentional switch fallthrough in `miraTitulo()`
+- [x] Removed credential logging from `PonerCredenciales` gRPC handler
+- [x] ccache support in CMakeLists.txt via `CMAKE_CXX_COMPILER_LAUNCHER`
+- [x] `enable_testing()` added to CMakeLists.txt for CTest support
 
 ## clang-tidy findings
 
 ### Bugs / potential crashes
 
 - [ ] `grpc_server.cpp` `VerLog` — `qsizetype` (64-bit) narrowed to `int` for `ini`/`fin` loop variables
-- [ ] `rss_lite.cpp` `miraTitulo()` — switch on `parseTitle()` return has no default case
-- [ ] `rss_lite.h`/`rss_lite.cpp` — `parseTitle` param names differ between declaration (`titleString`, `linkString`) and definition (`titulo`, `enlace`)
+- [ ] `rss_lite.cpp` `miraTitulo()` — switch on `parseTitle()` return ~~has no default case~~ now has `[[fallthrough]]` and `default: break`
 - [ ] `rssani_lite.h`/`rssani_lite.cpp` — `editarRegexp(int)` param name differs: `regexpOrig` vs `pos`
 - [ ] `rssani_lite.h`/`rssani_lite.cpp` — `activarRegexp` param name differs: `regexpOrig` vs `pos`
 - [ ] `rssani_lite.h`/`rssani_lite.cpp` — `miraSubida` param name differs: `msg` vs `subida`
@@ -115,5 +114,6 @@
 - [x] `rss_lite.cpp:27` — use `= default` for trivial `~Rss_lite()` destructor (`modernize-use-equals-default`)
 - [x] `rssani_lite.cpp:13` — replace C-style array `sigFd[2]` with `std::array<int, 2>` (`modernize-avoid-c-arrays`)
 - [x] `rssani_lite.cpp` — `editarRegexp`/`activarRegexp` return `0`/`1` as `bool`; use `false`/`true` (`modernize-use-bool-literals`)
-- [x] `rssani_lite.cpp:192` — use `auto` when initializing with `new regexp()` (`modernize-use-auto`)
+- [x] `rssani_lite.cpp:192` — ~~use `auto` when initializing with `new regexp()`~~ replaced with value type `regexp re;` (`modernize-use-auto` no longer applicable)
 - [x] `grpc_server.cpp` — `GrpcServer::server` uses `std::unique_ptr` for ownership (`modernize-use-default-member-init`)
+- [x] `grpc_server.cpp` — gRPC server thread now stored as `std::thread` member and joined in destructor (not detached)

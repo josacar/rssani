@@ -35,26 +35,26 @@ grpc::Status RssaniServiceImpl::VerLog(grpc::ServerContext *,
 }
 
 grpc::Status RssaniServiceImpl::ListaExpresiones(grpc::ServerContext *,
-                                                  const rssani::EmptyRequest *,
-                                                  rssani::RegexpListResponse *response) {
-    QList<regexp*> *log = rss->listaRegexp();
-    for (const auto &item : *log) {
+                                                   const rssani::EmptyRequest *,
+                                                   rssani::RegexpListResponse *response) {
+    QList<regexp> lista = rss->listaRegexp();
+    for (const auto &item : lista) {
         auto *entry = response->add_entries();
-        entry->set_nombre(item->nombre.toStdString());
-        entry->set_vencimiento(item->vencimiento.toStdString());
-        entry->set_mail(item->mail);
-        entry->set_tracker(item->tracker.toStdString());
-        entry->set_dias(item->diasDescarga);
-        entry->set_activa(item->activa);
+        entry->set_nombre(item.nombre.toStdString());
+        entry->set_vencimiento(item.vencimiento.toStdString());
+        entry->set_mail(item.mail);
+        entry->set_tracker(item.tracker.toStdString());
+        entry->set_dias(item.diasDescarga);
+        entry->set_activa(item.activa);
     }
     return grpc::Status::OK;
 }
 
 grpc::Status RssaniServiceImpl::ListaAuths(grpc::ServerContext *,
-                                            const rssani::EmptyRequest *,
-                                            rssani::AuthListResponse *response) {
-    QList<auth> *auths = rss->listaAuths();
-    for (const auto &item : *auths) {
+                                             const rssani::EmptyRequest *,
+                                             rssani::AuthListResponse *response) {
+    QList<auth> auths = rss->listaAuths();
+    for (const auto &item : auths) {
         auto *entry = response->add_entries();
         entry->set_tracker(item.tracker.toStdString());
         entry->set_uid(item.uid.toStdString());
@@ -65,12 +65,12 @@ grpc::Status RssaniServiceImpl::ListaAuths(grpc::ServerContext *,
 }
 
 grpc::Status RssaniServiceImpl::VerOpciones(grpc::ServerContext *,
-                                             const rssani::EmptyRequest *,
-                                             rssani::OpcionesResponse *response) {
-    Values *opciones = rss->getValues();
-    response->set_frommail(opciones->FromMail().toStdString());
-    response->set_tomail(opciones->ToMail().toStdString());
-    response->set_path(opciones->Ruta().toStdString());
+                                              const rssani::EmptyRequest *,
+                                              rssani::OpcionesResponse *response) {
+    Values opciones = rss->getValues();
+    response->set_frommail(opciones.FromMail().toStdString());
+    response->set_tomail(opciones.ToMail().toStdString());
+    response->set_path(opciones.Ruta().toStdString());
     return grpc::Status::OK;
 }
 
@@ -156,18 +156,16 @@ grpc::Status RssaniServiceImpl::PonerCredenciales(grpc::ServerContext *,
                                                    rssani::BoolResponse *response) {
     rss->setRpcUser(request->user());
     rss->setRpcPass(request->password());
-    qDebug() << "USER:" << rss->getRpcUser() << "PASS:" << rss->getRpcPass();
     response->set_value(true);
     return grpc::Status::OK;
 }
 
 grpc::Status RssaniServiceImpl::PonerOpciones(grpc::ServerContext *,
-                                               const rssani::PonerOpcionesRequest *request,
-                                               rssani::BoolResponse *response) {
-    Values *opciones = rss->getValues();
-    opciones->setFromMail(QString::fromStdString(request->frommail()));
-    opciones->setToMail(QString::fromStdString(request->tomail()));
-    opciones->setRuta(QString::fromStdString(request->path()));
+                                                const rssani::PonerOpcionesRequest *request,
+                                                rssani::BoolResponse *response) {
+    rss->setOpciones(QString::fromStdString(request->frommail()),
+                      QString::fromStdString(request->tomail()),
+                      QString::fromStdString(request->path()));
     response->set_value(true);
     return grpc::Status::OK;
 }
@@ -205,12 +203,14 @@ GrpcServer::GrpcServer(rssani_lite *rss, QObject *parent)
 
 GrpcServer::~GrpcServer() {
     stop();
+    if (serverThread.joinable())
+        serverThread.join();
 }
 
 void GrpcServer::start() {
     if (running.exchange(true)) return;
 
-    std::thread([this]() {
+    serverThread = std::thread([this]() {
         RssaniServiceImpl service(rss);
 
         grpc::ServerBuilder builder;
@@ -228,7 +228,7 @@ void GrpcServer::start() {
         server->Wait();
         qDebug() << "gRPC server stopped";
         running.store(false);
-    }).detach();
+    });
 }
 
 void GrpcServer::stop() {

@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 3.14)
 
 project(rssani LANGUAGES CXX)
 
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+  set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
+  set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
+endif()
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -118,6 +124,7 @@ endif()
 option(RSSANI_BUILD_TESTS "Build unit test executables" ON)
 
 if(RSSANI_BUILD_TESTS)
+enable_testing()
 # Use QTest framework with separate test executables to avoid multiple main() definitions
 add_executable(rssani_tests_values tests/test_values.cpp)
 add_executable(rssani_tests_mail tests/test_mail_sender.cpp mailsender.cpp)

@@ -33,8 +33,10 @@ Originally created in 2004 for the Animersion community. Tested on Linux.
 ```bash
 mkdir build && cd build
 cmake ..
-make
+make -j$(nproc)
 ```
+
+ccache is automatically detected and enabled if installed.
 
 ### Using mise (Recommended)
 
@@ -103,7 +105,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every push and PR to `master
 ## Testing
 
 ### Unit Tests (C++ / Qt Test)
-46 unit tests covering `Values`, `MailSender`, `Rss_lite`, `rssani_lite`, and `MyIrcSession`.
+55 unit tests covering `Values`, `MailSender`, `Rss_lite`, `rssani_lite`, and `MyIrcSession`.
 
 ```bash
 podman-compose run unit-tests

@@ -30,7 +30,7 @@ void rssani_lite::handleSigTerm() {
 }
 
 void rssani_lite::debugea(){
-  if ( values->Debug() == false ) {
+  if ( !values->Debug() ) {
     values->setDebug(true);
     emit timeout();
   } else {
@@ -60,11 +60,6 @@ rssani_lite::rssani_lite( QObject* parent ) : QObject( parent ) {
   rpcPass = QStringLiteral("rssanipass-rpc");
   values = std::make_unique<Values>();
 
-  lista = std::make_unique<QList<regexp*>>();
-
-  listAuths = std::make_unique<QList<auth>>();
-  hashAuths = std::make_unique<QHash<QString, auth>>();
-
   settings = std::make_unique<QSettings>();
   misdatos.activo = false;
 
@@ -76,7 +71,7 @@ rssani_lite::rssani_lite( QObject* parent ) : QObject( parent ) {
 
   timer.start( tiempo * 60 * 1000 );
 
-  rss  = new Rss_lite( values.get(), lista.get(), flog.get(), hashAuths.get(), this );
+  rss  = new Rss_lite( values.get(), &lista, flog.get(), &hashAuths, this );
 
   if ( misdatos.activo ) {
     session = new MyIrcSession( this,&misdatos,misdatos.debug);
@@ -111,7 +106,6 @@ void rssani_lite::miraSubida( QString subida ) {
 }
 
 rssani_lite::~rssani_lite() {
-  qDeleteAll(*lista);
 #ifdef __unix__
   ::close(sigFd[0]);
   ::close(sigFd[1]);
@@ -130,38 +124,29 @@ int rssani_lite::verTimer() {
   return timer.interval();
 }
 
-QList<regexp*>* rssani_lite::listaRegexp() {
+QList<regexp> rssani_lite::listaRegexp() {
   QMutexLocker<QMutex> locker(&mutex);
-  return lista.get();
+  return lista;
 }
 
 bool rssani_lite::editarRegexp( std::string regexpOrig, std::string regexpDest ) {
   QMutexLocker<QMutex> locker(&mutex);
-  int pos = -1;
-  for ( int i = 0; i < lista->size(); ++i ) {
-    if ( lista->at( i )->nombre == QString::fromStdString( regexpOrig ) ) {
-      pos = i;
-      break;
+  for ( int i = 0; i < lista.size(); ++i ) {
+    if ( lista.at( i ).nombre == QString::fromStdString( regexpOrig ) ) {
+      lista[i].nombre = QString::fromStdString( regexpDest );
+      qDebug()  << "Cambiado" << QString::fromStdString( regexpOrig ) << "--> " << lista.at( i ).nombre;
+      return false;
     }
   }
-  if ( pos != -1 ) {
-    regexp *re = lista->at( pos );
-    re->nombre = QString::fromStdString( regexpDest );
-    // 		lista->replace( pos, re );
-    qDebug()  << "Cambiado" << QString::fromStdString( regexpOrig ) << "--> " << re->nombre;
-    return false;
-  } else {
-    return true;
-  }
+  return true;
 }
 
 bool rssani_lite::editarRegexp( int pos, std::string regexpDest ) {
   QMutexLocker<QMutex> locker(&mutex);
-  if ( pos != -1 ) {
-    regexp *re = lista->at( pos );
-    QString regexpOrig = re->nombre;
-    re->nombre = QString::fromStdString( regexpDest );
-    qDebug()  << "Cambiado" << regexpOrig << "--> " << re->nombre;
+  if ( pos >= 0 && pos < lista.size() ) {
+    QString regexpOrig = lista.at( pos ).nombre;
+    lista[pos].nombre = QString::fromStdString( regexpDest );
+    qDebug()  << "Cambiado" << regexpOrig << "--> " << lista.at( pos ).nombre;
     return false;
   } else {
     return true;
@@ -170,10 +155,9 @@ bool rssani_lite::editarRegexp( int pos, std::string regexpDest ) {
 
 bool rssani_lite::activarRegexp( int pos ) {
   QMutexLocker<QMutex> locker(&mutex);
-  if ( pos != -1 ) {
-    regexp *re = lista->at( pos );
-    re->activa = ! re->activa;
-    qDebug()  << "Cambiado" << !re->activa << "--> " << re->activa;
+  if ( pos >= 0 && pos < lista.size() ) {
+    lista[pos].activa = !lista.at( pos ).activa;
+    qDebug()  << "Cambiado" << !lista.at( pos ).activa << "--> " << lista.at( pos ).activa;
     return false;
   } else {
     return true;
@@ -182,39 +166,39 @@ bool rssani_lite::activarRegexp( int pos ) {
 
 void rssani_lite::moverRegexp( int from, int to ) {
   QMutexLocker<QMutex> locker(&mutex);
-  if ( from >= 0 && from < lista->size() && to >= 0 && to < lista->size() ) {
-    auto *item = lista->takeAt( from );
-    lista->insert( to, item );
+  if ( from >= 0 && from < lista.size() && to >= 0 && to < lista.size() ) {
+    regexp item = lista.takeAt( from );
+    lista.insert( to, item );
     qDebug() << "Movido el item" << from << "al" << to;
   }
 }
 
 void rssani_lite::anadirRegexp( std::string nombre, std::string fecha, bool mail, std::string tracker, int dias ) {
   QMutexLocker<QMutex> locker(&mutex);
-  auto *re = new regexp();
-  re->nombre = QString::fromStdString( nombre );
-  re->vencimiento = QString::fromStdString( fecha );
-  re->tracker = QString::fromStdString( tracker );
-  re->mail = mail;
-  re->diasDescarga = dias;
-  re->fechaDescarga = QDateTime();
-  re->activa = true;
-  lista->append( re ) ;
-  qDebug()  << "Añadida regexp" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga;
+  regexp re;
+  re.nombre = QString::fromStdString( nombre );
+  re.vencimiento = QString::fromStdString( fecha );
+  re.tracker = QString::fromStdString( tracker );
+  re.mail = mail;
+  re.diasDescarga = dias;
+  re.fechaDescarga = QDateTime();
+  re.activa = true;
+  lista.append( re );
+  qDebug()  << "Añadida regexp" << re.nombre << re.vencimiento << re.mail << re.tracker << re.diasDescarga;
 }
 
 void rssani_lite::borrarRegexp( int pos ) {
   QMutexLocker<QMutex> locker(&mutex);
-  delete( lista->at(pos) );
-  lista->removeAt( pos );
+  if ( pos >= 0 && pos < lista.size() )
+    lista.removeAt( pos );
 }
 
 void rssani_lite::borrarRegexp( std::string cad ) {
   QMutexLocker<QMutex> locker(&mutex);
-  for ( int i = 0; i < lista->size(); ++i ) {
-    if ( QString::compare( lista->at( i )->nombre , QString::fromStdString( cad ) ) == 0 ) {
-      delete lista->at( i );
-      lista->removeAt( i );
+  for ( int i = 0; i < lista.size(); ++i ) {
+    if ( lista.at( i ).nombre == QString::fromStdString( cad ) ) {
+      lista.removeAt( i );
+      --i;
       qDebug()  << "Borrado regexp" << QString::fromStdString( cad );
     }
   }
@@ -227,26 +211,26 @@ void rssani_lite::anadirAuth( std::string tracker, std::string uid, std::string 
   au.uid = QString::fromStdString( uid );
   au.pass = QString::fromStdString( pass );
   au.passkey = QString::fromStdString( passkey );
-  listAuths->append( au ) ;
-  hashAuths->insert( au.tracker, au );
+  listAuths.append( au );
+  hashAuths.insert( au.tracker, au );
   qDebug()  << "Añadido auth" << au.tracker << au.uid << au.pass << au.passkey;
 }
 
 void rssani_lite::borrarAuth( std::string tracker ) {
   QMutexLocker<QMutex> locker(&mutex);
-  for ( int i = 0; i < listAuths->size(); ++i ) {
-    if ( QString::compare( listAuths->at( i ).tracker , QString::fromStdString( tracker ) ) == 0 ) {
-      listAuths->removeAt( i );
+  for ( int i = 0; i < listAuths.size(); ++i ) {
+    if ( listAuths.at( i ).tracker == QString::fromStdString( tracker ) ) {
+      listAuths.removeAt( i );
+      --i;
       qDebug()  << "Borrado auth" << QString::fromStdString( tracker );
     }
   }
-  // 	delete hashAuths->value( tracker );
-  hashAuths->remove( QString::fromStdString( tracker ) );
+  hashAuths.remove( QString::fromStdString( tracker ) );
 }
 
-QList<auth>* rssani_lite::listaAuths() {
+QList<auth> rssani_lite::listaAuths() {
   QMutexLocker<QMutex> locker(&mutex);
-  return listAuths.get();
+  return listAuths;
 }
 
 QStringList rssani_lite::verLog() {
@@ -333,23 +317,22 @@ void rssani_lite::writeSettings() {
   settings->beginGroup( QStringLiteral("regexps") );
   settings->beginWriteArray( QStringLiteral("items") );
   settings->remove( QStringLiteral("") );
-  regexp *re;
-  qDebug() << "Num. regexps :" << lista->size();
-  for ( int i = 0; i < lista->size(); ++i ) {
+  qDebug() << "Num. regexps :" << lista.size();
+  for ( int i = 0; i < lista.size(); ++i ) {
     settings->setArrayIndex( i );
-    re = lista->at( i );
-    settings->setValue( QStringLiteral("item"), re->nombre );
-    settings->setValue( QStringLiteral("vencimiento"), re->vencimiento );
-    settings->setValue( QStringLiteral("mail"), re->mail );
-    settings->setValue( QStringLiteral("tracker"), re->tracker );
-    settings->setValue( QStringLiteral("dias"), re->diasDescarga );
-    if ( re->fechaDescarga.isValid() ) {
-      settings->setValue( QStringLiteral("fecha"), re->fechaDescarga );
-      qDebug() << "-" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga << re->fechaDescarga.toString( Qt::ISODate );
+    const regexp &re = lista.at( i );
+    settings->setValue( QStringLiteral("item"), re.nombre );
+    settings->setValue( QStringLiteral("vencimiento"), re.vencimiento );
+    settings->setValue( QStringLiteral("mail"), re.mail );
+    settings->setValue( QStringLiteral("tracker"), re.tracker );
+    settings->setValue( QStringLiteral("dias"), re.diasDescarga );
+    if ( re.fechaDescarga.isValid() ) {
+      settings->setValue( QStringLiteral("fecha"), re.fechaDescarga );
+      qDebug() << "-" << re.nombre << re.vencimiento << re.mail << re.tracker << re.diasDescarga << re.fechaDescarga.toString( Qt::ISODate );
     } else {
-      qDebug() << "-" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga;
+      qDebug() << "-" << re.nombre << re.vencimiento << re.mail << re.tracker << re.diasDescarga;
     }
-    settings->setValue( QStringLiteral("activa"), re->activa );
+    settings->setValue( QStringLiteral("activa"), re.activa );
   }
   settings->endArray();
   settings->endGroup();
@@ -358,11 +341,11 @@ void rssani_lite::writeSettings() {
   settings->beginGroup( QStringLiteral("trackers") );
   settings->beginWriteArray( QStringLiteral("trackers") );
   settings->remove( QStringLiteral("") );
-  qDebug() << "Num. trackers :" << listAuths->size();
+  qDebug() << "Num. trackers :" << listAuths.size();
   auth au;
-  for ( int i = 0; i < listAuths->size(); ++i ) {
+  for ( int i = 0; i < listAuths.size(); ++i ) {
     settings->setArrayIndex( i );
-    au = listAuths->at( i );
+    au = listAuths.at( i );
     settings->setValue( QStringLiteral("tracker"), au.tracker );
     settings->setValue( QStringLiteral("uid"), au.uid );
     settings->setValue( QStringLiteral("pass"), au.pass );
@@ -413,28 +396,27 @@ void rssani_lite::readSettings() {
 
   settings->beginGroup( QStringLiteral("regexps") );
   int size = settings->beginReadArray( QStringLiteral("items") );
-  regexp *re;
   qDebug() << "Num. regexps :" << size;
   for ( int i = 0; i < size; ++i ) {
     settings->setArrayIndex( i );
-    re = new regexp();
-    re->nombre = settings->value( QStringLiteral("item") ).toString();
-    re->vencimiento = settings->value( QStringLiteral("vencimiento") ).toString();
-    re->mail = settings->value( QStringLiteral("mail") ).toBool();
-    re->tracker = settings->value( QStringLiteral("tracker") ).toString();
-    re->diasDescarga = settings->value( QStringLiteral("dias"), 0 ).toInt();
+    regexp re;
+    re.nombre = settings->value( QStringLiteral("item") ).toString();
+    re.vencimiento = settings->value( QStringLiteral("vencimiento") ).toString();
+    re.mail = settings->value( QStringLiteral("mail") ).toBool();
+    re.tracker = settings->value( QStringLiteral("tracker") ).toString();
+    re.diasDescarga = settings->value( QStringLiteral("dias"), 0 ).toInt();
     if ( settings->value( QStringLiteral("fecha") ).toDateTime().isNull() ) {
-      re->fechaDescarga = QDateTime();
+      re.fechaDescarga = QDateTime();
     } else {
-      re->fechaDescarga = settings->value( QStringLiteral("fecha")).toDateTime();
+      re.fechaDescarga = settings->value( QStringLiteral("fecha")).toDateTime();
     }
-    re->activa = settings->value( QStringLiteral("activa"), true ).toBool();
-    lista->append( re );
+    re.activa = settings->value( QStringLiteral("activa"), true ).toBool();
+    lista.append( re );
 
-    if ( re->fechaDescarga.isValid() )
-      qDebug() << "-" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga << re->fechaDescarga.toString( QStringLiteral("dd-MM-yyyy") );
+    if ( re.fechaDescarga.isValid() )
+      qDebug() << "-" << re.nombre << re.vencimiento << re.mail << re.tracker << re.diasDescarga << re.fechaDescarga.toString( QStringLiteral("dd-MM-yyyy") );
     else 
-      qDebug() << "-" << re->nombre << re->vencimiento << re->mail << re->tracker << re->diasDescarga;
+      qDebug() << "-" << re.nombre << re.vencimiento << re.mail << re.tracker << re.diasDescarga;
   }
 
   settings->endArray();
@@ -455,8 +437,8 @@ void rssani_lite::readSettings() {
     au.idField = settings->value( QStringLiteral("idField"), QStringLiteral("id") ).toString();
     au.urlDownload = settings->value( QStringLiteral("urlDownload"), QStringLiteral("/download.php?id=") ).toString();
     au.urlRss = settings->value( QStringLiteral("urlRss"), QStringLiteral("/rss.php") ).toString();
-    listAuths->append( au );
-    hashAuths->insert( au.tracker, au );
+    listAuths.append( au );
+    hashAuths.insert( au.tracker, au );
     qDebug() << "-" << au.tracker << au.uid << au.pass << au.passkey;
   }
 
@@ -480,8 +462,15 @@ void rssani_lite::readSettings() {
 }
 
 
-Values* rssani_lite::getValues() const {
+Values rssani_lite::getValues() const {
   QMutexLocker<QMutex> locker(&mutex);
-  return values.get();
+  return *values;
+}
+
+void rssani_lite::setOpciones(const QString &fromMail, const QString &toMail, const QString &path) {
+  QMutexLocker<QMutex> locker(&mutex);
+  values->setFromMail(fromMail);
+  values->setToMail(toMail);
+  values->setRuta(path);
 }
 

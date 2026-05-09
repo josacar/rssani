@@ -86,10 +86,10 @@ class rssani_lite : public QObject {
     QStringList verLog();
 
     /**
-     * @brief Returns the list of regexp rules.
-     * @return Pointer to the regexp list.
+     * @brief Returns a snapshot copy of the regexp rules list.
+     * @return Copy of the regexp list.
      */
-    QList<regexp*>* listaRegexp();
+    QList<regexp> listaRegexp();
 
     /**
      * @brief Deletes a regexp rule by position.
@@ -171,21 +171,29 @@ class rssani_lite : public QObject {
     void borrarAuth ( std::string tracker );
 
     /**
-     * @brief Returns the list of tracker authentication entries.
-     * @return Pointer to the auth list.
+     * @brief Returns a snapshot copy of the tracker authentication entries.
+     * @return Copy of the auth list.
      */
-    QList<auth>* listaAuths();
+    QList<auth> listaAuths();
 
     /**
-     * @brief Returns the configuration values object.
-     * @return Pointer to the Values instance.
+     * @brief Returns a snapshot copy of the configuration values.
+     * @return Copy of the Values instance.
      */
-    Values* getValues() const;
+    Values getValues() const;
 
     /**
      * @brief Toggles debug mode.
      */
     void debugea();
+
+    /**
+     * @brief Sets the general options (fromMail, toMail, path).
+     * @param fromMail Sender email address.
+     * @param toMail Recipient email address.
+     * @param path Torrent download path.
+     */
+    void setOpciones(const QString &fromMail, const QString &toMail, const QString &path);
 
   protected:
     /**
@@ -216,9 +224,9 @@ class rssani_lite : public QObject {
     std::unique_ptr<Values> values;
 
     int tiempo;
-    std::unique_ptr<QList<regexp*>> lista;
-    std::unique_ptr<QList<auth>> listAuths;
-    std::unique_ptr<QHash<QString,auth>> hashAuths;
+    QList<regexp> lista;
+    QList<auth> listAuths;
+    QHash<QString,auth> hashAuths;
     QTimer timer;
     QTimer shutdown;
     std::unique_ptr<QFile> flog;

@@ -7,7 +7,7 @@
  * @param log Ruta absoluta del fichero log
  * @param parent Puntero a la clase padre
  */
-Rss_lite::Rss_lite( Values* values, QList<regexp*>* lista, QFile* log, QHash<QString, auth> *auths, QObject* parent ) : QObject( parent ) {
+Rss_lite::Rss_lite( Values* values, QList<regexp>* lista, QFile* log, QHash<QString, auth> *auths, QObject* parent ) : QObject( parent ) {
   this->values = values;
   this->lista = lista;
   this->log = log;
@@ -125,9 +125,13 @@ void Rss_lite::miraTitulo( QString seccion, QString titulo, QString link, bool f
   switch ( parseTitle( seccion , titulo , link, fromIrc ) ) {
     case 1:
       emit linkCorrecto( link, titulo );
+      [[fallthrough]];
     case 2:
       if ( recientes.size() > 30 ) recientes.removeFirst();
       recientes.append( titulo );
+      break;
+    default:
+      break;
   }
 }
 
@@ -230,18 +234,17 @@ int Rss_lite::parseTitle( QString seccion, QString titulo,  QString enlace, bool
 
   for ( int i = 0;i < lista->size();i++ ) {
     // Quitamos lo que haya vencido
-    if ( !lista->at( i )->vencimiento.isEmpty() )
-      if ( QDate::currentDate() >= QDate::fromString( lista->at( i )->vencimiento, QStringLiteral("dd-MM-yyyy") ) ) {
-        out  << "Borrado caducado" << lista->at( i )->nombre << "\n";
-        delete lista->at( i );
+    if ( !lista->at(i).vencimiento.isEmpty() )
+      if ( QDate::currentDate() >= QDate::fromString( lista->at(i).vencimiento, QStringLiteral("dd-MM-yyyy") ) ) {
+        out  << "Borrado caducado" << lista->at(i).nombre << "\n";
         lista->removeAt( i );
         i--;
         continue;
       }
 
-    if ( lista->at( i )->activa && subida.contains( QRegularExpression( lista->at( i )->nombre, QRegularExpression::CaseInsensitiveOption ) ) ) {
-      if ( !lista->at( i )->tracker.isEmpty() ) { // Si tiene tracker especifico miro a ver y si no drop
-        urlRegexp = QUrl( lista->at( i )->tracker );
+    if ( lista->at(i).activa && subida.contains( QRegularExpression( lista->at(i).nombre, QRegularExpression::CaseInsensitiveOption ) ) ) {
+      if ( !lista->at(i).tracker.isEmpty() ) { // Si tiene tracker especifico miro a ver y si no drop
+        urlRegexp = QUrl( lista->at(i).tracker );
         if ( values->Debug() )
           qDebug() << "Tracker" << urlRegexp.host() << urlLink.host();
         if ( urlLink.host() != urlRegexp.host() ) continue;
@@ -249,12 +252,12 @@ int Rss_lite::parseTitle( QString seccion, QString titulo,  QString enlace, bool
 
       if ( matches->open( QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append ) ) {  // Lo escribimos en el log
         QTextStream outFile( matches.get() );
-        outFile << subida << " --> " << lista->at( i )->nombre << Qt::endl;
+        outFile << subida << " --> " << lista->at(i).nombre << Qt::endl;
         matches->close();
       }
 
       // Miramos si solo mail
-      if ( lista->at( i )->mail == 1 ) {
+      if ( lista->at(i).mail == 1 ) {
         out << "\nINFO: " << titulo << "\n";
         exito = sendMail(
             QStringLiteral("RSSINFO ") + QHostInfo::localHostName() + QDateTime::currentDateTime().toString( QStringLiteral(" dd/MM/yyyy hh:mm:ss") ),
@@ -269,15 +272,15 @@ int Rss_lite::parseTitle( QString seccion, QString titulo,  QString enlace, bool
       // Vemos si han pasado los dias minimos entre descargas
 
 
-      if ( !lista->at( i )->fechaDescarga.isNull() ) {
+      if ( !lista->at(i).fechaDescarga.isNull() ) {
         if ( values->Debug() )
-          qDebug() << "diasDescarga:" << lista->at( i )->fechaDescarga.daysTo( QDateTime::currentDateTime() ) << "Dias:" << lista->at( i )->diasDescarga;
-        if ( lista->at( i )->fechaDescarga.daysTo( QDateTime::currentDateTime() ) < lista->at( i )->diasDescarga ) {
+          qDebug() << "diasDescarga:" << lista->at(i).fechaDescarga.daysTo( QDateTime::currentDateTime() ) << "Dias:" << lista->at(i).diasDescarga;
+        if ( lista->at(i).fechaDescarga.daysTo( QDateTime::currentDateTime() ) < lista->at(i).diasDescarga ) {
           continue;
         }
       }
 
-      lista->at( i )->fechaDescarga = QDateTime::currentDateTime();
+      (*lista)[i].fechaDescarga = QDateTime::currentDateTime();
 
       out << "\nBAJANDO: " << titulo << "\n";
       return 1;

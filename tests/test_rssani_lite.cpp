@@ -32,23 +32,18 @@ private:
 };
 
 void TestRssaniLite::testConstructorDefaults() {
-    // Set up a temporary config directory
     QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, tempDir.path());
     QSettings::setDefaultFormat(QSettings::IniFormat);
 
     rssani_lite app;
 
-    // Default RPC credentials
     QCOMPARE(app.getRpcUser(), QString("rssani-rpc"));
     QCOMPARE(app.getRpcPass(), QString("rssanipass-rpc"));
 
-    // Default timer should be 10 minutes (600000 ms)
     QCOMPARE(app.verTimer(), 600000);
 
-    // Values should be initialized
-    Values* values = app.getValues();
-    QVERIFY(values != nullptr);
-    QCOMPARE(values->Debug(), false);
+    Values values = app.getValues();
+    QCOMPARE(values.Debug(), false);
 }
 
 void TestRssaniLite::testAnadirRegexp() {
@@ -57,20 +52,18 @@ void TestRssaniLite::testAnadirRegexp() {
 
     rssani_lite app;
 
-    // Add a regexp rule
     app.anadirRegexp(".*test.*", "2024-12-31", false, "tracker1", 7);
 
-    QList<regexp*>* lista = app.listaRegexp();
-    QCOMPARE(lista->size(), 1);
+    QList<regexp> lista = app.listaRegexp();
+    QCOMPARE(lista.size(), 1);
 
-    regexp* re = lista->at(0);
-    QCOMPARE(re->nombre, QString(".*test.*"));
-    QCOMPARE(re->vencimiento, QString("2024-12-31"));
-    QCOMPARE(re->mail, false);
-    QCOMPARE(re->tracker, QString("tracker1"));
-    QCOMPARE(re->diasDescarga, 7);
-    QVERIFY(!re->fechaDescarga.isValid());
-    QVERIFY(re->activa); // Default active state
+    QCOMPARE(lista.at(0).nombre, QString(".*test.*"));
+    QCOMPARE(lista.at(0).vencimiento, QString("2024-12-31"));
+    QCOMPARE(lista.at(0).mail, false);
+    QCOMPARE(lista.at(0).tracker, QString("tracker1"));
+    QCOMPARE(lista.at(0).diasDescarga, 7);
+    QVERIFY(!lista.at(0).fechaDescarga.isValid());
+    QVERIFY(lista.at(0).activa);
 }
 
 void TestRssaniLite::testEditarRegexpByString() {
@@ -80,20 +73,17 @@ void TestRssaniLite::testEditarRegexpByString() {
     rssani_lite app;
 
     app.anadirRegexp(".*old.*", "", false, "", 0);
-    
-    // Edit by string match
+
     bool result = app.editarRegexp(".*old.*", ".*new.*");
-    
-    // Returns false on success (existing behavior)
+
     QCOMPARE(result, false);
 
-    QList<regexp*>* lista = app.listaRegexp();
-    QCOMPARE(lista->size(), 1);
-    QCOMPARE(lista->at(0)->nombre, QString(".*new.*"));
+    QList<regexp> lista = app.listaRegexp();
+    QCOMPARE(lista.size(), 1);
+    QCOMPARE(lista.at(0).nombre, QString(".*new.*"));
 
-    // Try to edit non-existent regexp
     result = app.editarRegexp(".*nonexistent.*", ".*other.*");
-    QCOMPARE(result, true); // Returns true when not found
+    QCOMPARE(result, true);
 }
 
 void TestRssaniLite::testEditarRegexpByIndex() {
@@ -105,13 +95,12 @@ void TestRssaniLite::testEditarRegexpByIndex() {
     app.anadirRegexp(".*first.*", "", false, "", 0);
     app.anadirRegexp(".*second.*", "", false, "", 0);
 
-    // Edit by index
     bool result = app.editarRegexp(0, ".*modified.*");
     QCOMPARE(result, false);
 
-    QList<regexp*>* lista = app.listaRegexp();
-    QCOMPARE(lista->at(0)->nombre, QString(".*modified.*"));
-    QCOMPARE(lista->at(1)->nombre, QString(".*second.*"));
+    QList<regexp> lista = app.listaRegexp();
+    QCOMPARE(lista.at(0).nombre, QString(".*modified.*"));
+    QCOMPARE(lista.at(1).nombre, QString(".*second.*"));
 }
 
 void TestRssaniLite::testActivarRegexp() {
@@ -122,19 +111,20 @@ void TestRssaniLite::testActivarRegexp() {
 
     app.anadirRegexp(".*test.*", "", false, "", 0);
 
-    // Initially active
-    QList<regexp*>* lista = app.listaRegexp();
-    QVERIFY(lista->at(0)->activa);
+    QList<regexp> lista = app.listaRegexp();
+    QVERIFY(lista.at(0).activa);
 
-    // Toggle should deactivate
     bool result = app.activarRegexp(0);
     QCOMPARE(result, false);
-    QVERIFY(!lista->at(0)->activa);
 
-    // Toggle again should activate
+    lista = app.listaRegexp();
+    QVERIFY(!lista.at(0).activa);
+
     result = app.activarRegexp(0);
     QCOMPARE(result, false);
-    QVERIFY(lista->at(0)->activa);
+
+    lista = app.listaRegexp();
+    QVERIFY(lista.at(0).activa);
 }
 
 void TestRssaniLite::testMoverRegexp() {
@@ -147,21 +137,19 @@ void TestRssaniLite::testMoverRegexp() {
     app.anadirRegexp(".*second.*", "", false, "", 0);
     app.anadirRegexp(".*third.*", "", false, "", 0);
 
-    QList<regexp*>* lista = app.listaRegexp();
-
-    // Move first to last position
     app.moverRegexp(0, 2);
 
-    QCOMPARE(lista->at(0)->nombre, QString(".*second.*"));
-    QCOMPARE(lista->at(1)->nombre, QString(".*third.*"));
-    QCOMPARE(lista->at(2)->nombre, QString(".*first.*"));
+    QList<regexp> lista = app.listaRegexp();
+    QCOMPARE(lista.at(0).nombre, QString(".*second.*"));
+    QCOMPARE(lista.at(1).nombre, QString(".*third.*"));
+    QCOMPARE(lista.at(2).nombre, QString(".*first.*"));
 
-    // Move back
     app.moverRegexp(2, 0);
 
-    QCOMPARE(lista->at(0)->nombre, QString(".*first.*"));
-    QCOMPARE(lista->at(1)->nombre, QString(".*second.*"));
-    QCOMPARE(lista->at(2)->nombre, QString(".*third.*"));
+    lista = app.listaRegexp();
+    QCOMPARE(lista.at(0).nombre, QString(".*first.*"));
+    QCOMPARE(lista.at(1).nombre, QString(".*second.*"));
+    QCOMPARE(lista.at(2).nombre, QString(".*third.*"));
 }
 
 void TestRssaniLite::testBorrarRegexpByIndex() {
@@ -173,12 +161,12 @@ void TestRssaniLite::testBorrarRegexpByIndex() {
     app.anadirRegexp(".*first.*", "", false, "", 0);
     app.anadirRegexp(".*second.*", "", false, "", 0);
 
-    QCOMPARE(app.listaRegexp()->size(), 2);
+    QCOMPARE(app.listaRegexp().size(), 2);
 
     app.borrarRegexp(0);
 
-    QCOMPARE(app.listaRegexp()->size(), 1);
-    QCOMPARE(app.listaRegexp()->at(0)->nombre, QString(".*second.*"));
+    QCOMPARE(app.listaRegexp().size(), 1);
+    QCOMPARE(app.listaRegexp().at(0).nombre, QString(".*second.*"));
 }
 
 void TestRssaniLite::testBorrarRegexpByString() {
@@ -190,16 +178,15 @@ void TestRssaniLite::testBorrarRegexpByString() {
     app.anadirRegexp(".*test.*", "", false, "", 0);
     app.anadirRegexp(".*other.*", "", false, "", 0);
 
-    QCOMPARE(app.listaRegexp()->size(), 2);
+    QCOMPARE(app.listaRegexp().size(), 2);
 
     app.borrarRegexp(".*test.*");
 
-    QCOMPARE(app.listaRegexp()->size(), 1);
-    QCOMPARE(app.listaRegexp()->at(0)->nombre, QString(".*other.*"));
+    QCOMPARE(app.listaRegexp().size(), 1);
+    QCOMPARE(app.listaRegexp().at(0).nombre, QString(".*other.*"));
 
-    // Try to delete non-existent (should not crash)
     app.borrarRegexp(".*nonexistent.*");
-    QCOMPARE(app.listaRegexp()->size(), 1);
+    QCOMPARE(app.listaRegexp().size(), 1);
 }
 
 void TestRssaniLite::testAnadirAuth() {
@@ -210,10 +197,10 @@ void TestRssaniLite::testAnadirAuth() {
 
     app.anadirAuth("tracker1", "user123", "pass456", "key789");
 
-    QList<auth>* listAuths = app.listaAuths();
-    QCOMPARE(listAuths->size(), 1);
+    QList<auth> listAuths = app.listaAuths();
+    QCOMPARE(listAuths.size(), 1);
 
-    auth au = listAuths->at(0);
+    auth au = listAuths.at(0);
     QCOMPARE(au.tracker, QString("tracker1"));
     QCOMPARE(au.uid, QString("user123"));
     QCOMPARE(au.pass, QString("pass456"));
@@ -229,16 +216,15 @@ void TestRssaniLite::testBorrarAuth() {
     app.anadirAuth("tracker1", "user1", "pass1", "key1");
     app.anadirAuth("tracker2", "user2", "pass2", "key2");
 
-    QCOMPARE(app.listaAuths()->size(), 2);
+    QCOMPARE(app.listaAuths().size(), 2);
 
     app.borrarAuth("tracker1");
 
-    QCOMPARE(app.listaAuths()->size(), 1);
-    QCOMPARE(app.listaAuths()->at(0).tracker, QString("tracker2"));
+    QCOMPARE(app.listaAuths().size(), 1);
+    QCOMPARE(app.listaAuths().at(0).tracker, QString("tracker2"));
 
-    // Try to delete non-existent (should not crash)
     app.borrarAuth("nonexistent");
-    QCOMPARE(app.listaAuths()->size(), 1);
+    QCOMPARE(app.listaAuths().size(), 1);
 }
 
 void TestRssaniLite::testListaRegexp() {
@@ -247,12 +233,11 @@ void TestRssaniLite::testListaRegexp() {
 
     rssani_lite app;
 
-    QList<regexp*>* lista = app.listaRegexp();
-    QVERIFY(lista != nullptr);
-    QVERIFY(lista->isEmpty());
+    QList<regexp> lista = app.listaRegexp();
+    QVERIFY(lista.isEmpty());
 
     app.anadirRegexp(".*test.*", "", false, "", 0);
-    QCOMPARE(lista->size(), 1);
+    QCOMPARE(app.listaRegexp().size(), 1);
 }
 
 void TestRssaniLite::testListaAuths() {
@@ -261,12 +246,11 @@ void TestRssaniLite::testListaAuths() {
 
     rssani_lite app;
 
-    QList<auth>* listAuths = app.listaAuths();
-    QVERIFY(listAuths != nullptr);
-    QVERIFY(listAuths->isEmpty());
+    QList<auth> listAuths = app.listaAuths();
+    QVERIFY(listAuths.isEmpty());
 
     app.anadirAuth("tracker1", "user", "pass", "key");
-    QCOMPARE(listAuths->size(), 1);
+    QCOMPARE(app.listaAuths().size(), 1);
 }
 
 void TestRssaniLite::testVerTimer() {
@@ -275,7 +259,6 @@ void TestRssaniLite::testVerTimer() {
 
     rssani_lite app;
 
-    // Default timer is 10 minutes = 600000 ms
     QCOMPARE(app.verTimer(), 600000);
 }
 
@@ -285,12 +268,8 @@ void TestRssaniLite::testCambiaTimer() {
 
     rssani_lite app;
 
-    // cambiaTimer updates the internal 'tiempo' variable but does not
-    // update the actual QTimer interval (verTimer returns timer.interval())
-    // Just verify it doesn't crash
     app.cambiaTimer(30);
 
-    // Timer interval remains unchanged (cambiaTimer doesn't call timer.setInterval)
     QCOMPARE(app.verTimer(), 600000);
 }
 
@@ -326,9 +305,7 @@ void TestRssaniLite::testVerLogEmpty() {
 
     rssani_lite app;
 
-    // Log should be empty or contain startup messages
     QStringList log = app.verLog();
-    // Just verify it doesn't crash and returns a list
     QVERIFY(log.count() >= 0);
 }
 
@@ -338,12 +315,8 @@ void TestRssaniLite::testGetValues() {
 
     rssani_lite app;
 
-    Values* values = app.getValues();
-    QVERIFY(values != nullptr);
-
-    // Verify it's the same object used internally
-    values->setDebug(true);
-    QCOMPARE(app.getValues()->Debug(), true);
+    Values values = app.getValues();
+    QCOMPARE(values.Debug(), false);
 }
 
 QTEST_MAIN(TestRssaniLite)

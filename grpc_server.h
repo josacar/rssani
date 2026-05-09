@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <memory>
+#include <thread>
 #include <grpcpp/grpcpp.h>
 #include "rssani.grpc.pb.h"
 #include "rssani_lite.h"
@@ -38,6 +39,7 @@ public:
 private:
     rssani_lite *rss;
     std::unique_ptr<grpc::Server> server;
+    std::thread serverThread;
     std::atomic<bool> running{false};
 };
 

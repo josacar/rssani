@@ -40,8 +40,9 @@ The `rssani.proto` file is compiled automatically by CMake into `rssani.pb.cc/h`
 - Configuration: `QSettings` (INI-style), stored in the standard Qt config path.
 - Logging: `QFile`-based plain text logs (`rssani.log`, `matches.log`) in the config directory.
 - Signal/slot: Qt5 pointer-to-member syntax (`&Class::method`) throughout.
-- Memory management: `std::unique_ptr` used where possible. `rss` and `session` are still raw `new` (Qt parent-child ownership, documented in caveats).
-- Thread safety: `rssani_lite` public methods are protected by `QMutex` for safe access from the gRPC thread.
+- Memory management: `std::unique_ptr` used where possible. `rss` and `session` are still raw `new` (Qt parent-child ownership, documented in caveats). Regexp list uses value types (`QList<regexp>`) instead of pointers to eliminate manual `new`/`delete`.
+- Thread safety: `rssani_lite` public methods are protected by `QMutex` for safe access from the gRPC thread. `listaRegexp()`, `listaAuths()`, and `getValues()` return snapshot copies (by value) to prevent data races. `setOpciones()` provides atomic option updates under the mutex.
+- gRPC server thread: stored as a `std::thread` member and joined in destructor (not detached).
 - GitHub Actions CI (`.github/workflows/ci.yml`) runs on every push and PR to `master`.
 
 ## Docker
@@ -181,19 +182,22 @@ All methods are defined in `rssani.proto` under the `rssani.RssaniService` servi
 
 - IRC server/channel and tracker configuration are read from `QSettings`, with hardcoded defaults (`irc.irc-hispano.org`, `#PuntoTorrent`) as fallbacks.
 - `rss` and `session` in `rssani_lite` constructor are still raw `new` (Qt parent-child ownership).
+- `PonerOpciones` gRPC method now uses `setOpciones()` instead of directly mutating `Values*`, ensuring atomic updates under mutex.
+- `cambiaTimer` stores the new interval value but does not call `QTimer::setInterval()` — the timer interval is only set at construction time. This is a known bug.
+- `handleSigTerm()` reads from the self-pipe with an uninitialized `char tmp` (should be `char tmp = 0`).
 
 ## File-by-File Notes
 
 | File | Notes |
 |---|---|
 | `main.cpp` | Entry point. Constructs `rssani_lite`, creates and starts `GrpcServer`. |
-| `rss_lite.cpp` | RSS/torrent logic. Trackers loaded from settings via `iniciaTrackers()`. Uses reply URL as download key for concurrent torrent downloads. Downloads are written to disk in `readDataTorrent()` and logged via `saveLog()`. |
-| `rssani_lite.cpp` | Settings I/O, regexp CRUD, signal wiring. All public methods mutex-protected. Uses `QRegularExpression`. POSIX signal handling uses self-pipe trick with `QSocketNotifier` to avoid deadlocks. |
+| `rss_lite.cpp` | RSS/torrent logic. Trackers loaded from settings via `iniciaTrackers()`. Uses reply URL as download key for concurrent torrent downloads. Downloads are written to disk in `readDataTorrent()` and logged via `saveLog()`. Regexp list is `QList<regexp>` (value type). `miraTitulo()` uses `[[fallthrough]]` for intentional switch fallthrough.
+| `rssani_lite.cpp` | Settings I/O, regexp CRUD, signal wiring. All public methods mutex-protected. Returns snapshot copies from `listaRegexp()`, `listaAuths()`, `getValues()`. `setOpciones()` atomically updates options under mutex. Uses `QRegularExpression`. POSIX signal handling uses self-pipe trick with `QSocketNotifier` to avoid deadlocks. No manual `new`/`delete` for regexp or auth entries — all value types. |
 | `myircsession.cpp` | IRC client. Uses `QRandomGenerator`. Connects to `libircclient::Network` signals (`Event_PRIVMSG`, `Event_Connected`, `Event_SelfKick`, `Event_MOTDEnd`). |
 | `mailsender.cpp` | SMTP sender. Credentials read from `Values`. Uses `QRandomGenerator`. |
-| `grpc_server.cpp` | gRPC service implementation + `GrpcServer` class. Runs on port 50051. Each RPC method delegates to `rssani_lite` through its public API. Shutdown calls `rss->salir()`. |
+| `grpc_server.cpp` | gRPC service implementation + `GrpcServer` class. Runs on port 50051. Each RPC method delegates to `rssani_lite` through its public API. `PonerOpciones` uses `setOpciones()` for atomic updates. `GrpcServer` stores the gRPC thread as a `std::thread` member and joins it in the destructor. Shutdown calls `rss->salir()`. |
 | `rssani.proto` | Protocol Buffers v3 service definition. 20 RPC methods with typed request/response messages. |
-| `CMakeLists.txt` | Uses `ExternalProject_Add` for libirc (grumpy-irc). gRPC and Protobuf linked via pkg-config (`grpc++`, `protobuf`). Custom command generates C++ stubs from `.proto`. RPATH set for runtime linking. |
+| `CMakeLists.txt` | Uses `ExternalProject_Add` for libirc (grumpy-irc). gRPC and Protobuf linked via pkg-config (`grpc++`, `protobuf`). Custom command generates C++ stubs from `.proto`. RPATH set for runtime linking. ccache enabled via `CMAKE_CXX_COMPILER_LAUNCHER`. `enable_testing()` called for CTest support. |
 | `tests/test_values.cpp` | Unit tests for `Values` class. |
 | `tests/test_mail_sender.cpp` | Unit tests for `MailSender` class. |
 | `tests/test_rss_lite.cpp` | Unit tests for `Rss_lite` class. |

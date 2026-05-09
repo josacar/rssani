@@ -63,7 +63,7 @@ class Rss_lite : public QObject {
      * @param auths Tracker authentication credentials.
      * @param parent Parent QObject.
      */
-    Rss_lite ( Values* values, QList<regexp*>* lista, QFile* log, QHash<QString,auth> *auths, QObject* parent );
+    Rss_lite ( Values* values, QList<regexp>* lista, QFile* log, QHash<QString,auth> *auths, QObject* parent );
 
     /**
      * @brief Destructor.
@@ -157,7 +157,7 @@ class Rss_lite : public QObject {
     QHash<QString, std::shared_ptr<QByteArray>> datos; /**< hash con el id y los datos del torrent */
     QHash<QString,QString> sites; /**< hash con el id y los site del torrent */
     QHash<QString,QString> posts;
-    QList<regexp*> *lista;
+    QList<regexp> *lista;
     QString fecha;
     QString descargas;
     Values *values;
