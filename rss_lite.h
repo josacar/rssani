@@ -23,6 +23,16 @@
 #include "values.h"
 
 /**
+ * @brief Result of matching a title against regexp rules.
+ */
+enum class MatchResult : int8_t {
+  NotMatched = 0,      ///< No regexp matched, or title already seen.
+  Download = 1,        ///< Match found, torrent should be downloaded.
+  AlreadyNotified = 2, ///< Mail-only rule matched, email sent successfully.
+  MailFailed = 3       ///< Mail-only rule matched, but email send failed.
+};
+
+/**
  * @brief Regexp matching rule for torrent downloads.
  */
 struct regexp {
@@ -134,9 +144,9 @@ class Rss_lite : public QObject {
      * @param titleString Title of the download.
      * @param linkString Download link.
      * @param fromIrc Whether the call originates from IRC.
-     * @return Index of the matching regexp, or -1 if none.
+     * @return MatchResult indicating what action to take.
      */
-    int parseTitle ( QString seccion, QString titleString, QString linkString, bool fromIrc);
+    MatchResult parseTitle ( QString seccion, QString titleString, QString linkString, bool fromIrc);
 
     /**
      * @brief Initializes tracker configurations from settings.

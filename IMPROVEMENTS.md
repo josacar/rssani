@@ -105,40 +105,24 @@ GrpcServer::~GrpcServer() {
 }
 ```
 
-### 1c. Implicit switch fallthrough in `miraTitulo()`
+### 1c. Implicit switch fallthrough in `miraTitulo()` — **DONE**
 
-**File:** `rss_lite.cpp:125-131`
+The `[[fallthrough]]` attribute and `default: break;` were added. See 5d for the full enum class refactor.
 
-```cpp
-void Rss_lite::miraTitulo(QString seccion, QString titulo, QString link, bool fromIrc) {
-  switch (parseTitle(seccion, titulo, link, fromIrc)) {
-    case 1:
-      emit linkCorrecto(link, titulo);
-      // ← implicit fallthrough to case 2 — is this intentional?
-    case 2:
-      if (recientes.size() > 30) recientes.removeFirst();
-      recientes.append(titulo);
-  }
-}
-```
+### 5d. Replace magic return codes with `enum class` — **DONE**
 
-In C++17+, implicit fallthrough is a warning (`-Wimplicit-fallthrough`). The logic seems intentional: a download match (case 1) should also deduplicate (case 2). But ambiguous code should be explicit.
-
-**Fix:** Add `[[fallthrough]]` attribute and a `break` at the end:
+`parseTitle()` now returns `MatchResult` enum class instead of magic integers:
 
 ```cpp
-switch (result) {
-  case MatchResult::Download:
-    emit linkCorrecto(link, titulo);
-    [[fallthrough]];
-  case MatchResult::MailOnly:
-    if (recientes.size() > 30) recientes.removeFirst();
-    recientes.append(titulo);
-    break;
-  default:
-    break;
-}
+enum class MatchResult : int8_t {
+  NotMatched = 0,
+  Download = 1,
+  AlreadyNotified = 2,
+  MailFailed = 3
+};
 ```
+
+The `miraTitulo()` switch now uses `MatchResult::Download`, `MatchResult::AlreadyNotified`, and `default`.
 
 ---
 
@@ -1020,7 +1004,7 @@ Current integration tests cover CRUD operations but not:
 | 2 | Detached gRPC thread — store and join (1b) | Small | High — UB on shutdown |
 | 3 | Make `regexp` value type (2b) | Medium | High — eliminates leak/UAF bugs |
 | 4 | Inverted bool returns (3a) — **DONE** | Small | Medium — API correctness |
-| 5 | `[[fallthrough]]` + enum class for parseTitle (5d, 1c) | Small | Medium — correctness |
+| 5 | `[[fallthrough]]` + enum class for parseTitle (5d, 1c) — **DONE** | Small | Medium — correctness |
 | 6 | Remove credential logging (6a) | Tiny | High — security |
 | 7 | Fix `cambiaTimer()` bug (8a) | Tiny | High — timer doesn't actually update |
 | 8 | Default member initializers (4c, 4d) | Small | Medium — prevents UB |

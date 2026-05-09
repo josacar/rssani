@@ -123,10 +123,10 @@ void Rss_lite::readDataRSS(QNetworkReply *reply) {
  */
 void Rss_lite::miraTitulo( QString seccion, QString titulo, QString link, bool fromIrc ) {
   switch ( parseTitle( seccion , titulo , link, fromIrc ) ) {
-    case 1:
+    case MatchResult::Download:
       emit linkCorrecto( link, titulo );
       [[fallthrough]];
-    case 2:
+    case MatchResult::AlreadyNotified:
       if ( recientes.size() > 30 ) recientes.removeFirst();
       recientes.append( titulo );
       break;
@@ -217,11 +217,10 @@ void Rss_lite::parseXml( QXmlStreamReader *xml ) {
  * @return Si hace match con alguna regexp de la lista
  */
 
-int Rss_lite::parseTitle( QString seccion, QString titulo,  QString enlace, bool fromIrc ) {
+MatchResult Rss_lite::parseTitle( QString seccion, QString titulo,  QString enlace, bool fromIrc ) {
   QTextStream out( stdout );
   QUrl urlLink( enlace );
   QUrl urlRegexp;
-  int exito = -1;
 
   QString subida = titulo;
   if ( !seccion.isEmpty() ) subida = QChar('(') + seccion + QStringLiteral(") ") + titulo;
@@ -230,7 +229,7 @@ int Rss_lite::parseTitle( QString seccion, QString titulo,  QString enlace, bool
     out << "Analiz. : " << subida << "\n";//<< enlace;
 
   if ( ! fromIrc ) out << ".";
-  if ( recientes.contains( titulo ) ) return 0;
+  if ( recientes.contains( titulo ) ) return MatchResult::NotMatched;
 
   for ( int i = 0;i < lista->size();i++ ) {
     // Quitamos lo que haya vencido
@@ -259,14 +258,14 @@ int Rss_lite::parseTitle( QString seccion, QString titulo,  QString enlace, bool
       // Miramos si solo mail
       if ( lista->at(i).mail == 1 ) {
         out << "\nINFO: " << titulo << "\n";
-        exito = sendMail(
+        int exito = sendMail(
             QStringLiteral("RSSINFO ") + QHostInfo::localHostName() + QDateTime::currentDateTime().toString( QStringLiteral(" dd/MM/yyyy hh:mm:ss") ),
             subida + QStringLiteral("\nLINK   : ") + enlace );
 
         if ( exito == 0 )
-          return 2;// Si es igual pasando, que ya hemos avisado...
+          return MatchResult::AlreadyNotified;
         else
-          return 3;
+          return MatchResult::MailFailed;
       }
 
       // Vemos si han pasado los dias minimos entre descargas
@@ -283,11 +282,11 @@ int Rss_lite::parseTitle( QString seccion, QString titulo,  QString enlace, bool
       (*lista)[i].fechaDescarga = QDateTime::currentDateTime();
 
       out << "\nBAJANDO: " << titulo << "\n";
-      return 1;
+      return MatchResult::Download;
     }
   }
 
-  return 0;
+  return MatchResult::NotMatched;
 }
 
 // FIN MANEJO DEL RSS
