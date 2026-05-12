@@ -394,23 +394,9 @@ class Auth {
 
 Added default member initializers to `datosIrc` (`myircsession.h`): `activo = false`, `server = "irc.irc-hispano.org"`, `port = 6667`, `channels = {"#PuntoTorrent"}`, `botNick = "PuntoTorrent"`, `debug = false`. Removed the hardcoded defaults from `rssani_lite.cpp` settings reads and the redundant `misdatos.activo = false` in the constructor.
 
-### 4d. Same for `tracker` struct
+### 4d. Same for `tracker` and `auth` structs — **DONE**
 
-**File:** `rss_lite.h:41-49`
-
-```cpp
-struct tracker {
-  QString urlTracker;
-  QString referer = QStringLiteral("/browse.php");
-  QString cookie;
-  QString urlRss = QStringLiteral("/rss.php");
-  QString urlDownload = QStringLiteral("/download.php?id=");
-  QString idField = QStringLiteral("id");
-  bool esRss = true;
-};
-```
-
-This removes the hardcoded defaults from `rssani_lite.cpp:454-457` and `rss_lite.cpp` where they're currently duplicated.
+Added default member initializers to `tracker` (`rss_lite.h`) and `auth` (`values.h`): `referer="/browse.php"`, `idField="id"`, `urlDownload="/download.php?id="`, `urlRss="/rss.php"`, `esRss=true`. Removed redundant fallback defaults from `rssani_lite.cpp` settings reads.
 
 ---
 

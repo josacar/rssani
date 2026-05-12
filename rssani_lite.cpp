@@ -430,10 +430,10 @@ void rssani_lite::readSettings() {
     au.uid = settings->value( QStringLiteral("uid") ).toString();
     au.pass = settings->value( QStringLiteral("pass") ).toString();
     au.passkey = settings->value( QStringLiteral("passkey") ).toString();
-    au.referer = settings->value( QStringLiteral("referer"), QStringLiteral("/browse.php") ).toString();
-    au.idField = settings->value( QStringLiteral("idField"), QStringLiteral("id") ).toString();
-    au.urlDownload = settings->value( QStringLiteral("urlDownload"), QStringLiteral("/download.php?id=") ).toString();
-    au.urlRss = settings->value( QStringLiteral("urlRss"), QStringLiteral("/rss.php") ).toString();
+au.referer = settings->value( QStringLiteral("referer") ).toString();
+  au.idField = settings->value( QStringLiteral("idField") ).toString();
+  au.urlDownload = settings->value( QStringLiteral("urlDownload") ).toString();
+  au.urlRss = settings->value( QStringLiteral("urlRss") ).toString();
     listAuths.append( au );
     hashAuths.insert( au.tracker, au );
     qDebug() << "-" << au.tracker << au.uid << au.pass << au.passkey;

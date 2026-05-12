@@ -7,14 +7,14 @@
  * @brief Tracker authentication credentials.
  */
 struct auth {
-  QString tracker;     ///< Tracker name/URL.
-  QString uid;         ///< User ID.
-  QString pass;        ///< Password.
-  QString passkey;     ///< Passkey.
-  QString referer;     ///< HTTP Referer header value.
-  QString idField;     ///< Query parameter name for the torrent ID.
-  QString urlDownload; ///< Base URL for torrent downloads.
-  QString urlRss;      ///< RSS feed URL.
+  QString tracker;                                       ///< Tracker name/URL.
+  QString uid;                                            ///< User ID.
+  QString pass;                                           ///< Password.
+  QString passkey;                                        ///< Passkey.
+  QString referer = QStringLiteral("/browse.php");       ///< HTTP Referer header value.
+  QString idField = QStringLiteral("id");                 ///< Query parameter name for the torrent ID.
+  QString urlDownload = QStringLiteral("/download.php?id="); ///< Base URL for torrent downloads.
+  QString urlRss = QStringLiteral("/rss.php");            ///< RSS feed URL.
 };
 
 /**

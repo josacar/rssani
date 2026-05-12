@@ -49,13 +49,13 @@ struct regexp {
  * @brief Tracker configuration.
  */
 struct tracker {
-  QString urlTracker;   ///< Tracker base URL.
-  QString referer;      ///< HTTP Referer header value.
-  QString cookie;       ///< Authentication cookie.
-  QString urlRss;       ///< RSS feed URL.
-  QString urlDownload;  ///< Base URL for torrent downloads.
-  QString id;           ///< Query parameter name for the torrent ID.
-  bool esRss;           ///< Whether this tracker uses RSS (vs. IRC only).
+  QString urlTracker;                                      ///< Tracker base URL.
+  QString referer = QStringLiteral("/browse.php");         ///< HTTP Referer header value.
+  QString cookie;                                          ///< Authentication cookie.
+  QString urlRss = QStringLiteral("/rss.php");             ///< RSS feed URL.
+  QString urlDownload = QStringLiteral("/download.php?id="); ///< Base URL for torrent downloads.
+  QString id = QStringLiteral("id");                        ///< Query parameter name for the torrent ID.
+  bool esRss = true;                                        ///< Whether this tracker uses RSS (vs. IRC only).
 };
 
 /**
