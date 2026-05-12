@@ -184,7 +184,7 @@ All methods are defined in `rssani.proto` under the `rssani.RssaniService` servi
 - `rss` and `session` in `rssani_lite` constructor are still raw `new` (Qt parent-child ownership).
 - `PonerOpciones` gRPC method now uses `setOpciones()` instead of directly mutating `Values*`, ensuring atomic updates under mutex.
 - `cambiaTimer` now calls `timer.setInterval()` to update the running timer. `verTimer()` returns the interval in minutes (matching `cambiaTimer()` input unit).
-- `handleSigTerm()` reads from the self-pipe with an uninitialized `char tmp` (should be `char tmp = 0`).
+- `handleSigTerm()` reads from the self-pipe with `char tmp = 0` (initialized).
 
 ## File-by-File Notes
 

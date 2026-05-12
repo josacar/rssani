@@ -20,7 +20,7 @@ void sigHandler( int ) {
 
 void rssani_lite::handleSigTerm() {
   snTerm->setEnabled(false);
-  char tmp;
+  char tmp = 0;
   ::read(sigFd[1], &tmp, sizeof(tmp));
 
   guardar();

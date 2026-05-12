@@ -753,24 +753,9 @@ private:
 
 Fixed: `cambiaTimer()` now calls `timer.setInterval(tiempo * 60 * 1000)` to actually update the running timer. `verTimer()` now returns the `tiempo` member (minutes) instead of `timer.interval()` (milliseconds), making the unit consistent with `cambiaTimer()` input.
 
-### 8b. Uninitialized variables in signal handler
+### 8b. Uninitialized variables in signal handler — **DONE**
 
-**File:** `rssani_lite.cpp:23`
-
-```cpp
-void rssani_lite::handleSigTerm() {
-  snTerm->setEnabled(false);
-  char tmp;  // ← uninitialized
-  ::read(sigFd[1], &tmp, sizeof(tmp));
-  // ...
-}
-```
-
-While `tmp` is immediately overwritten by `read()`, this is technically UB if `read()` fails. Initialize to zero:
-
-```cpp
-char tmp = 0;
-```
+Fixed: `char tmp;` → `char tmp = 0;` in `handleSigTerm()`.
 
 ### 8c. Switch on `parseTitle()` has no `default` case
 
