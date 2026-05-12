@@ -1,5 +1,7 @@
 #include "rss_lite.h"
 #include <QRegularExpression>
+#include <QLoggingCategory>
+Q_LOGGING_CATEGORY(logRss, "rssani.rss")
 /**
  * Constructor de la clase RSS
  * @param values Lista de opciones guardadas
@@ -82,7 +84,7 @@ void Rss_lite::fetch() {
     request.setRawHeader("Cookie", trk->cookie.toUtf8() );
     request.setRawHeader("Referer", (trk->urlTracker + trk->referer).toUtf8() );
 
-    qDebug() << "+ Me bajo" << urlTracker.host() << trk->urlRss;
+    qCDebug(logRss) << "+ Me bajo" << urlTracker.host() << trk->urlRss;
 
     httpRss.get(request);
   }
@@ -159,7 +161,7 @@ void Rss_lite::parseXml( QXmlStreamReader *xml ) {
       }
       if ( xml->name() == QStringLiteral("enclosure") ) { // Con esto machaco
         linkString = xml->attributes().value( QStringLiteral("url") ).toString();
-        // 				qDebug() << "Enclosure:" << linkString;
+        // 				qCDebug(logRss) << "Enclosure:" << linkString;
       }
       currentTag = xml->name().toString();
     } else if ( xml->isEndElement() ) {
@@ -194,7 +196,7 @@ void Rss_lite::parseXml( QXmlStreamReader *xml ) {
     }
 
     if ( xml->error() && xml->error() != QXmlStreamReader::PrematureEndOfDocumentError ) {
-        qWarning() << "XML ERROR:" << xml->lineNumber() << ": " << xml->errorString() << " con id " << xml->error();
+        qCWarning(logRss) << "XML ERROR:" << xml->lineNumber() << ": " << xml->errorString() << " con id " << xml->error();
         titleString.clear();
         linkString.clear();
         pubDate.clear();
@@ -205,7 +207,7 @@ void Rss_lite::parseXml( QXmlStreamReader *xml ) {
   }
 
   if ( xml->atEnd() ) {
-      qDebug() << "Limpio el stream XML";
+      qCDebug(logRss) << "Limpio el stream XML";
       xml->clear();
   }
 }
@@ -245,7 +247,7 @@ MatchResult Rss_lite::parseTitle( QString seccion, QString titulo,  QString enla
       if ( !lista->at(i).tracker.isEmpty() ) { // Si tiene tracker especifico miro a ver y si no drop
         urlRegexp = QUrl( lista->at(i).tracker );
         if ( values->Debug() )
-          qDebug() << "Tracker" << urlRegexp.host() << urlLink.host();
+          qCDebug(logRss) << "Tracker" << urlRegexp.host() << urlLink.host();
         if ( urlLink.host() != urlRegexp.host() ) continue;
       }
 
@@ -273,7 +275,7 @@ MatchResult Rss_lite::parseTitle( QString seccion, QString titulo,  QString enla
 
       if ( !lista->at(i).fechaDescarga.isNull() ) {
         if ( values->Debug() )
-          qDebug() << "diasDescarga:" << lista->at(i).fechaDescarga.daysTo( QDateTime::currentDateTime() ) << "Dias:" << lista->at(i).diasDescarga;
+          qCDebug(logRss) << "diasDescarga:" << lista->at(i).fechaDescarga.daysTo( QDateTime::currentDateTime() ) << "Dias:" << lista->at(i).diasDescarga;
         if ( lista->at(i).fechaDescarga.daysTo( QDateTime::currentDateTime() ) < lista->at(i).diasDescarga ) {
           continue;
         }
@@ -311,7 +313,7 @@ void Rss_lite::parseLink( QString linkString, QString title = "" ) {
 
   if ( linkString.contains( QStringLiteral("download") ) ) { // Si el link tiene download lo bajo tal cual
     path = linkString.mid( urlTracker.size() ); // Cojo el path de la url con los args
-    qDebug() << "Bajando:" << linkString.mid( urlTracker.size() );;
+    qCDebug(logRss) << "Bajando:" << linkString.mid( urlTracker.size() );;
   } else { // Cojo la URL a partir de la cfg y del id
     path = trk->urlDownload + query.queryItemValue( trk->id ) ;
   }
@@ -324,7 +326,7 @@ void Rss_lite::parseLink( QString linkString, QString title = "" ) {
 
     httpTorrent.get(request);
     posts.insert( urlTracker + path, title );
-    qDebug() << "Bajando:" << path;
+    qCDebug(logRss) << "Bajando:" << path;
 }
 
 /**
@@ -353,7 +355,7 @@ void Rss_lite::readDataTorrent(QNetworkReply *reply) {
 
       if ( !fichero.endsWith( QString( ".torrent" ) ) ) { // Si el header no me dice el nombre del fichero
         // METODO NUEVO (poner el titulo)
-        qDebug() << "URL dwnld:" << url.toString();
+        qCDebug(logRss) << "URL dwnld:" << url.toString();
         fichero = posts.take( url.toString() );
         // METODO VIEJO (poner el id)
         if ( fichero.isEmpty() ) {
@@ -362,7 +364,7 @@ void Rss_lite::readDataTorrent(QNetworkReply *reply) {
           fichero = QUrlQuery(url).queryItemValue( trk->id );
         }
         fichero += QStringLiteral(".torrent");
-        qDebug() << "Fichero: " << fichero;
+        qCDebug(logRss) << "Fichero: " << fichero;
       }
 
       fichero.replace( QChar('/'), QChar('-') );
@@ -389,7 +391,7 @@ void Rss_lite::readDataTorrent(QNetworkReply *reply) {
     if ( file.open( QIODevice::WriteOnly ) ) {
       file.write( *datos[downloadKey] );
       file.close();
-      qDebug() << "Grabado:" << fichero;
+      qCDebug(logRss) << "Grabado:" << fichero;
       saveLog( fichero );
       sendMail(
           QStringLiteral("RSSANI ") + QHostInfo::localHostName() + QDateTime::currentDateTime().toString( QStringLiteral(" dd/MM/yyyy hh:mm:ss") ),
@@ -438,7 +440,7 @@ void Rss_lite::iniciaTrackers() {
     trk->esRss = true;
     QString url = trk->urlTracker;
     listaTrackers.append( url );
-    qDebug() << "+" << "Añadido tracker" << url;
+    qCDebug(logRss) << "+" << "Añadido tracker" << url;
     trackers.insert( url, std::move(trk) );
   }
 }

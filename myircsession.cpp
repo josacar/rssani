@@ -1,5 +1,7 @@
 #include <unistd.h>
 #include "myircsession.h"
+#include <QLoggingCategory>
+Q_LOGGING_CATEGORY(logIrc, "rssani.irc")
 #include <libircclient/network.h>
 #include <libircclient/parser.h>
 #include <libircclient/channel.h>
@@ -33,7 +35,7 @@ MyIrcSession::MyIrcSession( QObject* parent, datosIrc *datos, bool depurar ) : Q
   misdatos = datos;
   debug = depurar;
 
-  qDebug() << "Debug is : " << debug;
+  qCDebug(logIrc) << "Debug is : " << debug;
 
   libirc::ServerAddress addr(misdatos->server, false, misdatos->port,
                              misdatos->nick, QString(), misdatos->user);
@@ -67,7 +69,7 @@ void MyIrcSession::on_timeout() {
 }
 
 void MyIrcSession::on_connected() {
-  qDebug() << "Conected !!!";
+  qCDebug(logIrc) << "Conected !!!";
   joinChannels();
 }
 
@@ -85,7 +87,7 @@ void MyIrcSession::on_privmsg(libircclient::Parser *parser) {
   QString channel = params.isEmpty() ? QString() : params.first();
   QString message = parser->GetText();
 
-  if ( debug ) qDebug() << "message:" << nick << channel << message;
+  if ( debug ) qCDebug(logIrc) << "message:" << nick << channel << message;
 
   if ( !channel.startsWith( QChar('#') ) ) return;
 
@@ -103,7 +105,7 @@ void MyIrcSession::on_kick(libircclient::Parser *parser, libircclient::Channel *
   Q_UNUSED(parser);
   if ( !chan ) return;
   QString channel = chan->GetName();
-  qDebug() << "Kicked from channel:" << channel;
+  qCDebug(logIrc) << "Kicked from channel:" << channel;
   sleep( 5 );
   network->RequestJoin(channel);
 }

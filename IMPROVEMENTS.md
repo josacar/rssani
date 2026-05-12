@@ -497,27 +497,9 @@ switch (result) {
 }
 ```
 
-### 5e. Use `QLoggingCategory` instead of raw `qDebug()`
+### 5e. Use `QLoggingCategory` instead of raw `qDebug()` — **DONE**
 
-**Files:** All `.cpp` files
-
-Unconditional `qDebug()` calls make it impossible to filter log output at runtime. Every log statement is always active.
-
-**Fix:**
-
-```cpp
-// In header or namespace:
-Q_LOGGING_CATEGORY(logRss, "rssani.rss")
-Q_LOGGING_CATEGORY(logIrc, "rssani.irc")
-Q_LOGGING_CATEGORY(logRpc, "rssani.rpc")
-Q_LOGGING_CATEGORY(logCore, "rssani.core")
-
-// Usage:
-qCDebug(logRss) << "+ Me bajo" << urlTracker.host() << trk->urlRss;
-qCDebug(logIrc) << "message:" << nick << channel << message;
-```
-
-This allows runtime filtering via `QT_LOGGING_RULES="rssani.rss=true;rssani.irc=false"` or `QLoggingCategory::setFilterRules()`.
+Added logging categories: `rssani.core`, `rssani.rss`, `rssani.irc`, `rssani.rpc`. Replaced all `qDebug()` calls with `qCDebug()`, `qWarning()` with `qCWarning()`, and `qCritical()` with `qCCritical()` in the corresponding files. Runtime filtering is now possible via `QT_LOGGING_RULES` or `QLoggingCategory::setFilterRules()`.
 
 ### 5f. Use `std::expected` (C++23) or a Result type for error handling
 
@@ -868,7 +850,7 @@ Current integration tests cover CRUD operations but not:
 | 7 | Fix `cambiaTimer()` bug (8a) — **DONE** | Tiny | High — timer doesn't actually update |
 | 8 | Default member initializers (4c, 4d) | Small | Medium — prevents UB |
 | 9 | Encapsulate data model (4a, 4b) | Large | Medium — maintainability |
-| 10 | `QLoggingCategory` (5e) | Medium | Medium — operational visibility |
+| 10 | `QLoggingCategory` (5e) — **DONE** | Medium | Medium — operational visibility |
 | 11 | Input validation in gRPC (6d) — **DONE** | Medium | Medium — security |
 | 12 | `std::string_view` params (3c) | Small | Low — performance |
 | 3d | `[[nodiscard]]` on getters — **DONE** | Small | Low — correctness |

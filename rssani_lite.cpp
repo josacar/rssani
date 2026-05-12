@@ -2,6 +2,8 @@
 #include "rss_lite.h"
 #include <QtCore/QCoreApplication>
 #include <QtCore/QRegularExpression>
+#include <QtCore/QLoggingCategory>
+Q_LOGGING_CATEGORY(logCore, "rssani.core")
 #ifdef __unix__
 #include <unistd.h>
 #include <sys/socket.h>
@@ -59,7 +61,7 @@ rssani_lite::rssani_lite( QObject* parent ) : QObject( parent ) {
 
   settings = std::make_unique<QSettings>();
 
-  qDebug() << "Config file path:" << settings->fileName();
+  qCDebug(logCore) << "Config file path:" << settings->fileName();
 
   readSettings();
   QFileInfo fi( settings->fileName() );
@@ -73,7 +75,7 @@ rssani_lite::rssani_lite( QObject* parent ) : QObject( parent ) {
     session = new MyIrcSession( this,&misdatos,misdatos.debug);
     connect( session, &MyIrcSession::nuevaSubida, this, &rssani_lite::miraSubida );
   } else {
-    qDebug() << "***** IRC deshabilitado *****";
+    qCDebug(logCore) << "***** IRC deshabilitado *****";
   }
 
   prepareSignals();
@@ -84,7 +86,7 @@ void rssani_lite::miraSubida( QString subida ) {
   int primero = subida.indexOf( QChar('-') );
   int ultimo = subida.lastIndexOf( QChar('-') );
   QRegularExpression rehttp( QStringLiteral("\\s(https?://[\\S]*)") );
-  if ( values->Debug() ) qDebug() << "SUBIDA:" << subida;
+  if ( values->Debug() ) qCDebug(logCore) << "SUBIDA:" << subida;
   QRegularExpressionMatch match = rehttp.match( subida );
   if ( match.hasMatch() ) {
     url = match.captured( 1 );
@@ -93,9 +95,9 @@ void rssani_lite::miraSubida( QString subida ) {
     seccion = subida.mid( 0, primero - 1 );
     titulo = subida.mid( primero + 2 , ultimo - primero - 3 );
     if ( values->Debug() ) {
-      qDebug() << "URL: " << url;
-      qDebug() << "TITULO:" << titulo;
-      qDebug() << "SECCION:" << seccion;
+      qCDebug(logCore) << "URL: " << url;
+      qCDebug(logCore) << "TITULO:" << titulo;
+      qCDebug(logCore) << "SECCION:" << seccion;
     }
     emit nuevaSubida ( seccion, titulo.trimmed(), url);
   }
@@ -130,7 +132,7 @@ bool rssani_lite::editarRegexp( std::string regexpOrig, std::string regexpDest )
   for ( int i = 0; i < lista.size(); ++i ) {
     if ( lista.at( i ).nombre == QString::fromStdString( regexpOrig ) ) {
       lista[i].nombre = QString::fromStdString( regexpDest );
-      qDebug()  << "Cambiado" << QString::fromStdString( regexpOrig ) << "--> " << lista.at( i ).nombre;
+      qCDebug(logCore)  << "Cambiado" << QString::fromStdString( regexpOrig ) << "--> " << lista.at( i ).nombre;
       return true;
     }
   }
@@ -142,7 +144,7 @@ bool rssani_lite::editarRegexp( int pos, std::string regexpDest ) {
   if ( pos >= 0 && pos < lista.size() ) {
     QString regexpOrig = lista.at( pos ).nombre;
     lista[pos].nombre = QString::fromStdString( regexpDest );
-    qDebug()  << "Cambiado" << regexpOrig << "--> " << lista.at( pos ).nombre;
+    qCDebug(logCore)  << "Cambiado" << regexpOrig << "--> " << lista.at( pos ).nombre;
     return true;
   } else {
     return false;
@@ -153,7 +155,7 @@ bool rssani_lite::activarRegexp( int pos ) {
   QMutexLocker<QMutex> locker(&mutex);
   if ( pos >= 0 && pos < lista.size() ) {
     lista[pos].activa = !lista.at( pos ).activa;
-    qDebug()  << "Cambiado" << !lista.at( pos ).activa << "--> " << lista.at( pos ).activa;
+    qCDebug(logCore)  << "Cambiado" << !lista.at( pos ).activa << "--> " << lista.at( pos ).activa;
     return true;
   } else {
     return false;
@@ -165,7 +167,7 @@ void rssani_lite::moverRegexp( int from, int to ) {
   if ( from >= 0 && from < lista.size() && to >= 0 && to < lista.size() ) {
     regexp item = lista.takeAt( from );
     lista.insert( to, item );
-    qDebug() << "Movido el item" << from << "al" << to;
+    qCDebug(logCore) << "Movido el item" << from << "al" << to;
   }
 }
 
@@ -180,7 +182,7 @@ void rssani_lite::anadirRegexp( std::string nombre, std::string fecha, bool mail
   re.fechaDescarga = QDateTime();
   re.activa = true;
   lista.append( re );
-  qDebug()  << "Añadida regexp" << re.nombre << re.vencimiento << re.mail << re.tracker << re.diasDescarga;
+  qCDebug(logCore)  << "Añadida regexp" << re.nombre << re.vencimiento << re.mail << re.tracker << re.diasDescarga;
 }
 
 void rssani_lite::borrarRegexp( int pos ) {
@@ -195,7 +197,7 @@ void rssani_lite::borrarRegexp( std::string cad ) {
     if ( lista.at( i ).nombre == QString::fromStdString( cad ) ) {
       lista.removeAt( i );
       --i;
-      qDebug()  << "Borrado regexp" << QString::fromStdString( cad );
+      qCDebug(logCore)  << "Borrado regexp" << QString::fromStdString( cad );
     }
   }
 }
@@ -209,7 +211,7 @@ void rssani_lite::anadirAuth( std::string tracker, std::string uid, std::string 
   au.passkey = QString::fromStdString( passkey );
   listAuths.append( au );
   hashAuths.insert( au.tracker, au );
-  qDebug()  << "Añadido auth" << au.tracker << au.uid << au.pass << au.passkey;
+  qCDebug(logCore)  << "Añadido auth" << au.tracker << au.uid << au.pass << au.passkey;
 }
 
 void rssani_lite::borrarAuth( std::string tracker ) {
@@ -218,7 +220,7 @@ void rssani_lite::borrarAuth( std::string tracker ) {
     if ( listAuths.at( i ).tracker == QString::fromStdString( tracker ) ) {
       listAuths.removeAt( i );
       --i;
-      qDebug()  << "Borrado auth" << QString::fromStdString( tracker );
+      qCDebug(logCore)  << "Borrado auth" << QString::fromStdString( tracker );
     }
   }
   hashAuths.remove( QString::fromStdString( tracker ) );
@@ -250,16 +252,16 @@ void rssani_lite::cambiaTimer( int tiempo ) {
 void rssani_lite::guardar() {
   QMutexLocker<QMutex> locker(&mutex);
   writeSettings();
-  qDebug() << "Conf. guardada";
+  qCDebug(logCore) << "Conf. guardada";
 }
 
 void rssani_lite::salir() {
-  qDebug() << "intentando salir";
+  qCDebug(logCore) << "intentando salir";
   QCoreApplication::quit();
 }
 
 void rssani_lite::salYa() {
-  qDebug() << "saliendo";
+  qCDebug(logCore) << "saliendo";
   exit( 0 );
 }
 
@@ -316,7 +318,7 @@ void rssani_lite::writeSettings() {
   SettingsGroup group(*settings, QStringLiteral("regexps"));
   settings->beginWriteArray( QStringLiteral("items") );
   settings->remove( QStringLiteral("") );
-  qDebug() << "Num. regexps :" << lista.size();
+  qCDebug(logCore) << "Num. regexps :" << lista.size();
   for ( int i = 0; i < lista.size(); ++i ) {
     settings->setArrayIndex( i );
     const regexp &re = lista.at( i );
@@ -327,9 +329,9 @@ void rssani_lite::writeSettings() {
     settings->setValue( QStringLiteral("dias"), re.diasDescarga );
     if ( re.fechaDescarga.isValid() ) {
       settings->setValue( QStringLiteral("fecha"), re.fechaDescarga );
-      qDebug() << "-" << re.nombre << re.vencimiento << re.mail << re.tracker << re.diasDescarga << re.fechaDescarga.toString( Qt::ISODate );
+      qCDebug(logCore) << "-" << re.nombre << re.vencimiento << re.mail << re.tracker << re.diasDescarga << re.fechaDescarga.toString( Qt::ISODate );
     } else {
-      qDebug() << "-" << re.nombre << re.vencimiento << re.mail << re.tracker << re.diasDescarga;
+      qCDebug(logCore) << "-" << re.nombre << re.vencimiento << re.mail << re.tracker << re.diasDescarga;
     }
     settings->setValue( QStringLiteral("activa"), re.activa );
   }
@@ -342,7 +344,7 @@ void rssani_lite::writeSettings() {
     SettingsGroup group(*settings, QStringLiteral("trackers"));
     settings->beginWriteArray( QStringLiteral("trackers") );
     settings->remove( QStringLiteral("") );
-    qDebug() << "Num. trackers :" << listAuths.size();
+    qCDebug(logCore) << "Num. trackers :" << listAuths.size();
     auth au;
     for ( int i = 0; i < listAuths.size(); ++i ) {
       settings->setArrayIndex( i );
@@ -355,7 +357,7 @@ void rssani_lite::writeSettings() {
       settings->setValue( QStringLiteral("idField"), au.idField );
       settings->setValue( QStringLiteral("urlDownload"), au.urlDownload );
       settings->setValue( QStringLiteral("urlRss"), au.urlRss );
-      qDebug() << "-" << au.tracker << au.uid << au.pass << au.passkey;
+      qCDebug(logCore) << "-" << au.tracker << au.uid << au.pass << au.passkey;
     }
 
     settings->endArray();
@@ -400,7 +402,7 @@ void rssani_lite::readSettings() {
   {
     SettingsGroup group(*settings, QStringLiteral("regexps"));
     int size = settings->beginReadArray( QStringLiteral("items") );
-    qDebug() << "Num. regexps :" << size;
+    qCDebug(logCore) << "Num. regexps :" << size;
     for ( int i = 0; i < size; ++i ) {
       settings->setArrayIndex( i );
       regexp re;
@@ -418,9 +420,9 @@ void rssani_lite::readSettings() {
       lista.append( re );
 
       if ( re.fechaDescarga.isValid() )
-        qDebug() << "-" << re.nombre << re.vencimiento << re.mail << re.tracker << re.diasDescarga << re.fechaDescarga.toString( QStringLiteral("dd-MM-yyyy") );
+        qCDebug(logCore) << "-" << re.nombre << re.vencimiento << re.mail << re.tracker << re.diasDescarga << re.fechaDescarga.toString( QStringLiteral("dd-MM-yyyy") );
       else 
-        qDebug() << "-" << re.nombre << re.vencimiento << re.mail << re.tracker << re.diasDescarga;
+        qCDebug(logCore) << "-" << re.nombre << re.vencimiento << re.mail << re.tracker << re.diasDescarga;
     }
 
     settings->endArray();
@@ -431,7 +433,7 @@ void rssani_lite::readSettings() {
     // auths para los trackers
     int size = settings->beginReadArray( QStringLiteral("trackers") );
     auth au;
-    qDebug() << "Num. trackers :" << size;
+    qCDebug(logCore) << "Num. trackers :" << size;
     for ( int i = 0; i < size; ++i ) {
       settings->setArrayIndex( i );
       au.tracker =	settings->value( QStringLiteral("tracker") ).toString();
@@ -444,7 +446,7 @@ void rssani_lite::readSettings() {
       au.urlRss = settings->value( QStringLiteral("urlRss") ).toString();
       listAuths.append( au );
       hashAuths.insert( au.tracker, au );
-      qDebug() << "-" << au.tracker << au.uid << au.pass << au.passkey;
+      qCDebug(logCore) << "-" << au.tracker << au.uid << au.pass << au.passkey;
     }
 
     settings->endArray();

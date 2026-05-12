@@ -1,6 +1,9 @@
 #include "grpc_server.h"
 #include <QDebug>
+#include <QLoggingCategory>
 #include <thread>
+
+Q_LOGGING_CATEGORY(logRpc, "rssani.rpc")
 
 // --- gRPC Service Implementation ---
 
@@ -209,9 +212,9 @@ grpc::Status RssaniServiceImpl::Guardar(grpc::ServerContext *,
 grpc::Status RssaniServiceImpl::Shutdown(grpc::ServerContext *,
                                           const rssani::EmptyRequest *,
                                           rssani::BoolResponse *response) {
-    qDebug() << "gRPC server received shutdown signal";
+    qCDebug(logRpc) << "gRPC server received shutdown signal";
     response->set_value(true);
-    qDebug() << "Shutting down...";
+    qCDebug(logRpc) << "Shutting down...";
     rss->salir();
     return grpc::Status::OK;
 }
@@ -239,14 +242,14 @@ void GrpcServer::start() {
 
         server = builder.BuildAndStart();
         if (!server) {
-            qCritical() << "Failed to start gRPC server";
+            qCCritical(logRpc) << "Failed to start gRPC server";
             running.store(false);
             return;
         }
 
-        qDebug() << "gRPC server listening on 0.0.0.0:50051";
+        qCDebug(logRpc) << "gRPC server listening on 0.0.0.0:50051";
         server->Wait();
-        qDebug() << "gRPC server stopped";
+        qCDebug(logRpc) << "gRPC server stopped";
         running.store(false);
     });
 }
