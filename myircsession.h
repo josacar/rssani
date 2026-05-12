@@ -14,15 +14,15 @@ namespace libircclient { class Network; class Parser; class Channel; }
  * @brief IRC connection parameters.
  */
 struct datosIrc {
-  bool	activo;       ///< Whether the IRC connection is active.
-  QString nick;       ///< Nickname used on the IRC server.
-  QString user;       ///< Username (ident) for the IRC connection.
-  QString name;       ///< Real name sent to the IRC server.
-  QString server;     ///< IRC server hostname.
-  int port;           ///< IRC server port.
-  QStringList channels; ///< List of channels to join.
-  QString botNick;    ///< Nick of the bot that announces uploads.
-  bool debug;         ///< Enable debug logging for IRC.
+  bool activo = false;    ///< Whether the IRC connection is active.
+  QString nick;            ///< Nickname used on the IRC server.
+  QString user;            ///< Username (ident) for the IRC connection.
+  QString name;            ///< Real name sent to the IRC server.
+  QString server = QStringLiteral("irc.irc-hispano.org"); ///< IRC server hostname.
+  int port = 6667;         ///< IRC server port.
+  QStringList channels = {QStringLiteral("#PuntoTorrent")}; ///< List of channels to join.
+  QString botNick = QStringLiteral("PuntoTorrent"); ///< Nick of the bot that announces uploads.
+  bool debug = false;      ///< Enable debug logging for IRC.
 };
 
 /**

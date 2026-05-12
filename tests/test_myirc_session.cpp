@@ -17,15 +17,23 @@ private slots:
 };
 
 void TestMyIrcSession::testDatosIrcStruct() {
-    // Test that datosIrc struct can be initialized properly
+    // Test that datosIrc struct has proper defaults and can be overridden
     datosIrc datos;
+    QCOMPARE(datos.activo, false);
+    QCOMPARE(datos.server, QString("irc.irc-hispano.org"));
+    QCOMPARE(datos.port, 6667);
+    QCOMPARE(datos.channels, QStringList{QStringLiteral("#PuntoTorrent")});
+    QCOMPARE(datos.botNick, QString("PuntoTorrent"));
+    QCOMPARE(datos.debug, false);
+
+    // Override all fields
     datos.activo = true;
     datos.nick = "testnick";
     datos.user = "testuser";
     datos.name = "Test User";
     datos.server = "irc.example.com";
-    datos.port = 6667;
-    datos.channels << "#channel1" << "#channel2";
+    datos.port = 7000;
+    datos.channels = {"#channel1", "#channel2"};
     datos.botNick = "BotNick";
     datos.debug = true;
 
@@ -34,7 +42,7 @@ void TestMyIrcSession::testDatosIrcStruct() {
     QCOMPARE(datos.user, QString("testuser"));
     QCOMPARE(datos.name, QString("Test User"));
     QCOMPARE(datos.server, QString("irc.example.com"));
-    QCOMPARE(datos.port, 6667);
+    QCOMPARE(datos.port, 7000);
     QCOMPARE(datos.channels.size(), 2);
     QCOMPARE(datos.botNick, QString("BotNick"));
     QCOMPARE(datos.debug, true);

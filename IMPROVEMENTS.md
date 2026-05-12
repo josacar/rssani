@@ -390,39 +390,9 @@ class Auth {
 };
 ```
 
-### 4c. Add default member initializers to `datosIrc`
+### 4c. Add default member initializers to `datosIrc` — **DONE**
 
-**File:** `myircsession.h:16-26`
-
-```cpp
-// Current — no defaults, can contain garbage
-struct datosIrc {
-  bool activo;      // ← uninitialized if not set
-  QString nick;
-  QString user;
-  QString name;
-  QString server;
-  int port;          // ← uninitialized if not set
-  QStringList channels;
-  QString botNick;
-  bool debug;        // ← uninitialized if not set
-};
-
-// Fix
-struct datosIrc {
-  bool activo = false;
-  QString nick;
-  QString user;
-  QString name;
-  QString server = QStringLiteral("irc.irc-hispano.org");
-  int port = 6667;
-  QStringList channels = {QStringLiteral("#PuntoTorrent")};
-  QString botNick = QStringLiteral("PuntoTorrent");
-  bool debug = false;
-};
-```
-
-This also removes the hardcoded defaults currently scattered across `rssani_lite.cpp:471-475`.
+Added default member initializers to `datosIrc` (`myircsession.h`): `activo = false`, `server = "irc.irc-hispano.org"`, `port = 6667`, `channels = {"#PuntoTorrent"}`, `botNick = "PuntoTorrent"`, `debug = false`. Removed the hardcoded defaults from `rssani_lite.cpp` settings reads and the redundant `misdatos.activo = false` in the constructor.
 
 ### 4d. Same for `tracker` struct
 

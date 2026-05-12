@@ -58,7 +58,6 @@ rssani_lite::rssani_lite( QObject* parent ) : QObject( parent ) {
   values = std::make_unique<Values>();
 
   settings = std::make_unique<QSettings>();
-  misdatos.activo = false;
 
   qDebug() << "Config file path:" << settings->fileName();
 
@@ -448,12 +447,11 @@ void rssani_lite::readSettings() {
   misdatos.nick = settings->value( QStringLiteral("nickIrc") ).toString();
   misdatos.user = settings->value( QStringLiteral("userIrc") ).toString();
   misdatos.name = settings->value( QStringLiteral("nameIrc") ).toString();
-  misdatos.server = settings->value( QStringLiteral("serverIrc"), QStringLiteral("irc.irc-hispano.org") ).toString();
-  misdatos.port = settings->value( QStringLiteral("portIrc"), 6667 ).toInt();
+  misdatos.server = settings->value( QStringLiteral("serverIrc") ).toString();
+  misdatos.port = settings->value( QStringLiteral("portIrc") ).toInt();
   misdatos.channels = settings->value( QStringLiteral("channelsIrc") ).toStringList();
-  if ( misdatos.channels.isEmpty() ) misdatos.channels << QStringLiteral("#PuntoTorrent");
-  misdatos.botNick = settings->value( QStringLiteral("botNickIrc"), QStringLiteral("PuntoTorrent") ).toString();
-  misdatos.debug = settings->value( QStringLiteral("debugIrc"), false ).toBool();
+  misdatos.botNick = settings->value( QStringLiteral("botNickIrc") ).toString();
+  misdatos.debug = settings->value( QStringLiteral("debugIrc") ).toBool();
   if ( !misdatos.nick.isEmpty() && !misdatos.nick.startsWith( QStringLiteral("OFF:") ) ) misdatos.activo = true;
 
   settings->endGroup();
