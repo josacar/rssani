@@ -23,8 +23,11 @@ grpc::Status RssaniServiceImpl::VerTimer(grpc::ServerContext *,
 }
 
 grpc::Status RssaniServiceImpl::VerLog(grpc::ServerContext *,
-                                        const rssani::LogRequest *request,
-                                        rssani::LogResponse *response) {
+                                         const rssani::LogRequest *request,
+                                         rssani::LogResponse *response) {
+    if (request->ini() < 0 || request->fin() < 0) {
+        return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "Log range indices must be non-negative");
+    }
     int ini = request->ini();
     int fin = request->fin();
     QStringList log = rss->verLog();
@@ -93,30 +96,44 @@ grpc::Status RssaniServiceImpl::EditarRegexp(grpc::ServerContext *,
 }
 
 grpc::Status RssaniServiceImpl::EditarRegexpI(grpc::ServerContext *,
-                                               const rssani::EditarRegexpIRequest *request,
-                                               rssani::BoolResponse *response) {
+                                                const rssani::EditarRegexpIRequest *request,
+                                                rssani::BoolResponse *response) {
+    if (request->regexporig() < 0 || request->regexporig() >= rss->listaRegexp().size()) {
+        return grpc::Status(grpc::StatusCode::OUT_OF_RANGE, "Regexp index out of range");
+    }
     response->set_value(rss->editarRegexp(request->regexporig(), request->regexpdest()));
     return grpc::Status::OK;
 }
 
 grpc::Status RssaniServiceImpl::ActivarRegexp(grpc::ServerContext *,
-                                               const rssani::ActivarRegexpRequest *request,
-                                               rssani::BoolResponse *response) {
+                                                const rssani::ActivarRegexpRequest *request,
+                                                rssani::BoolResponse *response) {
+    if (request->regexporig() < 0 || request->regexporig() >= rss->listaRegexp().size()) {
+        return grpc::Status(grpc::StatusCode::OUT_OF_RANGE, "Regexp index out of range");
+    }
     response->set_value(rss->activarRegexp(request->regexporig()));
     return grpc::Status::OK;
 }
 
 grpc::Status RssaniServiceImpl::MoverRegexp(grpc::ServerContext *,
-                                             const rssani::MoverRegexpRequest *request,
-                                             rssani::BoolResponse *response) {
+                                              const rssani::MoverRegexpRequest *request,
+                                              rssani::BoolResponse *response) {
+    int size = rss->listaRegexp().size();
+    if (request->from_position() < 0 || request->from_position() >= size ||
+        request->to() < 0 || request->to() >= size) {
+        return grpc::Status(grpc::StatusCode::OUT_OF_RANGE, "Regexp index out of range");
+    }
     rss->moverRegexp(request->from_position(), request->to());
     response->set_value(true);
     return grpc::Status::OK;
 }
 
 grpc::Status RssaniServiceImpl::BorrarRegexpI(grpc::ServerContext *,
-                                               const rssani::BorrarRegexpIRequest *request,
-                                               rssani::BoolResponse *response) {
+                                                const rssani::BorrarRegexpIRequest *request,
+                                                rssani::BoolResponse *response) {
+    if (request->pos() < 0 || request->pos() >= rss->listaRegexp().size()) {
+        return grpc::Status(grpc::StatusCode::OUT_OF_RANGE, "Regexp index out of range");
+    }
     rss->borrarRegexp(request->pos());
     response->set_value(true);
     return grpc::Status::OK;
@@ -171,8 +188,11 @@ grpc::Status RssaniServiceImpl::PonerOpciones(grpc::ServerContext *,
 }
 
 grpc::Status RssaniServiceImpl::CambiaTimer(grpc::ServerContext *,
-                                             const rssani::CambiaTimerRequest *request,
-                                             rssani::BoolResponse *response) {
+                                              const rssani::CambiaTimerRequest *request,
+                                              rssani::BoolResponse *response) {
+    if (request->tiempo() <= 0) {
+        return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "Timer interval must be positive");
+    }
     rss->cambiaTimer(request->tiempo());
     response->set_value(true);
     return grpc::Status::OK;

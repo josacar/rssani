@@ -619,20 +619,13 @@ QSettings stores `rpcPass`, `pass`, `passkey` in plain-text INI files. At minimu
 2. Or store credentials in the OS keychain via `QKeychain`
 3. Or at least base64-encode passwords (obfuscation only, not real security)
 
-### 6d. Input validation on gRPC methods
+### 6d. Input validation on gRPC methods — **DONE**
 
-None of the RPC methods validate input (empty strings, negative indices, out-of-range values). A negative `pos` in `BorrarRegexpI` could crash the application or cause undefined behavior.
-
-**Fix:** Add bounds checking:
-
-```cpp
-grpc::Status BorrarRegexpI(..., const rssani::BorrarRegexpIRequest *request, ...) {
-  if (request->pos() < 0 || request->pos() >= rss->listaRegexpSnapshot().size()) {
-    return grpc::Status(grpc::StatusCode::OUT_OF_RANGE, "Index out of range");
-  }
-  // ...
-}
-```
+Added bounds checking and input validation to gRPC RPC methods:
+- `BorrarRegexpI`, `EditarRegexpI`, `ActivarRegexp`: validate index is within regexp list bounds, return `OUT_OF_RANGE` if not
+- `MoverRegexp`: validate both `from_position` and `to` are within bounds
+- `CambiaTimer`: validate `tiempo` is positive, return `INVALID_ARGUMENT` if zero or negative
+- `VerLog`: validate `ini` and `fin` are non-negative
 
 ---
 
@@ -911,7 +904,7 @@ Current integration tests cover CRUD operations but not:
 | 8 | Default member initializers (4c, 4d) | Small | Medium — prevents UB |
 | 9 | Encapsulate data model (4a, 4b) | Large | Medium — maintainability |
 | 10 | `QLoggingCategory` (5e) | Medium | Medium — operational visibility |
-| 11 | Input validation in gRPC (6d) | Medium | Medium — security |
+| 11 | Input validation in gRPC (6d) — **DONE** | Medium | Medium — security |
 | 12 | `std::string_view` params (3c) | Small | Low — performance |
 | 13 | Split responsibilities (7a-7c) | Large | Medium — maintainability |
 | 14 | Mock network tests (10b) | Large | Medium — test quality |
