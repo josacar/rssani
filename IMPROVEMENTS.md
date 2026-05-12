@@ -310,19 +310,9 @@ void setRpcUser(std::string_view theValue);
 
 On the Qt side, use `QStringView` where the input is already a `QString`.
 
-### 3d. Add `[[nodiscard]]` to all const getters
+### 3d. Add `[[nodiscard]]` to all const getters — **DONE**
 
-None of the const getter methods have `[[nodiscard]]`, meaning their return values can be silently discarded.
-
-```cpp
-// Current
-QString Ruta() const { return ruta; }
-int SmtpPort() const { return smtpPort; }
-
-// Fix
-[[nodiscard]] QString Ruta() const { return ruta; }
-[[nodiscard]] int SmtpPort() const { return smtpPort; }
-```
+Added `[[nodiscard]]` to all const getters in `Values`, `rssani_lite`, and `Rss_lite`: `Ruta()`, `FromMail()`, `ToMail()`, `filledValues()`, `Fecha()`, `Debug()`, `SmtpServer()`, `SmtpLogin()`, `SmtpPass()`, `SmtpPort()`, `listaRegexp()`, `verTimer()`, `listaAuths()`, `getValues()`, `verUltimo()`.
 
 ---
 
@@ -691,15 +681,13 @@ Fixed: `char tmp;` → `char tmp = 0;` in `handleSigTerm()`.
 
 The switch handles cases 1 and 2 but not 0 or -1. While not a bug (no action needed), adding `default: break;` improves readability and silences compiler warnings.
 
-### 8d. Parameter name mismatches between declarations and definitions
+### 8d. Parameter name mismatches between declarations and definitions — **DONE**
 
-**Files noted in AGENTS.md TODO:**
-- `rss_lite.h:139` — `titleString`, `linkString` vs `rss_lite.cpp:216` — `titulo`, `enlace`
-- `rssani_lite.h:66` — `regexpOrig` vs `rssani_lite.cpp:158` — `pos`
-- `rssani_lite.h:73` — `regexpOrig` vs `rssani_lite.cpp:171` — `pos`
-- `rssani_lite.h:206` — `msg` vs `rssani_lite.cpp:91` — `subida`
-
-These make code harder to read and may confuse documentation tools. Unify them.
+Unified parameter names across header and source files:
+- `parseTitle`: `titleString`→`titulo`, `linkString`→`enlace`
+- `editarRegexp(int)`: `regexpOrig`→`pos`
+- `activarRegexp`: `regexpOrig`→`pos`
+- `miraSubida`: `msg`→`subida`
 
 ### 8e. Delete `ficheros`/`datos`/`sites` entries during iteration
 
@@ -906,5 +894,7 @@ Current integration tests cover CRUD operations but not:
 | 10 | `QLoggingCategory` (5e) | Medium | Medium — operational visibility |
 | 11 | Input validation in gRPC (6d) — **DONE** | Medium | Medium — security |
 | 12 | `std::string_view` params (3c) | Small | Low — performance |
+| 3d | `[[nodiscard]]` on getters — **DONE** | Small | Low — correctness |
+| 8d | Parameter name mismatches — **DONE** | Tiny | Low — readability |
 | 13 | Split responsibilities (7a-7c) | Large | Medium — maintainability |
 | 14 | Mock network tests (10b) | Large | Medium — test quality |

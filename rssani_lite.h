@@ -59,18 +59,18 @@ class rssani_lite : public QObject {
 
     /**
      * @brief Edits an existing regexp rule by index.
-     * @param regexpOrig Index of the regexp to edit.
+     * @param pos Index of the regexp to edit.
      * @param regexpDest New regexp pattern to replace it with.
      * @return True on success.
      */
-    bool editarRegexp ( int regexpOrig, std::string regexpDest );
+    bool editarRegexp ( int pos, std::string regexpDest );
 
     /**
      * @brief Toggles the active state of a regexp rule.
-     * @param regexpOrig Index of the regexp to toggle.
+     * @param pos Index of the regexp to toggle.
      * @return True on success.
      */
-    bool activarRegexp ( int regexpOrig );
+    bool activarRegexp ( int pos );
 
     /**
      * @brief Moves a regexp rule to a different position in the list.
@@ -89,7 +89,7 @@ class rssani_lite : public QObject {
      * @brief Returns a snapshot copy of the regexp rules list.
      * @return Copy of the regexp list.
      */
-    QList<regexp> listaRegexp();
+    [[nodiscard]] QList<regexp> listaRegexp();
 
     /**
      * @brief Deletes a regexp rule by position.
@@ -113,7 +113,7 @@ class rssani_lite : public QObject {
      * @brief Returns the current RSS fetch timer interval.
      * @return Interval in minutes.
      */
-    int verTimer();
+    [[nodiscard]] int verTimer();
 
     /**
      * @brief Returns the timestamp of the last RSS fetch.
@@ -174,13 +174,13 @@ class rssani_lite : public QObject {
      * @brief Returns a snapshot copy of the tracker authentication entries.
      * @return Copy of the auth list.
      */
-    QList<auth> listaAuths();
+    [[nodiscard]] QList<auth> listaAuths();
 
     /**
      * @brief Returns a snapshot copy of the configuration values.
      * @return Copy of the Values instance.
      */
-    Values getValues() const;
+    [[nodiscard]] Values getValues() const;
 
     /**
      * @brief Toggles debug mode.
@@ -211,7 +211,7 @@ class rssani_lite : public QObject {
        * @brief Performs an immediate shutdown.
        */
       void salYa();
-    void miraSubida( QString msg);
+    void miraSubida( QString subida);
     void handleSigTerm();
   private:
     /**

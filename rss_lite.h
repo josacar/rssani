@@ -85,7 +85,7 @@ class Rss_lite : public QObject {
        * @brief Returns the timestamp of the last RSS fetch.
        * @return Date/time of the last fetch.
        */
-      QDateTime verUltimo();
+      [[nodiscard]] QDateTime verUltimo();
 
     /**
      * @brief Checks a title from IRC against the regexp list.
@@ -146,7 +146,7 @@ class Rss_lite : public QObject {
      * @param fromIrc Whether the call originates from IRC.
      * @return MatchResult indicating what action to take.
      */
-    MatchResult parseTitle ( QString seccion, QString titleString, QString linkString, bool fromIrc);
+    MatchResult parseTitle ( QString seccion, QString titulo, QString enlace, bool fromIrc);
 
     /**
      * @brief Initializes tracker configurations from settings.
