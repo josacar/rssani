@@ -211,30 +211,9 @@ trk.cookie = ...;
 trackers.insert(url, trk);
 ```
 
-### 2d. Eliminate global `gRss`
+### 2d. Eliminate global `gRss` — **DONE**
 
-**File:** `rssani_lite.cpp:10`
-
-```cpp
-rssani_lite *gRss = nullptr;  // global mutable singleton
-```
-
-Used only by the POSIX signal handler (`sigHandler`). This is a classic C-style global that should be removed for testability and thread safety.
-
-**Fix:** The self-pipe pattern is already in place (`QSocketNotifier`). The signal handler only needs to write a byte to the pipe — it doesn't need to access `rssani_lite` at all. Remove `gRss` entirely:
-
-```cpp
-// Remove: rssani_lite *gRss = nullptr;
-// Remove: gRss = this; from constructor
-
-// sigHandler just writes to the pipe (already correct):
-void sigHandler(int) {
-  char a = 1;
-  ::write(rssani_lite::sigFd[0], &a, sizeof(a));
-}
-```
-
-`gRss` is not used anywhere else. The `handleSigTerm()` slot handles the actual shutdown via `QSocketNotifier`.
+Removed the unused `gRss` global pointer and the `gRss = this;` assignment. The POSIX signal handler only writes to the self-pipe and doesn't reference `gRss`.
 
 ---
 
@@ -968,6 +947,7 @@ Current integration tests cover CRUD operations but not:
 | 1 | Thread safety — return copies not pointers (1a) | Medium | High — data race bug |
 | 2 | Detached gRPC thread — store and join (1b) | Small | High — UB on shutdown |
 | 3 | Make `regexp` value type (2b) | Medium | High — eliminates leak/UAF bugs |
+| 2d | Eliminate global `gRss` — **DONE** | Small | Low — removes dead global |
 | 4 | Inverted bool returns (3a) — **DONE** | Small | Medium — API correctness |
 | 5 | `[[fallthrough]]` + enum class for parseTitle (5d, 1c) — **DONE** | Small | Medium — correctness |
 | 6 | Remove credential logging (6a) | Tiny | High — security |

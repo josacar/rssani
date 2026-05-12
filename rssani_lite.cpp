@@ -7,8 +7,6 @@
 #include <sys/socket.h>
 #endif
 
-rssani_lite *gRss = nullptr;
-
 #ifdef __unix__
 std::array<int, 2> rssani_lite::sigFd = {0, 0};
 
@@ -39,7 +37,6 @@ void rssani_lite::debugea(){
 }
 
 rssani_lite::rssani_lite( QObject* parent ) : QObject( parent ) {
-  gRss = this;
 #ifdef __unix__
   ::socketpair(AF_UNIX, SOCK_STREAM, 0, sigFd.data());
   snTerm = std::make_unique<QSocketNotifier>(sigFd[1], QSocketNotifier::Read, this);
