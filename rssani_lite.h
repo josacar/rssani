@@ -15,6 +15,16 @@
 #include <signal.h>
 #endif
 
+class SettingsGroup {
+public:
+  SettingsGroup(QSettings &s, const QString &group) : m_settings(s) { m_settings.beginGroup(group); }
+  ~SettingsGroup() { m_settings.endGroup(); }
+  SettingsGroup(const SettingsGroup &) = delete;
+  SettingsGroup &operator=(const SettingsGroup &) = delete;
+private:
+  QSettings &m_settings;
+};
+
 /**
  * @brief Core application class. Manages settings, regexps, IRC integration, and signal wiring.
  *

@@ -296,7 +296,8 @@ void rssani_lite::writeSettings() {
   QFileInfo fi( settings->fileName() );
   QFile::remove( fi.canonicalPath() + QChar('/') + fi.fileName() + QChar('.') + dia );
   QFile::copy( settings->fileName(), fi.canonicalPath() + QChar('/') + fi.fileName() + QChar('.') + dia );
-  settings->beginGroup( QStringLiteral("principal") );
+  {
+  SettingsGroup group(*settings, QStringLiteral("principal"));
   settings->setValue( QStringLiteral("fromMail"), values->FromMail() );
   settings->setValue( QStringLiteral("toMail"), values->ToMail() );
   settings->setValue( QStringLiteral("path"), values->Ruta() );
@@ -309,9 +310,10 @@ void rssani_lite::writeSettings() {
   settings->setValue( QStringLiteral("smtpLogin"), values->SmtpLogin() );
   settings->setValue( QStringLiteral("smtpPass"), values->SmtpPass() );
   settings->setValue( QStringLiteral("smtpPort"), values->SmtpPort() );
-  settings->endGroup();
+}
 
-  settings->beginGroup( QStringLiteral("regexps") );
+  {
+  SettingsGroup group(*settings, QStringLiteral("regexps"));
   settings->beginWriteArray( QStringLiteral("items") );
   settings->remove( QStringLiteral("") );
   qDebug() << "Num. regexps :" << lista.size();
@@ -331,130 +333,136 @@ void rssani_lite::writeSettings() {
     }
     settings->setValue( QStringLiteral("activa"), re.activa );
   }
+
   settings->endArray();
-  settings->endGroup();
+}
 
   // auths para los trackers
-  settings->beginGroup( QStringLiteral("trackers") );
-  settings->beginWriteArray( QStringLiteral("trackers") );
-  settings->remove( QStringLiteral("") );
-  qDebug() << "Num. trackers :" << listAuths.size();
-  auth au;
-  for ( int i = 0; i < listAuths.size(); ++i ) {
-    settings->setArrayIndex( i );
-    au = listAuths.at( i );
-    settings->setValue( QStringLiteral("tracker"), au.tracker );
-    settings->setValue( QStringLiteral("uid"), au.uid );
-    settings->setValue( QStringLiteral("pass"), au.pass );
-    settings->setValue( QStringLiteral("passkey"), au.passkey );
-    settings->setValue( QStringLiteral("referer"), au.referer );
-    settings->setValue( QStringLiteral("idField"), au.idField );
-    settings->setValue( QStringLiteral("urlDownload"), au.urlDownload );
-    settings->setValue( QStringLiteral("urlRss"), au.urlRss );
-    qDebug() << "-" << au.tracker << au.uid << au.pass << au.passkey;
+  {
+    SettingsGroup group(*settings, QStringLiteral("trackers"));
+    settings->beginWriteArray( QStringLiteral("trackers") );
+    settings->remove( QStringLiteral("") );
+    qDebug() << "Num. trackers :" << listAuths.size();
+    auth au;
+    for ( int i = 0; i < listAuths.size(); ++i ) {
+      settings->setArrayIndex( i );
+      au = listAuths.at( i );
+      settings->setValue( QStringLiteral("tracker"), au.tracker );
+      settings->setValue( QStringLiteral("uid"), au.uid );
+      settings->setValue( QStringLiteral("pass"), au.pass );
+      settings->setValue( QStringLiteral("passkey"), au.passkey );
+      settings->setValue( QStringLiteral("referer"), au.referer );
+      settings->setValue( QStringLiteral("idField"), au.idField );
+      settings->setValue( QStringLiteral("urlDownload"), au.urlDownload );
+      settings->setValue( QStringLiteral("urlRss"), au.urlRss );
+      qDebug() << "-" << au.tracker << au.uid << au.pass << au.passkey;
+    }
+
+    settings->endArray();
   }
 
-  settings->endArray();
-  settings->endGroup();
-
-  settings->beginGroup( QStringLiteral("irc") );
-  settings->setValue( QStringLiteral("nickIrc"), misdatos.nick );
-  settings->setValue( QStringLiteral("userIrc"), misdatos.user );
-  settings->setValue( QStringLiteral("nameIrc"), misdatos.name );
-  settings->setValue( QStringLiteral("serverIrc"), misdatos.server );
-  settings->setValue( QStringLiteral("portIrc"), misdatos.port );
-  settings->setValue( QStringLiteral("channelsIrc"), misdatos.channels );
-  settings->setValue( QStringLiteral("botNickIrc"), misdatos.botNick );
-  settings->setValue( QStringLiteral("debugIrc"), misdatos.debug );
-  settings->endGroup();
+  {
+    SettingsGroup group(*settings, QStringLiteral("irc"));
+    settings->setValue( QStringLiteral("nickIrc"), misdatos.nick );
+    settings->setValue( QStringLiteral("userIrc"), misdatos.user );
+    settings->setValue( QStringLiteral("nameIrc"), misdatos.name );
+    settings->setValue( QStringLiteral("serverIrc"), misdatos.server );
+    settings->setValue( QStringLiteral("portIrc"), misdatos.port );
+    settings->setValue( QStringLiteral("channelsIrc"), misdatos.channels );
+    settings->setValue( QStringLiteral("botNickIrc"), misdatos.botNick );
+    settings->setValue( QStringLiteral("debugIrc"), misdatos.debug );
+  }
 
   settings->sync();
 }
 
 void rssani_lite::readSettings() {
-  settings->beginGroup( QStringLiteral("principal") );
-  values->setFromMail( settings->value( QStringLiteral("fromMail") ).toString() );
-  values->setToMail( settings->value( QStringLiteral("toMail") ).toString() );
-  values->setRuta( settings->value( QStringLiteral("path") ).toString() );
-  values->setDebug( settings->value( QStringLiteral("debug"), false ).toBool() );
+  {
+    SettingsGroup group(*settings, QStringLiteral("principal"));
+    values->setFromMail( settings->value( QStringLiteral("fromMail") ).toString() );
+    values->setToMail( settings->value( QStringLiteral("toMail") ).toString() );
+    values->setRuta( settings->value( QStringLiteral("path") ).toString() );
+    values->setDebug( settings->value( QStringLiteral("debug"), false ).toBool() );
 
-  tiempo = settings->value( QStringLiteral("timer"), 10 ).toInt();
-  if ( tiempo <= 0 )
-    tiempo = 10;
-  values->setFecha( settings->value( QStringLiteral("fecha") ).toString() );
+    tiempo = settings->value( QStringLiteral("timer"), 10 ).toInt();
+    if ( tiempo <= 0 )
+      tiempo = 10;
+    values->setFecha( settings->value( QStringLiteral("fecha") ).toString() );
 
-  rpcUser = settings->value( QStringLiteral("rpcUser"), QStringLiteral("rssani-rpc") ).toString();
-  rpcPass = settings->value( QStringLiteral("rpcPass"), QStringLiteral("rssanipass-rpc") ).toString();
-  values->setSmtpServer( settings->value( QStringLiteral("smtpServer") ).toString() );
-  values->setSmtpLogin( settings->value( QStringLiteral("smtpLogin") ).toString() );
-  values->setSmtpPass( settings->value( QStringLiteral("smtpPass") ).toString() );
-  values->setSmtpPort( settings->value( QStringLiteral("smtpPort"), 587 ).toInt() );
-  settings->endGroup();
+    rpcUser = settings->value( QStringLiteral("rpcUser"), QStringLiteral("rssani-rpc") ).toString();
+    rpcPass = settings->value( QStringLiteral("rpcPass"), QStringLiteral("rssanipass-rpc") ).toString();
+    values->setSmtpServer( settings->value( QStringLiteral("smtpServer") ).toString() );
+    values->setSmtpLogin( settings->value( QStringLiteral("smtpLogin") ).toString() );
+    values->setSmtpPass( settings->value( QStringLiteral("smtpPass") ).toString() );
+    values->setSmtpPort( settings->value( QStringLiteral("smtpPort"), 587 ).toInt() );
+  }
 
-  settings->beginGroup( QStringLiteral("regexps") );
-  int size = settings->beginReadArray( QStringLiteral("items") );
-  qDebug() << "Num. regexps :" << size;
-  for ( int i = 0; i < size; ++i ) {
-    settings->setArrayIndex( i );
-    regexp re;
-    re.nombre = settings->value( QStringLiteral("item") ).toString();
-    re.vencimiento = settings->value( QStringLiteral("vencimiento") ).toString();
-    re.mail = settings->value( QStringLiteral("mail") ).toBool();
-    re.tracker = settings->value( QStringLiteral("tracker") ).toString();
-    re.diasDescarga = settings->value( QStringLiteral("dias"), 0 ).toInt();
-    if ( settings->value( QStringLiteral("fecha") ).toDateTime().isNull() ) {
-      re.fechaDescarga = QDateTime();
-    } else {
-      re.fechaDescarga = settings->value( QStringLiteral("fecha")).toDateTime();
+  {
+    SettingsGroup group(*settings, QStringLiteral("regexps"));
+    int size = settings->beginReadArray( QStringLiteral("items") );
+    qDebug() << "Num. regexps :" << size;
+    for ( int i = 0; i < size; ++i ) {
+      settings->setArrayIndex( i );
+      regexp re;
+      re.nombre = settings->value( QStringLiteral("item") ).toString();
+      re.vencimiento = settings->value( QStringLiteral("vencimiento") ).toString();
+      re.mail = settings->value( QStringLiteral("mail") ).toBool();
+      re.tracker = settings->value( QStringLiteral("tracker") ).toString();
+      re.diasDescarga = settings->value( QStringLiteral("dias"), 0 ).toInt();
+      if ( settings->value( QStringLiteral("fecha") ).toDateTime().isNull() ) {
+        re.fechaDescarga = QDateTime();
+      } else {
+        re.fechaDescarga = settings->value( QStringLiteral("fecha")).toDateTime();
+      }
+      re.activa = settings->value( QStringLiteral("activa"), true ).toBool();
+      lista.append( re );
+
+      if ( re.fechaDescarga.isValid() )
+        qDebug() << "-" << re.nombre << re.vencimiento << re.mail << re.tracker << re.diasDescarga << re.fechaDescarga.toString( QStringLiteral("dd-MM-yyyy") );
+      else 
+        qDebug() << "-" << re.nombre << re.vencimiento << re.mail << re.tracker << re.diasDescarga;
     }
-    re.activa = settings->value( QStringLiteral("activa"), true ).toBool();
-    lista.append( re );
 
-    if ( re.fechaDescarga.isValid() )
-      qDebug() << "-" << re.nombre << re.vencimiento << re.mail << re.tracker << re.diasDescarga << re.fechaDescarga.toString( QStringLiteral("dd-MM-yyyy") );
-    else 
-      qDebug() << "-" << re.nombre << re.vencimiento << re.mail << re.tracker << re.diasDescarga;
+    settings->endArray();
   }
 
-  settings->endArray();
-  settings->endGroup();
+  {
+    SettingsGroup group(*settings, QStringLiteral("trackers"));
+    // auths para los trackers
+    int size = settings->beginReadArray( QStringLiteral("trackers") );
+    auth au;
+    qDebug() << "Num. trackers :" << size;
+    for ( int i = 0; i < size; ++i ) {
+      settings->setArrayIndex( i );
+      au.tracker =	settings->value( QStringLiteral("tracker") ).toString();
+      au.uid = settings->value( QStringLiteral("uid") ).toString();
+      au.pass = settings->value( QStringLiteral("pass") ).toString();
+      au.passkey = settings->value( QStringLiteral("passkey") ).toString();
+      au.referer = settings->value( QStringLiteral("referer") ).toString();
+      au.idField = settings->value( QStringLiteral("idField") ).toString();
+      au.urlDownload = settings->value( QStringLiteral("urlDownload") ).toString();
+      au.urlRss = settings->value( QStringLiteral("urlRss") ).toString();
+      listAuths.append( au );
+      hashAuths.insert( au.tracker, au );
+      qDebug() << "-" << au.tracker << au.uid << au.pass << au.passkey;
+    }
 
-  settings->beginGroup( QStringLiteral("trackers") );
-  // auths para los trackers
-  size = settings->beginReadArray( QStringLiteral("trackers") );
-  auth au;
-  qDebug() << "Num. trackers :" << size;
-  for ( int i = 0; i < size; ++i ) {
-    settings->setArrayIndex( i );
-    au.tracker =	settings->value( QStringLiteral("tracker") ).toString();
-    au.uid = settings->value( QStringLiteral("uid") ).toString();
-    au.pass = settings->value( QStringLiteral("pass") ).toString();
-    au.passkey = settings->value( QStringLiteral("passkey") ).toString();
-au.referer = settings->value( QStringLiteral("referer") ).toString();
-  au.idField = settings->value( QStringLiteral("idField") ).toString();
-  au.urlDownload = settings->value( QStringLiteral("urlDownload") ).toString();
-  au.urlRss = settings->value( QStringLiteral("urlRss") ).toString();
-    listAuths.append( au );
-    hashAuths.insert( au.tracker, au );
-    qDebug() << "-" << au.tracker << au.uid << au.pass << au.passkey;
+    settings->endArray();
   }
 
-  settings->endArray();
-  settings->endGroup();
-
-  settings->beginGroup( QStringLiteral("irc") );
-  // auths para el irc
-  misdatos.nick = settings->value( QStringLiteral("nickIrc") ).toString();
-  misdatos.user = settings->value( QStringLiteral("userIrc") ).toString();
-  misdatos.name = settings->value( QStringLiteral("nameIrc") ).toString();
-  misdatos.server = settings->value( QStringLiteral("serverIrc") ).toString();
-  misdatos.port = settings->value( QStringLiteral("portIrc") ).toInt();
-  misdatos.channels = settings->value( QStringLiteral("channelsIrc") ).toStringList();
-  misdatos.botNick = settings->value( QStringLiteral("botNickIrc") ).toString();
-  misdatos.debug = settings->value( QStringLiteral("debugIrc") ).toBool();
-  if ( !misdatos.nick.isEmpty() && !misdatos.nick.startsWith( QStringLiteral("OFF:") ) ) misdatos.activo = true;
-
-  settings->endGroup();
+  {
+    SettingsGroup group(*settings, QStringLiteral("irc"));
+    // auths para el irc
+    misdatos.nick = settings->value( QStringLiteral("nickIrc") ).toString();
+    misdatos.user = settings->value( QStringLiteral("userIrc") ).toString();
+    misdatos.name = settings->value( QStringLiteral("nameIrc") ).toString();
+    misdatos.server = settings->value( QStringLiteral("serverIrc") ).toString();
+    misdatos.port = settings->value( QStringLiteral("portIrc") ).toInt();
+    misdatos.channels = settings->value( QStringLiteral("channelsIrc") ).toStringList();
+    misdatos.botNick = settings->value( QStringLiteral("botNickIrc") ).toString();
+    misdatos.debug = settings->value( QStringLiteral("debugIrc") ).toBool();
+    if ( !misdatos.nick.isEmpty() && !misdatos.nick.startsWith( QStringLiteral("OFF:") ) ) misdatos.activo = true;
+}
 }
 
 

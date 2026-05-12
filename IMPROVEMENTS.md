@@ -538,32 +538,9 @@ private:
 };
 ```
 
-### 5g. RAII wrapper for `QSettings` groups
+### 5g. RAII wrapper for `QSettings` groups — **DONE**
 
-**Files:** `rssani_lite.cpp:318-391`, `rssani_lite.cpp:395-479`
-
-Repeated `settings->beginGroup()` / `settings->endGroup()` pairs without RAII guarantees. If an exception or early return happens, the group remains open.
-
-**Fix:**
-
-```cpp
-class SettingsGroup {
-public:
-  SettingsGroup(QSettings &s, const QString &group) : m_settings(s) { m_settings.beginGroup(group); }
-  ~SettingsGroup() { m_settings.endGroup(); }
-  SettingsGroup(const SettingsGroup &) = delete;
-  SettingsGroup &operator=(const SettingsGroup &) = delete;
-private:
-  QSettings &m_settings;
-};
-
-// Usage:
-{
-  SettingsGroup group(*settings, QStringLiteral("principal"));
-  settings->setValue(QStringLiteral("fromMail"), values->FromMail());
-  // ...
-}  // auto endGroup
-```
+Added `SettingsGroup` RAII class that calls `beginGroup()` in constructor and `endGroup()` in destructor. Refactored `writeSettings()` and `readSettings()` to use scoped `SettingsGroup` objects, ensuring groups are always properly closed even on early returns or exceptions.
 
 ---
 
