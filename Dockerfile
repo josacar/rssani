@@ -12,12 +12,42 @@ RUN apk add --no-cache \
     qt6-qttools-dev \
     grpc-dev \
     protobuf-dev \
-    protoc
+    protoc \
+    ccache
 
 WORKDIR /app
 
-COPY CMakeLists.txt .
-COPY rssani.proto .
+# ============================================================================
+# Test build: builds everything including test executables
+# ============================================================================
+FROM base AS test-builder
+
+ENV CCACHE_DIR=/root/.ccache
+
+COPY CMakeLists.txt rssani.proto ./
+COPY mailsender.cpp mailsender.h .
+COPY myircsession.cpp myircsession.h .
+COPY rss_lite.cpp rss_lite.h .
+COPY rssani_lite.cpp rssani_lite.h .
+COPY grpc_server.cpp grpc_server.h .
+COPY main.cpp .
+COPY values.h .
+COPY rssani_en_US.ts .
+COPY tests/ tests/
+
+RUN --mount=type=cache,target=/root/.ccache \
+    ccache -z && \
+    mkdir -p build && cd build && cmake .. && make -j$(nproc) && \
+    ccache -s
+
+# ============================================================================
+# Release build: builds only the rssani binary (no tests)
+# ============================================================================
+FROM base AS release-builder
+
+ENV CCACHE_DIR=/root/.ccache
+
+COPY CMakeLists.txt rssani.proto ./
 COPY mailsender.cpp mailsender.h .
 COPY myircsession.cpp myircsession.h .
 COPY rss_lite.cpp rss_lite.h .
@@ -27,21 +57,10 @@ COPY main.cpp .
 COPY values.h .
 COPY rssani_en_US.ts .
 
-# ============================================================================
-# Test build: builds everything including test executables
-# ============================================================================
-FROM base AS test-builder
-
-COPY tests/ tests/
-
-RUN mkdir -p build && cd build && cmake .. && make -j$(nproc)
-
-# ============================================================================
-# Release build: builds only the rssani binary (no tests)
-# ============================================================================
-FROM base AS release-builder
-
-RUN mkdir -p build && cd build && cmake -DRSSANI_BUILD_TESTS=OFF .. && make -j$(nproc)
+RUN --mount=type=cache,target=/root/.ccache \
+    ccache -z && \
+    mkdir -p build && cd build && cmake -DRSSANI_BUILD_TESTS=OFF .. && make -j$(nproc) && \
+    ccache -s
 
 # ============================================================================
 # Test stage: run unit tests

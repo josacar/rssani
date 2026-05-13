@@ -47,16 +47,17 @@ The `rssani.proto` file is compiled automatically by CMake into `rssani.pb.cc/h`
 
 ## Docker
 
-The project uses a **multi-stage Dockerfile** with separate stages for testing and release builds:
+The project uses a **multi-stage Dockerfile** with layer caching for fast rebuilds:
 
 | Stage | Target | Image | Purpose |
 |---|---|---|---|
-| `test-builder` | (internal) | — | Builds all source code + test executables |
+| `base` | (internal) | — | Installs Alpine packages + ccache, runs CMake configure (cached unless `CMakeLists.txt` or `.proto` change) |
+| `test-builder` | (internal) | — | Copies source + test files, builds all test executables |
 | `test` | `test` | `rssani-tests` | Runs all 5 unit test executables |
-| `release-builder` | (internal) | — | Builds only the rssani binary (no tests) via `-DRSSANI_BUILD_TESTS=OFF` |
+| `release-builder` | (internal) | — | Copies source files only, builds the rssani binary (no tests) via `-DRSSANI_BUILD_TESTS=OFF` |
 | `release` | `release` | `rssani-release` | Minimal runtime image with only the rssani binary and libirc `.so` files (via `LD_LIBRARY_PATH=/app/lib`) |
 
-The `test` stage copies test sources and builds everything. The `release` stage builds only the `rssani` binary using `-DRSSANI_BUILD_TESTS=OFF` to skip test compilation.
+**Layer caching strategy:** The `base` stage copies only `CMakeLists.txt` and `rssani.proto` before running `cmake ..`. This means Alpine package installation and libirc fetch (via `ExternalProject_Add`) are cached across rebuilds — only source file changes trigger recompilation. `ccache` is installed and used via `CMAKE_CXX_COMPILER_LAUNCHER`; BuildKit `--mount=type=cache` persists the ccache directory across builds.
 
 The integration test image (`Dockerfile.integration`) **does not rebuild** the C++ binary — it reuses the pre-built one from `rssani-tests`, only installing the Python gRPC runtime and generating Python stubs from `rssani.proto`.
 
