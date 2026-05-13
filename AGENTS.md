@@ -154,7 +154,7 @@ Python stubs (`rssani_pb2.py`, `rssani_pb2_grpc.py`) are generated from `rssani.
 
 ## gRPC API
 
-All methods are defined in `rssani.proto` under the `rssani.RssaniService` service, listening on `0.0.0.0:50051`.
+All methods are defined in `rssani.proto` under the `rssani.RssaniService` service, listening on `[::]:50051`.
 
 | Method | Request | Response | Description |
 |---|---|---|---|

@@ -83,7 +83,7 @@ void GrpcServer::start() {
   serverThread = std::thread([this]() {
     RssaniServiceImpl service(rss);
     grpc::ServerBuilder builder;
-    builder.AddListeningPort("0.0.0.0:50051", grpc::InsecureServerCredentials());
+    builder.AddListeningPort("[::]:50051", grpc::InsecureServerCredentials());
     builder.RegisterService(&service);
     server = builder.BuildAndStart();
     if (!server) {
@@ -511,7 +511,7 @@ qCDebug(logRpc) << "RPC credentials updated, user:" << rss->getRpcUser();
 **File:** `grpc_server.cpp:217`
 
 ```cpp
-builder.AddListeningPort("0.0.0.0:50051", grpc::InsecureServerCredentials());
+builder.AddListeningPort("[::]:50051", grpc::InsecureServerCredentials());
 ```
 
 Uses insecure (plaintext) credentials. For production use, at minimum add TLS:
@@ -519,7 +519,7 @@ Uses insecure (plaintext) credentials. For production use, at minimum add TLS:
 ```cpp
 grpc::SslServerCredentialsOptions ssl_opts;
 // Configure with certificate and key
-builder.AddListeningPort("0.0.0.0:50051", grpc::SslServerCredentials(ssl_opts));
+builder.AddListeningPort("[::]:50051", grpc::SslServerCredentials(ssl_opts));
 ```
 
 Or add a `PonerCredenciales`-based authentication interceptor for a middle ground.

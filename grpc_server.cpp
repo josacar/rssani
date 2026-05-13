@@ -237,7 +237,7 @@ void GrpcServer::start() {
         RssaniServiceImpl service(rss);
 
         grpc::ServerBuilder builder;
-        builder.AddListeningPort("0.0.0.0:50051", grpc::InsecureServerCredentials());
+        builder.AddListeningPort("[::]:50051", grpc::InsecureServerCredentials());
         builder.RegisterService(&service);
 
         server = builder.BuildAndStart();
@@ -247,7 +247,7 @@ void GrpcServer::start() {
             return;
         }
 
-        qCDebug(logRpc) << "gRPC server listening on 0.0.0.0:50051";
+        qCDebug(logRpc) << "gRPC server listening on [::]:50051";
         server->Wait();
         qCDebug(logRpc) << "gRPC server stopped";
         running.store(false);

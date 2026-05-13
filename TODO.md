@@ -27,7 +27,7 @@
 - [x] Replace xmlrpc-c with gRPC++ in CMakeLists.txt
 - [x] Create `grpc_server.cpp/h` — `GrpcServer` class + `RssaniServiceImpl`
 - [x] Update `main.cpp` to use `GrpcServer` instead of `rssxmlrpc`
-- [x] gRPC server listens on `0.0.0.0:50051`
+- [x] gRPC server listens on `[::]:50051`
 - [x] Dockerfile updated for gRPC/Protobuf dependencies
 - [x] `Dockerfile.integration` for Python gRPC tests (reuses pre-built binary)
 - [x] `docker-compose.yml` with `unit-tests` and `integration-tests` services

@@ -125,7 +125,7 @@ python3 tests/integration/test_grpc.py ./build/rssani
 
 ## gRPC API
 
-The server listens on `0.0.0.0:50051`. See `rssani.proto` for the full service definition. Key methods:
+The server listens on `[::]:50051`. See `rssani.proto` for the full service definition. Key methods:
 
 | Method | Description |
 |---|---|
