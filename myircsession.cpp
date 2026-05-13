@@ -1,4 +1,3 @@
-#include <unistd.h>
 #include "myircsession.h"
 #include <QLoggingCategory>
 Q_LOGGING_CATEGORY(logIrc, "rssani.irc")
@@ -14,8 +13,11 @@ QString MyIrcSession::irc_color_strip_from_mirc( const QString &source ) {
   for ( int i = 0; i < source.size(); ++i ) {
     QChar c = source.at( i );
     ushort u = c.unicode();
-    if ( u == 0x02 || u == 0x1F || u == 0x16 || u == 0x0F ) continue;
-    if ( u == 0x03 ) {
+    if ( u == static_cast<ushort>(IrcCode::Bold) ||
+         u == static_cast<ushort>(IrcCode::Underline) ||
+         u == static_cast<ushort>(IrcCode::Reverse) ||
+         u == static_cast<ushort>(IrcCode::Reset) ) continue;
+    if ( u == static_cast<ushort>(IrcCode::Color) ) {
       if ( i + 1 < source.size() && source.at( i + 1 ).isDigit() ) {
         i++;
         if ( i + 1 < source.size() && source.at( i + 1 ).isDigit() ) i++;
@@ -106,6 +108,5 @@ void MyIrcSession::on_kick(libircclient::Parser *parser, libircclient::Channel *
   if ( !chan ) return;
   QString channel = chan->GetName();
   qCDebug(logIrc) << "Kicked from channel:" << channel;
-  sleep( 5 );
-  network->RequestJoin(channel);
+  QTimer::singleShot(5000, this, [this, channel](){ network->RequestJoin(channel); });
 }

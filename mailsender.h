@@ -20,7 +20,6 @@ class MailSender : public QObject
     enum Priority {HighPriority, NormalPriority, LowPriority};
     enum ContentType {TextContent, HtmlContent};
     enum Encoding {Encoding_7bit, Encoding_8bit, Encoding_base64};
-    enum ISO {utf8};
 
     /**
      * @brief Constructs a mail sender.
@@ -78,8 +77,6 @@ class MailSender : public QObject
     void setFromName (const QString &fromName)      {m_fromName = fromName;}
     /// @brief Sets the content type (text or HTML).
     void setContentType(ContentType contentType)	{m_contentType = contentType;}
-    /// @brief Sets the character set.
-    void setISO(ISO iso);
     /// @brief Sets the content transfer encoding.
     void setEncoding(Encoding encoding);
     /// @brief Sets the proxy authenticator.

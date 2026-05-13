@@ -58,7 +58,8 @@ MailSender::MailSender(const QString &smtpServer, const QString &from, const QSt
   setPriority (NormalPriority);
   setContentType(TextContent);
   setEncoding(Encoding_7bit);
-  setISO(utf8);
+  m_charset = QStringLiteral("utf-8");
+  m_bodyCodec = QStringLiteral("UTF-8");
   setSsl(false);
 }
 
@@ -74,13 +75,6 @@ void MailSender::setFrom(const QString &from)
   m_from = from;
   m_fromName = from;
   m_replyTo = from;
-}
-
-void MailSender::setISO(ISO iso)
-{
-  switch(iso) {
-    case utf8:     m_charset = QStringLiteral("utf-8"); m_bodyCodec = QStringLiteral("UTF-8"); break;
-  }
 }
 
 void MailSender::setEncoding(Encoding encoding)

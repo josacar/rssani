@@ -11,6 +11,18 @@ namespace libirc { class ServerAddress; }
 namespace libircclient { class Network; class Parser; class Channel; }
 
 /**
+ * @brief IRC mIRC control codes for formatting.
+ */
+enum class IrcCode : ushort {
+  Bold      = 0x02,
+  Color     = 0x03,
+  Reset     = 0x0F,
+  Italic    = 0x1D,
+  Underline = 0x1F,
+  Reverse   = 0x16
+};
+
+/**
  * @brief IRC connection parameters.
  */
 struct datosIrc {

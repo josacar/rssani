@@ -75,8 +75,8 @@ void Rss_lite::fetch() {
 
     QUrl urlTracker( trk->urlTracker );
 
-    if ( xmls.contains( urlTracker.host() ) )
-        xmls[urlTracker.host()]->clear(); //TODO: mirar
+    if ( auto it = xmls.find( urlTracker.host() ); it != xmls.end() )
+        it.value()->clear();
 
     QNetworkRequest request;
     request.setUrl(trk->urlRss);
@@ -99,12 +99,10 @@ void Rss_lite::fetch() {
 
 void Rss_lite::readDataRSS(QNetworkReply *reply) {
 
-  QString xml;
-
   if (reply->error() != QNetworkReply::NoError)
     return;
 
-  xml = QString( reply->readAll() );
+  QByteArray data = reply->readAll();
 
   QString host = reply->rawHeader("Host");
 
@@ -112,7 +110,7 @@ void Rss_lite::readDataRSS(QNetworkReply *reply) {
       xmls.insert( host, std::make_shared<QXmlStreamReader>() );
   }
 
-  xmls[host]->addData( xml );
+  xmls[host]->addData( data );
   parseXml( xmls[host].get() );
 
 }
@@ -369,7 +367,7 @@ void Rss_lite::readDataTorrent(QNetworkReply *reply) {
 
       fichero.replace( QChar('/'), QChar('-') );
       fichero.replace( QChar('\\'), QChar('-') );
-      QFile file( values->Ruta() + QChar('/') + fichero );
+      QFile file( QDir(values->Ruta()).filePath(fichero) );
 
       if ( file.exists() ) {
         reply->abort();
@@ -386,7 +384,7 @@ void Rss_lite::readDataTorrent(QNetworkReply *reply) {
 
     // Write torrent to disk and clean up
     QString fichero = ficheros.value( downloadKey );
-    QString fullPath = values->Ruta() + QChar('/') + fichero;
+    QString fullPath = QDir(values->Ruta()).filePath(fichero);
     QFile file( fullPath );
     if ( file.open( QIODevice::WriteOnly ) ) {
       file.write( *datos[downloadKey] );

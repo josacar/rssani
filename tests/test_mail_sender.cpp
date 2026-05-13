@@ -10,7 +10,6 @@ private slots:
     void testContentType();
     void testPriority();
     void testEncoding();
-    void testISO();
     void testMailData();
 };
 
@@ -80,15 +79,6 @@ void TestMailSender::testEncoding() {
     // No crash, setter works
 }
 
-void TestMailSender::testISO() {
-    QStringList recipients = {"to@example.com"};
-    MailSender sender("smtp.example.com", "from@example.com", recipients);
-    
-    sender.setISO(MailSender::utf8);
-    
-    // No crash, setter works
-}
-
 void TestMailSender::testMailData() {
     QStringList recipients = {"to@example.com"};
     MailSender sender("smtp.example.com", "from@example.com", recipients);
@@ -100,7 +90,6 @@ void TestMailSender::testMailData() {
     // Set content type and encoding
     sender.setContentType(MailSender::TextContent);
     sender.setEncoding(MailSender::Encoding_7bit);
-    sender.setISO(MailSender::utf8);
     
     // Note: mailData() is private, but we can test that the object is properly configured
     // Actual SMTP sending would require a real server, so we test configuration only

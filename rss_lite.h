@@ -3,6 +3,7 @@
 
 #include <QtCore/QFile>
 #include <QtCore/QDateTime>
+#include <QtCore/QDir>
 #include <QtCore/QStack>
 #include <QtCore/QTimer>
 #include <QtCore/QUrl>

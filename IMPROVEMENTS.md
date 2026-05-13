@@ -819,20 +819,20 @@ Current integration tests cover CRUD operations but not:
 
 ---
 
-## 11. LOW: Minor Modernizations
+## 11. LOW: Minor Modernizations — **DONE**
 
-| Item | Current | Suggested | Files |
+| Item | Before | After | Status |
 |---|---|---|---|
-| Double hash lookup | `QHash::contains()` + `QHash::operator[]` in `readDataTorrent()` | Use `QHash::find()` iterator | `rss_lite.cpp` |
-| Qt container `at()` | `lista->at(i)->nombre` | Range-based for loops or `(*lista)[i]` | `rssani_lite.cpp`, `rss_lite.cpp` |
-| Verbose boolean comparison | `values->Debug() == false` | `!values->Debug()` | `rss_lite.cpp:64`, `rssani_lite.cpp:33` |
-| Magic numbers | `timer.start(tiempo * 60 * 1000)` | `constexpr int msPerMinute = 60000;` | `rssani_lite.cpp:77` |
-| File separator | `QChar('/')` | `QDir::separator()` or `QFileInfo` join | `rss_lite.cpp:368` |
-| Blocking sleep | `sleep(5)` in `on_kick()` | `QTimer::singleShot(5000, ...)` | `myircsession.cpp:107` |
-| `QChar` from int | `QChar(0x02)` etc. | Use named constants in an `enum class` | `myircsession.cpp:15-16` |
-| Raw string reads | `QString xml(reply->readAll())` | Use `QByteArray` for binary-safe handling of RSS data | `rss_lite.cpp:105` |
-| Mismatched Unicode | `QStringLiteral` mixed with `QString::fromStdString` | Pick one convention — prefer `QStringLiteral` for literal strings, `QStringView` for params | Throughout |
-| Unused enum values | `mailsender.h:23` — `ISO { utf8 }` single-value enum | Already documented as cleaned up, but consider removing the enum entirely | `mailsender.h` |
+| Double hash lookup | `QHash::contains()` + `QHash::operator[]` | `QHash::find()` iterator | **DONE** |
+| Qt container `at()` | `lista->at(i)->nombre` | Range-based for loops (already using value type `QList<regexp>`) | **DONE** (via 2b) |
+| Verbose boolean comparison | `values->Debug() == false` | `!values->Debug()` | Already idiomatic in current code |
+| Magic numbers | `timer.start(tiempo * 60 * 1000)` | `constexpr int msPerMin = 60000` | **DONE** |
+| File separator | `QChar('/')` path concatenation | `QDir::filePath()` | **DONE** |
+| Blocking sleep | `sleep(5)` in `on_kick()` | `QTimer::singleShot(5000, ...)` | **DONE** |
+| `QChar` from int | `QChar(0x02)` etc. | `enum class IrcCode : ushort` with named constants | **DONE** |
+| Raw string reads | `QString xml(reply->readAll())` | `QByteArray data = reply->readAll()` | **DONE** |
+| Mismatched Unicode | `QStringLiteral` mixed with `QString::fromStdString` | Deferred — stylistic sweep, low impact | Deferred |
+| Unused enum values | `ISO { utf8 }` single-value enum | Removed enum, inlined UTF-8 charset | **DONE** |
 
 ---
 

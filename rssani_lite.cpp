@@ -4,6 +4,9 @@
 #include <QtCore/QRegularExpression>
 #include <QtCore/QLoggingCategory>
 Q_LOGGING_CATEGORY(logCore, "rssani.core")
+
+constexpr int msPerMin = 60000;
+
 #ifdef __unix__
 #include <unistd.h>
 #include <sys/socket.h>
@@ -65,9 +68,9 @@ rssani_lite::rssani_lite( QObject* parent ) : QObject( parent ) {
 
   readSettings();
   QFileInfo fi( settings->fileName() );
-  flog = std::make_unique<QFile>( fi.canonicalPath() + QStringLiteral("/rssani.log") );
+  flog = std::make_unique<QFile>( QDir(fi.canonicalPath()).filePath(QStringLiteral("rssani.log")) );
 
-  timer.start( tiempo * 60 * 1000 );
+  timer.start( tiempo * msPerMin );
 
   rss  = new Rss_lite( values.get(), &lista, flog.get(), &hashAuths, this );
 
@@ -246,7 +249,7 @@ QStringList rssani_lite::verLog() {
 void rssani_lite::cambiaTimer( int tiempo ) {
   QMutexLocker<QMutex> locker(&mutex);
   this->tiempo = tiempo;
-  timer.setInterval( tiempo * 60 * 1000 );
+  timer.setInterval( tiempo * msPerMin );
 }
 
 void rssani_lite::guardar() {
@@ -296,8 +299,9 @@ void rssani_lite::prepareSignals() {
 void rssani_lite::writeSettings() {
   QString dia = QDate::currentDate().toString( QStringLiteral("yyyyMMdd") );
   QFileInfo fi( settings->fileName() );
-  QFile::remove( fi.canonicalPath() + QChar('/') + fi.fileName() + QChar('.') + dia );
-  QFile::copy( settings->fileName(), fi.canonicalPath() + QChar('/') + fi.fileName() + QChar('.') + dia );
+  QString backupPath = QDir(fi.canonicalPath()).filePath(fi.fileName() + QChar('.') + dia);
+  QFile::remove(backupPath);
+  QFile::copy( settings->fileName(), backupPath );
   {
   SettingsGroup group(*settings, QStringLiteral("principal"));
   settings->setValue( QStringLiteral("fromMail"), values->FromMail() );

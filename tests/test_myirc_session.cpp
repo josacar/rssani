@@ -63,47 +63,47 @@ void TestMyIrcSession::testIrcColorStripFromMircEmpty() {
 }
 
 void TestMyIrcSession::testIrcColorStripFromMircBold() {
-    // Test bold code (0x02)
-    QString input = QString("Hello %1World").arg(QChar(0x02));
+    // Test bold code (IrcCode::Bold)
+    QString input = QString("Hello %1World").arg(QChar(static_cast<ushort>(IrcCode::Bold)));
     QString result = MyIrcSession::irc_color_strip_from_mirc(input);
     QCOMPARE(result, QString("Hello World"));
 }
 
 void TestMyIrcSession::testIrcColorStripFromMircColor() {
-    // Test color code (0x03) with color number
-    // Format: 0x03 followed by color number (1-2 digits)
-    QString input = QString("Hello %104World").arg(QChar(0x03));
+    // Test color code (IrcCode::Color) with color number
+    // Format: IrcCode::Color followed by color number (1-2 digits)
+    QString input = QString("Hello %104World").arg(QChar(static_cast<ushort>(IrcCode::Color)));
     QString result = MyIrcSession::irc_color_strip_from_mirc(input);
     QCOMPARE(result, QString("Hello World"));
 
     // Test with two-digit color number
-    input = QString("Hello %112World").arg(QChar(0x03));
+    input = QString("Hello %112World").arg(QChar(static_cast<ushort>(IrcCode::Color)));
     result = MyIrcSession::irc_color_strip_from_mirc(input);
     QCOMPARE(result, QString("Hello World"));
 
     // Test with foreground,background colors
-    input = QString("Hello %104,01World").arg(QChar(0x03));
+    input = QString("Hello %104,01World").arg(QChar(static_cast<ushort>(IrcCode::Color)));
     result = MyIrcSession::irc_color_strip_from_mirc(input);
     QCOMPARE(result, QString("Hello World"));
 }
 
 void TestMyIrcSession::testIrcColorStripFromMircUnderline() {
-    // Test underline code (0x1F)
-    QString input = QString("Hello %1World").arg(QChar(0x1F));
+    // Test underline code (IrcCode::Underline)
+    QString input = QString("Hello %1World").arg(QChar(static_cast<ushort>(IrcCode::Underline)));
     QString result = MyIrcSession::irc_color_strip_from_mirc(input);
     QCOMPARE(result, QString("Hello World"));
 }
 
 void TestMyIrcSession::testIrcColorStripFromMircReverse() {
-    // Test reverse code (0x16)
-    QString input = QString("Hello %1World").arg(QChar(0x16));
+    // Test reverse code (IrcCode::Reverse)
+    QString input = QString("Hello %1World").arg(QChar(static_cast<ushort>(IrcCode::Reverse)));
     QString result = MyIrcSession::irc_color_strip_from_mirc(input);
     QCOMPARE(result, QString("Hello World"));
 }
 
 void TestMyIrcSession::testIrcColorStripFromMircReset() {
-    // Test reset code (0x0F)
-    QString input = QString("Hello %1World").arg(QChar(0x0F));
+    // Test reset code (IrcCode::Reset)
+    QString input = QString("Hello %1World").arg(QChar(static_cast<ushort>(IrcCode::Reset)));
     QString result = MyIrcSession::irc_color_strip_from_mirc(input);
     QCOMPARE(result, QString("Hello World"));
 }
@@ -112,22 +112,22 @@ void TestMyIrcSession::testIrcColorStripFromMircComplex() {
     // Test complex string with multiple IRC codes
     // Bold + Color + Underline
     QString input = QStringLiteral("%1Hello%2 %3World%4").arg(
-        QChar(0x02),  // Bold
-        QString(QChar(0x03)) + QStringLiteral("04"),  // Color
-        QChar(0x1F),  // Underline
-        QChar(0x0F)   // Reset
+        QChar(static_cast<ushort>(IrcCode::Bold)),
+        QString(QChar(static_cast<ushort>(IrcCode::Color))) + QStringLiteral("04"),
+        QChar(static_cast<ushort>(IrcCode::Underline)),
+        QChar(static_cast<ushort>(IrcCode::Reset))
     );
     QString result = MyIrcSession::irc_color_strip_from_mirc(input);
     QCOMPARE(result, QStringLiteral("Hello World"));
 
     // Test multiple codes in sequence
     input = QStringLiteral("%1%2%3Test%4%5%6").arg(
-        QChar(0x02),  // Bold
-        QChar(0x1F),  // Underline
-        QChar(0x16),  // Reverse
-        QChar(0x0F),  // Reset
-        QChar(0x02),  // Bold again
-        QChar(0x1F)   // Underline again
+        QChar(static_cast<ushort>(IrcCode::Bold)),
+        QChar(static_cast<ushort>(IrcCode::Underline)),
+        QChar(static_cast<ushort>(IrcCode::Reverse)),
+        QChar(static_cast<ushort>(IrcCode::Reset)),
+        QChar(static_cast<ushort>(IrcCode::Bold)),
+        QChar(static_cast<ushort>(IrcCode::Underline))
     );
     result = MyIrcSession::irc_color_strip_from_mirc(input);
     QCOMPARE(result, QStringLiteral("Test"));

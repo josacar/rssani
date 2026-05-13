@@ -4,6 +4,7 @@
 #include <QtCore/QTimer>
 #include <QtCore/QSettings>
 #include <QtCore/QFileInfo>
+#include <QtCore/QDir>
 #include <QtCore/QMutex>
 #include <QtCore/QMutexLocker>
 #include <QtCore/QSocketNotifier>
