@@ -40,7 +40,7 @@ The `rssani.proto` file is compiled automatically by CMake into `rssani.pb.cc/h`
 - Configuration: `QSettings` (INI-style), stored in the standard Qt config path.
 - Logging: `QFile`-based plain text logs (`rssani.log`, `matches.log`) in the config directory.
 - Signal/slot: Qt5 pointer-to-member syntax (`&Class::method`) throughout.
-- Memory management: `std::unique_ptr` used where possible. `rss` and `session` are still raw `new` (Qt parent-child ownership, documented in caveats). Regexp list uses value types (`QList<regexp>`) instead of pointers to eliminate manual `new`/`delete`.
+- Memory management: `std::unique_ptr` used where possible. `rss` and `session` are `std::unique_ptr` (no Qt parent ownership). Regexp list uses value types (`QList<regexp>`). Trackers use value type (`QHash<QString, tracker>` instead of shared_ptr). Download context grouped into `DownloadContext` struct.
 - Thread safety: `rssani_lite` public methods are protected by `QMutex` for safe access from the gRPC thread. `listaRegexp()`, `listaAuths()`, and `getValues()` return snapshot copies (by value) to prevent data races. `setOpciones()` provides atomic option updates under the mutex.
 - gRPC server thread: stored as a `std::thread` member and joined in destructor (not detached).
 - GitHub Actions CI (`.github/workflows/ci.yml`) runs on every push and PR to `master`.
@@ -182,7 +182,7 @@ All methods are defined in `rssani.proto` under the `rssani.RssaniService` servi
 ## Important Caveats
 
 - IRC server/channel and tracker configuration are read from `QSettings`, with hardcoded defaults (`irc.irc-hispano.org`, `#PuntoTorrent`) as fallbacks.
-- `rss` and `session` in `rssani_lite` constructor are still raw `new` (Qt parent-child ownership).
+- `rss` and `session` in `rssani_lite` are `std::unique_ptr` (no Qt parent ownership).
 - `PonerOpciones` gRPC method now uses `setOpciones()` instead of directly mutating `Values*`, ensuring atomic updates under mutex.
 - `cambiaTimer` now calls `timer.setInterval()` to update the running timer. `verTimer()` returns the interval in minutes (matching `cambiaTimer()` input unit).
 - `handleSigTerm()` reads from the self-pipe with `char tmp = 0` (initialized).
@@ -192,7 +192,7 @@ All methods are defined in `rssani.proto` under the `rssani.RssaniService` servi
 | File | Notes |
 |---|---|
 | `main.cpp` | Entry point. Constructs `rssani_lite`, creates and starts `GrpcServer`. |
-| `rss_lite.cpp` | RSS/torrent logic. Trackers loaded from settings via `iniciaTrackers()`. Uses reply URL as download key for concurrent torrent downloads. Downloads are written to disk in `readDataTorrent()` and logged via `saveLog()`. Regexp list is `QList<regexp>` (value type). `parseTitle()` returns `MatchResult` enum class (`Download`, `AlreadyNotified`, `MailFailed`, `NotMatched`) instead of magic integers. `miraTitulo()` uses `[[fallthrough]]` with `MatchResult` enum. Path construction uses `QDir::filePath()`. RSS data read as `QByteArray` for binary safety. |
+| `rss_lite.cpp` | RSS/torrent logic. Trackers loaded from settings via `iniciaTrackers()`. Uses reply URL as download key for concurrent torrent downloads. Downloads are written to disk in `readDataTorrent()` and logged via `saveLog()`. Regexp list is `QList<regexp>` (value type). `parseTitle()` returns `MatchResult` enum class (`Download`, `AlreadyNotified`, `MailFailed`, `NotMatched`) instead of magic integers. `miraTitulo()` uses `[[fallthrough]]` with `MatchResult` enum. Path construction uses `QDir::filePath()`. RSS data read as `QByteArray` for binary safety. Tracker hash uses value type `QHash<QString, tracker>`. Download context grouped into `DownloadContext` struct. |
 | `rssani_lite.cpp` | Settings I/O, regexp CRUD, signal wiring. All public methods mutex-protected. Returns snapshot copies from `listaRegexp()`, `listaAuths()`, `getValues()`. `setOpciones()` atomically updates options under mutex. Uses `QRegularExpression`. POSIX signal handling uses self-pipe trick with `QSocketNotifier` to avoid deadlocks. No manual `new`/`delete` for regexp or auth entries — all value types. `editarRegexp()`, `editarRegexpI()`, and `activarRegexp()` return `true` on success and `false` on failure (standard bool convention). Timer uses `constexpr int msPerMin = 60000` constant. |
 | `myircsession.cpp` | IRC client. Uses `QRandomGenerator`. Connects to `libircclient::Network` signals (`Event_PRIVMSG`, `Event_Connected`, `Event_SelfKick`, `Event_MOTDEnd`). `on_kick()` uses `QTimer::singleShot` instead of blocking `sleep()`. IRC control codes use `IrcCode` enum class. |
 | `mailsender.cpp` | SMTP sender. Credentials read from `Values`. Uses `QRandomGenerator`. `ISO` enum removed — charset is always UTF-8, set directly in constructor. |

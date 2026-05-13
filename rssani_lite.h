@@ -229,7 +229,7 @@ class rssani_lite : public QObject {
      * @brief Reads configuration from disk.
      */
     void readSettings();
-    Rss_lite *rss;
+    std::unique_ptr<Rss_lite> rss;
     mutable QMutex mutex;
     std::unique_ptr<QSettings> settings;
     std::unique_ptr<Values> values;
@@ -242,7 +242,7 @@ class rssani_lite : public QObject {
     QTimer shutdown;
     std::unique_ptr<QFile> flog;
     QString rpcUser,rpcPass;
-    MyIrcSession *session;
+    std::unique_ptr<MyIrcSession> session;
     datosIrc misdatos;
     std::unique_ptr<QSocketNotifier> snTerm;
 signals:

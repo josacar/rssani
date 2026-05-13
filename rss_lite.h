@@ -34,6 +34,15 @@ enum class MatchResult : int8_t {
 };
 
 /**
+ * @brief Context for an in-progress torrent download.
+ */
+struct DownloadContext {
+  QString filename;                     ///< Torrent filename on disk.
+  std::shared_ptr<QByteArray> data;     ///< Downloaded data buffer.
+  QString site;                         ///< Hostname of the download site.
+};
+
+/**
  * @brief Regexp matching rule for torrent downloads.
  */
 struct regexp {
@@ -164,9 +173,7 @@ class Rss_lite : public QObject {
 
     QHash<QString, std::shared_ptr<QXmlStreamReader>> xmls;
 
-    QHash<QString,QString> ficheros; /**< Hash con el id y el nombre del torrent */
-    QHash<QString, std::shared_ptr<QByteArray>> datos; /**< hash con el id y los datos del torrent */
-    QHash<QString,QString> sites; /**< hash con el id y los site del torrent */
+    QHash<QString, DownloadContext> downloads; /**< Active torrent downloads keyed by URL */
     QHash<QString,QString> posts;
     QList<regexp> *lista;
     QString fecha;
@@ -185,7 +192,7 @@ class Rss_lite : public QObject {
 
     QNetworkAccessManager httpRss,httpTorrent;
     QFile *log; std::unique_ptr<QFile> matches;
-    QHash<QString, std::shared_ptr<tracker>> trackers; /**< hash con tracker y su configuracion */
+    QHash<QString, tracker> trackers; /**< hash con tracker y su configuracion */
     QHash<QString,auth> *hashAuths;
     QStringList listaTrackers;
 signals:

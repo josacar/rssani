@@ -128,31 +128,9 @@ The `miraTitulo()` switch now uses `MatchResult::Download`, `MatchResult::Alread
 
 ## 2. HIGH: Modernize Ownership & Smart Pointers
 
-### 2a. Replace raw `new` with smart pointers
+### 2a. Replace raw `new` with smart pointers — **DONE**
 
-**Files:** `rssani_lite.cpp:79`, `rssani_lite.cpp:82`
-
-```cpp
-// Current — raw new with Qt parent ownership
-rss = new Rss_lite(values.get(), lista.get(), flog.get(), hashAuths.get(), this);
-session = new MyIrcSession(this, &misdatos, misdatos.debug);
-```
-
-The AGENTS.md already documents this as a known caveat. These are the last two raw `new` calls in the codebase.
-
-**Fix:** Use `std::unique_ptr` with custom deleter or `QScopedPointer`. Since Qt parent-child ownership handles deletion, you need to be careful not to double-delete. Best approach: remove the Qt parent and use only `std::unique_ptr`:
-
-```cpp
-// In header:
-std::unique_ptr<Rss_lite> rss;
-std::unique_ptr<MyIrcSession> session;
-
-// In constructor:
-rss = std::make_unique<Rss_lite>(values.get(), lista.get(), flog.get(), hashAuths.get());
-session = std::make_unique<MyIrcSession>(&misdatos, misdatos.debug);
-```
-
-If you want to keep Qt parent ownership for convenience, use `QScopedPointer` with `deleteLater` or just leave the raw `new` with a documented lifetime contract.
+`rss` and `session` in `rssani_lite` are now `std::unique_ptr<Rss_lite>` and `std::unique_ptr<MyIrcSession>`, constructed via `std::make_unique`. No Qt parent ownership for these objects — lifetime is managed by the smart pointer.
 
 ### 2b. Make `regexp` a value type
 
@@ -193,23 +171,9 @@ lista.removeAt(i);  // no manual delete
 
 This eliminates the entire class of use-after-free and leak bugs. The trade-off is slightly more copying, but `regexp` is small (3 QStrings + 2 bools + int + QDateTime) so the cost is negligible.
 
-### 2c. Make `tracker` a value type
+### 2c. Make `tracker` a value type — **DONE**
 
-**File:** `rss_lite.h:41-49`, `rss_lite.cpp:427-441`
-
-`QHash<QString, std::shared_ptr<tracker>>` — shared ownership is unnecessary since `tracker` is only owned by this hash.
-
-**Fix:** Use `QHash<QString, tracker>` (value type):
-
-```cpp
-QHash<QString, tracker> trackers;
-
-// In iniciaTrackers():
-tracker trk;
-trk.urlTracker = au.tracker;
-trk.cookie = ...;
-trackers.insert(url, trk);
-```
+`QHash<QString, std::shared_ptr<tracker>>` changed to `QHash<QString, tracker>`. All tracker accesses now use `find()`/`constFind()` instead of `operator[]` + `.get()`. `iniciaTrackers()` creates value-type `tracker` structs instead of `std::make_shared<tracker>()`.
 
 ### 2d. Eliminate global `gRss` — **DONE**
 
@@ -648,28 +612,9 @@ Unified parameter names across header and source files:
 - `activarRegexp`: `regexpOrig`→`pos`
 - `miraSubida`: `msg`→`subida`
 
-### 8e. Delete `ficheros`/`datos`/`sites` entries during iteration
+### 8e. Group download hashes into `DownloadContext` struct — **DONE**
 
-**File:** `rss_lite.cpp:396-398`
-
-After writing a torrent to disk, entries are removed from the hashes:
-
-```cpp
-ficheros.remove(downloadKey);
-datos.remove(downloadKey);
-sites.remove(downloadKey);
-```
-
-This pattern works with `QHash` but is fragile. Consider using `QHash::take()` or a `struct` to group related data per download key:
-
-```cpp
-struct DownloadContext {
-  QString filename;
-  QByteArray data;
-  QString site;
-};
-QHash<QString, DownloadContext> downloads;
-```
+Replaced the three separate hashes (`ficheros`, `datos`, `sites`) with a single `QHash<QString, DownloadContext> downloads` where `DownloadContext` groups `filename`, `data`, and `site`. Uses `QHash::take()` for atomic removal after write.
 
 ---
 

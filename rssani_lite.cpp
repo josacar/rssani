@@ -72,11 +72,11 @@ rssani_lite::rssani_lite( QObject* parent ) : QObject( parent ) {
 
   timer.start( tiempo * msPerMin );
 
-  rss  = new Rss_lite( values.get(), &lista, flog.get(), &hashAuths, this );
+  rss  = std::make_unique<Rss_lite>( values.get(), &lista, flog.get(), &hashAuths, nullptr );
 
   if ( misdatos.activo ) {
-    session = new MyIrcSession( this,&misdatos,misdatos.debug);
-    connect( session, &MyIrcSession::nuevaSubida, this, &rssani_lite::miraSubida );
+    session = std::make_unique<MyIrcSession>( nullptr, &misdatos, misdatos.debug);
+    connect( session.get(), &MyIrcSession::nuevaSubida, this, &rssani_lite::miraSubida );
   } else {
     qCDebug(logCore) << "***** IRC deshabilitado *****";
   }
@@ -291,9 +291,9 @@ QString rssani_lite::getRpcPass() {
 // FIN METODOS RPC
 
 void rssani_lite::prepareSignals() {
-  connect( &timer, &QTimer::timeout, rss, &Rss_lite::fetch );
-  connect( this, &rssani_lite::timeout, rss, &Rss_lite::fetch );
-  connect( this, &rssani_lite::nuevaSubida, rss, [this](const QString &s, const QString &t, const QString &u){ rss->miraTitulo(s, t, u); });
+  connect( &timer, &QTimer::timeout, rss.get(), &Rss_lite::fetch );
+  connect( this, &rssani_lite::timeout, rss.get(), &Rss_lite::fetch );
+  connect( this, &rssani_lite::nuevaSubida, rss.get(), [this](const QString &s, const QString &t, const QString &u){ rss->miraTitulo(s, t, u); });
 }
 
 void rssani_lite::writeSettings() {

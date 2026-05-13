@@ -69,22 +69,22 @@ void Rss_lite::fetch() {
 
 
   for ( const auto &trkUrl : listaTrackers ) {
-    auto *trk = trackers[trkUrl].get();
+    auto it = trackers.constFind(trkUrl);
+    if ( it == trackers.constEnd() ) continue;
 
-    if ( trk == nullptr ) continue;
+    const tracker &trk = it.value();
+    QUrl urlTracker( trk.urlTracker );
 
-    QUrl urlTracker( trk->urlTracker );
-
-    if ( auto it = xmls.find( urlTracker.host() ); it != xmls.end() )
-        it.value()->clear();
+    if ( auto xmlIt = xmls.find( urlTracker.host() ); xmlIt != xmls.end() )
+        xmlIt.value()->clear();
 
     QNetworkRequest request;
-    request.setUrl(trk->urlRss);
+    request.setUrl(trk.urlRss);
     request.setRawHeader("Host", urlTracker.host().toUtf8() );
-    request.setRawHeader("Cookie", trk->cookie.toUtf8() );
-    request.setRawHeader("Referer", (trk->urlTracker + trk->referer).toUtf8() );
+    request.setRawHeader("Cookie", trk.cookie.toUtf8() );
+    request.setRawHeader("Referer", (trk.urlTracker + trk.referer).toUtf8() );
 
-    qCDebug(logRss) << "+ Me bajo" << urlTracker.host() << trk->urlRss;
+    qCDebug(logRss) << "+ Me bajo" << urlTracker.host() << trk.urlRss;
 
     httpRss.get(request);
   }
@@ -304,23 +304,24 @@ void Rss_lite::parseLink( QString linkString, QString title = "" ) {
   QString urlTracker( url.scheme() + QStringLiteral("://") + url.host() );
   QString path;
 
-  auto *trk = trackers[urlTracker].get();
-
-  if ( trk == nullptr )
+  auto it = trackers.find(urlTracker);
+  if ( it == trackers.end() )
       return;
+
+  const tracker &trk = it.value();
 
   if ( linkString.contains( QStringLiteral("download") ) ) { // Si el link tiene download lo bajo tal cual
     path = linkString.mid( urlTracker.size() ); // Cojo el path de la url con los args
     qCDebug(logRss) << "Bajando:" << linkString.mid( urlTracker.size() );;
   } else { // Cojo la URL a partir de la cfg y del id
-    path = trk->urlDownload + query.queryItemValue( trk->id ) ;
+    path = trk.urlDownload + query.queryItemValue( trk.id ) ;
   }
 
     QNetworkRequest request;
     request.setUrl(path);
     request.setRawHeader("Host", url.host().toUtf8() );
-    request.setRawHeader("Cookie", trk->cookie.toUtf8() );
-    request.setRawHeader("Referer", (trk->urlTracker + trk->referer).toUtf8() );
+    request.setRawHeader("Cookie", trk.cookie.toUtf8() );
+    request.setRawHeader("Referer", (trk.urlTracker + trk.referer).toUtf8() );
 
     httpTorrent.get(request);
     posts.insert( urlTracker + path, title );
@@ -339,7 +340,7 @@ void Rss_lite::readDataTorrent(QNetworkReply *reply) {
   if (reply->error() != QNetworkReply::NoError) {
     reply->abort();
   } else {
-    if ( ! ficheros.contains(downloadKey) ) {
+    if ( ! downloads.contains(downloadKey) ) {
       /*
        * Miramos a ver si existe el fichero y si existe abortamos
        * y si no asociamos el nombre y creamos un array para los datos
@@ -357,9 +358,10 @@ void Rss_lite::readDataTorrent(QNetworkReply *reply) {
         fichero = posts.take( url.toString() );
         // METODO VIEJO (poner el id)
         if ( fichero.isEmpty() ) {
-          auto *trk = trackers[reply->url().scheme() + QStringLiteral("://") + url.host()].get();
-          if ( trk == nullptr ) return;
-          fichero = QUrlQuery(url).queryItemValue( trk->id );
+          auto trkIt = trackers.find(reply->url().scheme() + QStringLiteral("://") + url.host());
+          if ( trkIt == trackers.end() ) return;
+          const tracker &trk = trkIt.value();
+          fichero = QUrlQuery(url).queryItemValue( trk.id );
         }
         fichero += QStringLiteral(".torrent");
         qCDebug(logRss) << "Fichero: " << fichero;
@@ -375,29 +377,28 @@ void Rss_lite::readDataTorrent(QNetworkReply *reply) {
         return;
       }
 
-      sites.insert( downloadKey, url.host() );
-      ficheros.insert( downloadKey, fichero );
-      datos.insert( downloadKey, std::make_shared<QByteArray>() );
+      DownloadContext ctx;
+      ctx.filename = fichero;
+      ctx.site = url.host();
+      ctx.data = std::make_shared<QByteArray>();
+      downloads.insert( downloadKey, std::move(ctx) );
     }
 
-    datos[downloadKey]->append( reply->readAll() );
+    downloads[downloadKey].data->append( reply->readAll() );
 
     // Write torrent to disk and clean up
-    QString fichero = ficheros.value( downloadKey );
-    QString fullPath = QDir(values->Ruta()).filePath(fichero);
+    DownloadContext ctx = downloads.take( downloadKey );
+    QString fullPath = QDir(values->Ruta()).filePath(ctx.filename);
     QFile file( fullPath );
     if ( file.open( QIODevice::WriteOnly ) ) {
-      file.write( *datos[downloadKey] );
+      file.write( *ctx.data );
       file.close();
-      qCDebug(logRss) << "Grabado:" << fichero;
-      saveLog( fichero );
+      qCDebug(logRss) << "Grabado:" << ctx.filename;
+      saveLog( ctx.filename );
       sendMail(
           QStringLiteral("RSSANI ") + QHostInfo::localHostName() + QDateTime::currentDateTime().toString( QStringLiteral(" dd/MM/yyyy hh:mm:ss") ),
-          fichero );
+          ctx.filename );
     }
-    ficheros.remove( downloadKey );
-    datos.remove( downloadKey );
-    sites.remove( downloadKey );
   }
 }
 
@@ -426,20 +427,20 @@ void Rss_lite::iniciaTrackers() {
   auth au;
   for ( auto it = hashAuths->constBegin(); it != hashAuths->constEnd(); ++it ) {
     au = it.value();
-    auto trk = std::make_shared<tracker>();
-    trk->urlTracker = au.tracker;
-    trk->cookie = QStringLiteral("pass=") + au.pass + QStringLiteral("; uid=") + au.uid;
-    trk->referer = au.referer;
-    trk->id = au.idField;
-    trk->urlDownload = au.urlDownload;
-    trk->urlRss = au.urlRss;
-    if ( !au.passkey.isEmpty() && trk->urlRss.contains( QStringLiteral("pid=") ) )
-      trk->urlRss += au.passkey;
-    trk->esRss = true;
-    QString url = trk->urlTracker;
+    tracker trk;
+    trk.urlTracker = au.tracker;
+    trk.cookie = QStringLiteral("pass=") + au.pass + QStringLiteral("; uid=") + au.uid;
+    trk.referer = au.referer;
+    trk.id = au.idField;
+    trk.urlDownload = au.urlDownload;
+    trk.urlRss = au.urlRss;
+    if ( !au.passkey.isEmpty() && trk.urlRss.contains( QStringLiteral("pid=") ) )
+      trk.urlRss += au.passkey;
+    trk.esRss = true;
+    QString url = trk.urlTracker;
     listaTrackers.append( url );
     qCDebug(logRss) << "+" << "Añadido tracker" << url;
-    trackers.insert( url, std::move(trk) );
+    trackers.insert( url, trk );
   }
 }
 
